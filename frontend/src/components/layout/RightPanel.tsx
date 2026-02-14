@@ -24,7 +24,7 @@ function syntaxHighlight(code: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/(\\[a-zA-Z]+)/g, '<span class="text-violet-300">$1</span>')
-    .replace(/(\{|\})/g, '<span class="text-yellow-400">$1</span>')
+    .replace(/(\{|\})/g, '<span class="text-gold">$1</span>')
     .replace(/(%.+)/g, '<span class="text-text-muted">$1</span>')
     .replace(/(\[|\])/g, '<span class="text-blue-400">$1</span>')
 }
@@ -64,12 +64,12 @@ export function RightPanel({ latex, editingLatex, onToggleEditing, onLatexChange
   }, [latex])
 
   return (
-    <div className="w-full bg-surface-panel border-l border-surface-border flex flex-col flex-shrink-0 hidden lg:flex">
+    <div className="w-full bg-surface-panel flex flex-col flex-shrink-0">
       {/* Tab bar */}
       <div className="flex items-center border-b border-surface-border">
         <button
           onClick={() => setTab('pdf')}
-          className={`flex-1 px-3 py-2.5 text-xs font-medium uppercase tracking-wider transition-colors ${
+          className={`flex-1 px-3 py-2.5 text-xs font-medium uppercase tracking-[0.12em] transition-all ${
             tab === 'pdf'
               ? 'text-violet-300 border-b-2 border-violet-500 bg-violet-500/5'
               : 'text-text-muted hover:text-text-secondary'
@@ -82,13 +82,13 @@ export function RightPanel({ latex, editingLatex, onToggleEditing, onLatexChange
         </button>
         <button
           onClick={() => setTab('code')}
-          className={`flex-1 px-3 py-2.5 text-xs font-medium uppercase tracking-wider transition-colors ${
+          className={`flex-1 px-3 py-2.5 text-xs font-medium uppercase tracking-[0.12em] transition-all ${
             tab === 'code'
               ? 'text-violet-300 border-b-2 border-violet-500 bg-violet-500/5'
               : 'text-text-muted hover:text-text-secondary'
           }`}
         >
-          Código LaTeX
+          LaTeX
         </button>
       </div>
 
@@ -100,7 +100,7 @@ export function RightPanel({ latex, editingLatex, onToggleEditing, onLatexChange
             <button
               onClick={onCompile}
               disabled={compiling}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors bg-violet-600 hover:bg-violet-500 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all bg-violet-600 hover:bg-violet-500 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-violet-600/20"
             >
               {compiling ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -119,7 +119,7 @@ export function RightPanel({ latex, editingLatex, onToggleEditing, onLatexChange
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white transition-transform ${
+                  className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white transition-transform shadow-sm ${
                     autoCompile ? 'translate-x-3' : ''
                   }`}
                 />
@@ -143,7 +143,7 @@ export function RightPanel({ latex, editingLatex, onToggleEditing, onLatexChange
           )}
 
           {pdfUrl && (
-            <div className="flex-1 relative">
+            <div className="flex-1 relative min-h-0">
               {compiling && (
                 <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 px-2 py-1 rounded-full bg-surface-elevated/90 border border-surface-border text-[10px] text-violet-300">
                   <RotateCw size={10} className="animate-spin" />
@@ -152,7 +152,7 @@ export function RightPanel({ latex, editingLatex, onToggleEditing, onLatexChange
               )}
               <iframe
                 src={pdfUrl}
-                className="w-full h-full border-0"
+                className="absolute inset-0 w-full h-full border-0"
                 title="PDF Preview"
               />
             </div>
@@ -163,7 +163,7 @@ export function RightPanel({ latex, editingLatex, onToggleEditing, onLatexChange
               <div className="flex flex-col gap-2">
                 <span className="text-xs">Clique em <strong className="text-violet-300">Compilar</strong> para gerar o PDF.</span>
                 <span className="text-[11px] text-text-muted/70 leading-relaxed">
-                  O preview mostrado aqui é o resultado final compilado pelo servidor texlive.net. Enquanto não compilar, esta área ficará em branco.
+                  O preview mostrado aqui é o resultado final compilado pelo servidor texlive.net.
                 </span>
               </div>
             </div>
@@ -174,12 +174,11 @@ export function RightPanel({ latex, editingLatex, onToggleEditing, onLatexChange
       {/* Code tab */}
       {tab === 'code' && (
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Code header with edit toggle + copy button */}
+          {/* Code header */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-surface-border/50">
-            {/* Edit toggle */}
             <button
               onClick={onToggleEditing}
-              className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-colors ${
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-all ${
                 editingLatex
                   ? 'text-violet-300 bg-violet-500/15 border border-violet-500/30'
                   : 'text-text-muted hover:text-text-primary hover:bg-surface-hover border border-transparent'
@@ -198,10 +197,9 @@ export function RightPanel({ latex, editingLatex, onToggleEditing, onLatexChange
               )}
             </button>
 
-            {/* Copy button */}
             <button
               onClick={copyToClipboard}
-              className="flex items-center gap-1.5 px-2 py-1 rounded text-xs text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors"
+              className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors"
               title="Copiar código"
             >
               {copied ? (

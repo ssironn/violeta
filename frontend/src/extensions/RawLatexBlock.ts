@@ -74,14 +74,39 @@ export const RawLatexBlock = Node.create({
       textarea.value = node.attrs.content as string
       dom.appendChild(textarea)
 
+      function stripMathDelimiters(latex: string): { math: string; displayMode: boolean } {
+        const trimmed = latex.trim()
+        // $$...$$ or \[...\] → display mode
+        if (trimmed.startsWith('$$') && trimmed.endsWith('$$')) {
+          return { math: trimmed.slice(2, -2).trim(), displayMode: true }
+        }
+        if (trimmed.startsWith('\\[') && trimmed.endsWith('\\]')) {
+          return { math: trimmed.slice(2, -2).trim(), displayMode: true }
+        }
+        // $...$ or \(...\) → inline mode
+        if (trimmed.startsWith('$') && trimmed.endsWith('$') && trimmed.length > 1) {
+          return { math: trimmed.slice(1, -1).trim(), displayMode: false }
+        }
+        if (trimmed.startsWith('\\(') && trimmed.endsWith('\\)')) {
+          return { math: trimmed.slice(2, -2).trim(), displayMode: false }
+        }
+        // \begin{...}...\end{...} → display mode, pass as-is
+        if (trimmed.startsWith('\\begin{')) {
+          return { math: trimmed, displayMode: true }
+        }
+        // No delimiters — treat as display math
+        return { math: trimmed, displayMode: true }
+      }
+
       function renderPreview(latex: string) {
         if (!latex.trim()) {
           preview.innerHTML = '<span class="raw-latex-placeholder">Digite LaTeX aqui...</span>'
           return
         }
         try {
-          preview.innerHTML = katex.renderToString(latex, {
-            displayMode: true,
+          const { math, displayMode } = stripMathDelimiters(latex)
+          preview.innerHTML = katex.renderToString(math, {
+            displayMode,
             throwOnError: false,
             macros: { ...katexMacros },
             errorColor: '#7a6299',

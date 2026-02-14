@@ -53,22 +53,24 @@ export function ShareModal({ docId, onClose }: ShareModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       <div
-        className="bg-surface-panel border border-surface-border rounded-xl shadow-xl w-full max-w-md mx-4 p-6"
+        className="bg-surface-panel border border-surface-border/60 rounded-2xl shadow-2xl shadow-violet-950/30 w-full max-w-md mx-4 p-6 animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <LinkIcon size={18} className="text-accent" />
-            <h2 className="text-lg font-semibold text-text-primary">Share Document</h2>
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-violet-600/15">
+              <LinkIcon size={16} className="text-violet-400" />
+            </div>
+            <h2 className="text-base font-medium text-text-primary">Share Document</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded hover:bg-surface-hover text-text-muted hover:text-text-primary transition-colors"
+            className="p-1.5 rounded-lg hover:bg-surface-hover text-text-muted hover:text-text-primary transition-colors"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
@@ -89,11 +91,11 @@ export function ShareModal({ docId, onClose }: ShareModalProps) {
                 type="text"
                 readOnly
                 value={shareUrl}
-                className="flex-1 px-3 py-2 rounded-lg bg-surface-elevated border border-surface-border text-text-primary text-sm focus:outline-none"
+                className="flex-1 px-3 py-2 rounded-lg bg-surface-bg/80 border border-surface-border text-text-primary text-sm focus:outline-none font-mono text-xs"
               />
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent hover:bg-violet-400 text-white text-sm font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all shadow-sm shadow-violet-600/20"
               >
                 {copied ? <Check size={14} /> : <Copy size={14} />}
                 {copied ? 'Copied!' : 'Copy'}
@@ -103,11 +105,11 @@ export function ShareModal({ docId, onClose }: ShareModalProps) {
             {error && <div className="text-error text-sm">{error}</div>}
 
             {/* Revoke button */}
-            <div className="pt-2 border-t border-surface-border">
+            <div className="pt-3 border-t border-surface-border">
               <button
                 onClick={handleRevoke}
                 disabled={revoking}
-                className="flex items-center gap-1.5 text-error hover:text-red-400 text-sm transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 text-text-muted hover:text-red-400 text-sm transition-colors disabled:opacity-50"
               >
                 <Unlink size={14} />
                 {revoking ? 'Revoking...' : 'Revoke share link'}

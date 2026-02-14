@@ -98,20 +98,22 @@ export function GoogleDriveModal({ currentDocId, onDocumentImported, onClose }: 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       <div
-        className="bg-surface-panel border border-surface-border rounded-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col shadow-2xl"
+        className="bg-surface-panel border border-surface-border/60 rounded-2xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col shadow-2xl shadow-violet-950/30 animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-surface-border">
-          <div className="flex items-center gap-2 text-text-primary">
-            <HardDrive size={18} />
+          <div className="flex items-center gap-2.5 text-text-primary">
+            <div className="p-1.5 rounded-lg bg-violet-600/15">
+              <HardDrive size={16} className="text-violet-400" />
+            </div>
             <span className="font-medium text-sm">Google Drive</span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded hover:bg-surface-hover text-text-muted hover:text-text-primary transition-colors"
+            className="p-1.5 rounded-lg hover:bg-surface-hover text-text-muted hover:text-text-primary transition-colors"
           >
             <X size={16} />
           </button>
@@ -120,32 +122,32 @@ export function GoogleDriveModal({ currentDocId, onDocumentImported, onClose }: 
         {/* Body */}
         <div className="flex-1 overflow-auto p-5">
           {error && (
-            <div className="mb-4 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+            <div className="mb-4 px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs animate-scale-in">
               {error}
             </div>
           )}
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 size={24} className="animate-spin text-text-muted" />
+              <Loader2 size={24} className="animate-spin text-violet-400" />
             </div>
           ) : connected === false ? (
             <div className="flex flex-col items-center gap-4 py-8">
-              <CloudOff size={40} className="text-text-muted" />
+              <CloudOff size={36} className="text-text-muted" />
               <p className="text-text-secondary text-sm text-center">
-                Google Drive nao esta conectado.
+                Google Drive is not connected.
               </p>
               <button
                 onClick={handleConnect}
                 disabled={connectingAuth}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent hover:bg-violet-400 text-white text-sm font-medium transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all disabled:opacity-50 shadow-sm shadow-violet-600/20"
               >
                 {connectingAuth ? (
                   <Loader2 size={14} className="animate-spin" />
                 ) : (
                   <HardDrive size={14} />
                 )}
-                Conectar Google Drive
+                Connect Google Drive
               </button>
             </div>
           ) : (
@@ -156,26 +158,26 @@ export function GoogleDriveModal({ currentDocId, onDocumentImported, onClose }: 
                   <button
                     onClick={handleExport}
                     disabled={exporting}
-                    className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg bg-accent hover:bg-violet-400 text-white text-sm font-medium transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all disabled:opacity-50 shadow-sm shadow-violet-600/20"
                   >
                     {exporting ? (
                       <Loader2 size={14} className="animate-spin" />
                     ) : (
                       <Upload size={14} />
                     )}
-                    Exportar documento atual para o Drive
+                    Export current document to Drive
                   </button>
                 </div>
               )}
 
               {/* File list */}
               <div className="space-y-1">
-                <p className="text-xs text-text-muted uppercase tracking-wider mb-2 px-1">
-                  Seus arquivos do Google Docs
+                <p className="text-[10px] text-text-muted uppercase tracking-[0.15em] mb-2 px-1">
+                  Your Google Docs
                 </p>
                 {files.length === 0 ? (
-                  <p className="text-sm text-text-muted px-1 py-4">
-                    Nenhum arquivo encontrado.
+                  <p className="text-sm text-text-muted px-1 py-4 italic">
+                    No files found.
                   </p>
                 ) : (
                   files.map((file) => (
@@ -190,14 +192,14 @@ export function GoogleDriveModal({ currentDocId, onDocumentImported, onClose }: 
                       <button
                         onClick={() => handleImport(file.id)}
                         disabled={importingId !== null}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-accent hover:bg-violet-400 text-white text-xs font-medium transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-violet-600/15 hover:bg-violet-600/25 text-violet-300 text-xs font-medium transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
                       >
                         {importingId === file.id ? (
                           <Loader2 size={12} className="animate-spin" />
                         ) : (
                           <Download size={12} />
                         )}
-                        Importar
+                        Import
                       </button>
                     </div>
                   ))

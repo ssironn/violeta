@@ -101,6 +101,9 @@ function processInlineContent(node: JSONContent, escapeText = false): string {
       if (child.type === 'inlineMath') {
         return `$${sanitizeMathUnicode(child.attrs?.latex ?? '')}$`
       }
+      if (child.type === 'latexSpacing') {
+        return child.attrs?.command ?? '\\quad'
+      }
       if (child.type === 'hardBreak') {
         return ' \\\\\n'
       }
@@ -211,6 +214,10 @@ function processNode(node: JSONContent): string {
 
     case 'rawLatex': {
       return node.attrs?.content ?? ''
+    }
+
+    case 'latexSpacing': {
+      return node.attrs?.command ?? '\\quad'
     }
 
     case 'mathEnvironment': {

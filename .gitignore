@@ -15,6 +15,7 @@ dist-ssr
 # Backend
 __pycache__/
 backend/.venv/
+*.db
 
 # Environment
 .env

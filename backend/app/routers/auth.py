@@ -64,6 +64,12 @@ async def refresh(request: Request, session: AsyncSession = Depends(get_session)
     return TokenResponse(access_token=new_access)
 
 
+@router.post("/logout")
+async def logout(response: Response):
+    response.delete_cookie(key="refresh_token")
+    return {"ok": True}
+
+
 @router.get("/me", response_model=UserResponse)
 async def me(user: User = Depends(get_current_user)):
     return user

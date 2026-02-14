@@ -1,8 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
 import { LoginPage } from './components/auth/LoginPage'
 import { SharedDocumentView } from './components/documents/SharedDocumentView'
 import { ShareModal } from './components/documents/ShareModal'
+import { HomeScreen } from './components/home/HomeScreen'
 import { useVioletaEditor, type MathEditState } from './hooks/useVioletaEditor'
 import { useLatexGenerator } from './hooks/useLatexGenerator'
 import { usePdfCompiler } from './hooks/usePdfCompiler'
@@ -12,26 +14,71 @@ import { updateKatexMacros } from './latex/katexMacros'
 import { beautifyLatex } from './latex/beautifyLatex'
 import { uploadTexFile } from './utils/uploadTex'
 import { AppLayout } from './components/layout/AppLayout'
-import { Sidebar } from './components/layout/Sidebar'
 import { RightPanel } from './components/layout/RightPanel'
 import { EditorArea } from './components/editor/EditorArea'
 import { Toolbar } from './components/toolbar/Toolbar'
 import { MathEditRouter } from './components/math-editors/MathEditRouter'
 import { ImageInsertModal } from './components/editor/ImageInsertModal'
 import { GoogleDriveModal } from './components/google/GoogleDriveModal'
-import { listDocuments, getDocument, createDocument, updateDocument, deleteDocument } from './api/documents'
-import type { DocumentListItem } from './api/documents'
+import { getDocument, updateDocument, listDocuments } from './api/documents'
 
-function EditorApp() {
+/** Requires auth — redirects to /signin if not logged in */
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-surface-bg">
+        <div className="flex flex-col items-center gap-3 animate-fade-in">
+          <h1 className="font-serif text-2xl text-text-primary tracking-tight">Violeta</h1>
+          <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) return <Navigate to="/signin" replace />
+  return <>{children}</>
+}
+
+/** Redirects to / if already logged in */
+function GuestOnly({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-surface-bg">
+        <div className="flex flex-col items-center gap-3 animate-fade-in">
+          <h1 className="font-serif text-2xl text-text-primary tracking-tight">Violeta</h1>
+          <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      </div>
+    )
+  }
+
+  if (user) return <Navigate to="/" replace />
+  return <>{children}</>
+}
+
+function EditorPage() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+
+  if (!id) return <Navigate to="/" replace />
+
+  return <EditorApp initialDocId={id} onGoHome={() => navigate('/')} />
+}
+
+function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome: () => void }) {
   const [mathEdit, setMathEdit] = useState<MathEditState | null>(null)
   const [imageModalOpen, setImageModalOpen] = useState(false)
 
-  // Document management state
-  const [documents, setDocuments] = useState<DocumentListItem[]>([])
-  const [currentDocId, setCurrentDocId] = useState<string | null>(null)
+  const [currentDocId] = useState<string | null>(initialDocId)
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [googleDriveModalOpen, setGoogleDriveModalOpen] = useState(false)
+  const [documentTitle, setDocumentTitle] = useState('')
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const titleSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const onMathClick = useCallback((state: MathEditState) => {
     setMathEdit(state)
@@ -40,31 +87,24 @@ function EditorApp() {
   const editor = useVioletaEditor({ onMathClick })
   const [customPreamble, setCustomPreamble] = useState('')
   const generatedLatex = useLatexGenerator(editor, customPreamble)
-  const [showCode, setShowCode] = useState(true)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   // Manual LaTeX editing state
   const [editingLatex, setEditingLatex] = useState(false)
   const [manualLatex, setManualLatex] = useState<string | null>(null)
 
-  // Hover-to-highlight: tracks which math node is hovered in the editor
+  // Hover-to-highlight
   const [hoveredMath, setHoveredMath] = useState<string | null>(null)
 
-  // Bidirectional sync: when editing LaTeX manually, parse and update the visual editor
   useLatexSync(editor, manualLatex, editingLatex)
 
-  // The effective latex: manual edits take priority when in edit mode
   const effectiveLatex = editingLatex && manualLatex !== null ? manualLatex : generatedLatex
 
-  // LaTeX compilation via texlive.net API
   const { pdfUrl, pdfBlob, compiling: pdfCompiling, error: pdfError, autoCompile, setAutoCompile, compile } = usePdfCompiler(effectiveLatex)
 
   function handleToggleEditing() {
     if (!editingLatex) {
-      // Entering edit mode — beautify the LaTeX first
       setManualLatex(beautifyLatex(generatedLatex))
     } else {
-      // Leaving edit mode — parse final manual LaTeX into editor
       if (manualLatex !== null && editor) {
         const preamble = extractCustomPreamble(manualLatex)
         setCustomPreamble(preamble)
@@ -89,14 +129,12 @@ function EditorApp() {
       updateKatexMacros(preamble)
       const doc = parseLatex(content)
       editor.commands.setContent(doc)
-      // If in edit mode, update the manual LaTeX display with beautified version
       if (editingLatex) {
         setManualLatex(beautifyLatex(content))
       }
     })
   }
 
-  // Called from MathPanel when user picks a template — opens the modal in insert mode
   const openMathEditor = useCallback((templateLatex: string) => {
     if (!editor) return
     setMathEdit({
@@ -107,12 +145,19 @@ function EditorApp() {
     })
   }, [editor])
 
-  // Load documents on mount
+  // Load initial document
   useEffect(() => {
-    listDocuments().then(setDocuments).catch(console.error)
-  }, [])
+    if (initialDocId && editor) {
+      getDocument(initialDocId)
+        .then(doc => {
+          setDocumentTitle(doc.title || '')
+          editor.commands.setContent(doc.content || { type: 'doc', content: [{ type: 'paragraph' }] })
+        })
+        .catch(console.error)
+    }
+  }, [initialDocId, editor])
 
-  // Auto-save with debounce
+  // Auto-save content with debounce
   useEffect(() => {
     if (!editor || !currentDocId) return
     const docId = currentDocId
@@ -130,64 +175,38 @@ function EditorApp() {
     }
   }, [editor, currentDocId])
 
-  async function handleSelectDocument(id: string) {
-    try {
-      const doc = await getDocument(id)
-      setCurrentDocId(id)
-      if (editor) {
-        editor.commands.setContent(doc.content || { type: 'doc', content: [{ type: 'paragraph' }] })
-      }
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  async function handleCreateDocument() {
-    try {
-      const doc = await createDocument()
-      setDocuments(prev => [doc, ...prev])
-      handleSelectDocument(doc.id)
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  async function handleDeleteDocument(id: string) {
-    try {
-      await deleteDocument(id)
-      setDocuments(prev => prev.filter(d => d.id !== id))
-      if (currentDocId === id) {
-        setCurrentDocId(null)
-        if (editor) editor.commands.setContent({ type: 'doc', content: [{ type: 'paragraph' }] })
-      }
-    } catch (err) {
-      console.error(err)
-    }
+  function handleTitleChange(title: string) {
+    setDocumentTitle(title)
+    if (!currentDocId) return
+    const docId = currentDocId
+    if (titleSaveTimerRef.current) clearTimeout(titleSaveTimerRef.current)
+    titleSaveTimerRef.current = setTimeout(() => {
+      updateDocument(docId, { title: title || 'Untitled' }).catch(console.error)
+    }, 800)
   }
 
   if (!editor) {
     return (
       <div className="flex items-center justify-center h-screen bg-surface-bg">
-        <div className="text-text-muted text-sm">Carregando editor...</div>
+        <div className="flex flex-col items-center gap-3 animate-fade-in">
+          <h1 className="font-serif text-2xl text-text-primary tracking-tight">Violeta</h1>
+          <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+        </div>
       </div>
     )
   }
 
   function handleMathSave(newLatex: string) {
     if (!mathEdit) return
-
     if (mathEdit.mode === 'insert') {
-      // Insert new math node at cursor position
       editor!.chain().focus().insertContent({
         type: 'inlineMath',
         attrs: { latex: newLatex },
       }).run()
     } else {
-      // Update existing math node
       const cmd = mathEdit.type === 'inlineMath' ? 'updateInlineMath' : 'updateBlockMath'
       ;(editor!.commands as any)[cmd]({ latex: newLatex, pos: mathEdit.pos })
     }
-
     setMathEdit(null)
     editor!.commands.focus()
   }
@@ -210,28 +229,15 @@ function EditorApp() {
             editor={editor}
             latex={effectiveLatex}
             pdfBlob={pdfBlob}
-            showCode={showCode}
-            onToggleCode={() => setShowCode(!showCode)}
             onOpenMathEditor={openMathEditor}
             onOpenImageModal={() => setImageModalOpen(true)}
             onUploadTex={handleUploadTex}
             onOpenGoogleDrive={() => setGoogleDriveModalOpen(true)}
-          />
-        }
-        sidebar={
-          <Sidebar
-            editor={editor}
-            collapsed={sidebarCollapsed}
-            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-            documents={documents}
-            currentDocId={currentDocId}
-            onSelectDocument={handleSelectDocument}
-            onCreateDocument={handleCreateDocument}
-            onDeleteDocument={handleDeleteDocument}
-            onShareDocument={(id) => {
-              setCurrentDocId(id)
-              setShareModalOpen(true)
-            }}
+            onGoHome={onGoHome}
+            onCompile={compile}
+            pdfCompiling={pdfCompiling}
+            documentTitle={documentTitle}
+            onTitleChange={handleTitleChange}
           />
         }
         editor={<EditorArea editor={editor} onOpenMathEditor={openMathEditor} onOpenImageModal={() => setImageModalOpen(true)} onHoverMath={setHoveredMath} />}
@@ -250,7 +256,6 @@ function EditorApp() {
             onCompile={compile}
           />
         }
-        showCode={showCode}
       />
       {mathEdit && (
         <MathEditRouter
@@ -274,7 +279,7 @@ function EditorApp() {
         <GoogleDriveModal
           currentDocId={currentDocId}
           onDocumentImported={() => {
-            listDocuments().then(setDocuments).catch(console.error)
+            listDocuments().catch(console.error)
           }}
           onClose={() => setGoogleDriveModalOpen(false)}
         />
@@ -289,30 +294,23 @@ function EditorApp() {
   )
 }
 
+function SharedPage() {
+  const { token } = useParams<{ token: string }>()
+  const { user } = useAuth()
+  if (!token) return <Navigate to="/" replace />
+  return <SharedDocumentView shareToken={token} user={user} />
+}
+
 export default function App() {
-  const { user, loading } = useAuth()
-  const [shareToken, setShareToken] = useState<string | null>(null)
-
-  useEffect(() => {
-    const match = window.location.pathname.match(/^\/shared\/(.+)$/)
-    if (match) setShareToken(match[1])
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-surface-bg">
-        <div className="text-text-muted text-sm">Loading...</div>
-      </div>
-    )
-  }
-
-  if (shareToken) {
-    return <SharedDocumentView shareToken={shareToken} user={user} />
-  }
-
-  if (!user) {
-    return <LoginPage />
-  }
-
-  return <EditorApp />
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/signin" element={<GuestOnly><LoginPage /></GuestOnly>} />
+        <Route path="/shared/:token" element={<SharedPage />} />
+        <Route path="/document/:id" element={<RequireAuth><EditorPage /></RequireAuth>} />
+        <Route path="/" element={<RequireAuth><HomeScreen /></RequireAuth>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  )
 }

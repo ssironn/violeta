@@ -15,6 +15,7 @@ import { MathEnvironment } from '../extensions/MathEnvironment'
 import { LatexTable } from '../extensions/LatexTable'
 import { CalloutBlock } from '../extensions/CalloutBlock'
 import { SlashCommands } from '../extensions/SlashCommands'
+import { LatexSpacing } from '../extensions/LatexSpacing'
 
 export interface MathEditState {
   latex: string
@@ -80,6 +81,7 @@ export function useVioletaEditor({ onMathClick }: UseVioletaEditorOptions) {
       LatexTable,
       CalloutBlock,
       SlashCommands,
+      LatexSpacing,
     ],
     content: '',
     editorProps: {

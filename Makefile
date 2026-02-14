@@ -1,5 +1,9 @@
 .PHONY: help install db db-stop backend frontend dev dev-stop test clean
 
+# Load .env if it exists
+-include .env
+export
+
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
@@ -31,6 +35,8 @@ backend: ## Start FastAPI backend (port 8000)
 		DATABASE_URL="postgresql+asyncpg://violeta:violeta@localhost:5432/violeta" \
 		JWT_SECRET="dev-secret-change-in-production" \
 		FRONTEND_URL="http://localhost:5173" \
+		GOOGLE_CLIENT_ID="$(GOOGLE_CLIENT_ID)" \
+		GOOGLE_CLIENT_SECRET="$(GOOGLE_CLIENT_SECRET)" \
 		uvicorn app.main:app --reload --port 8000
 
 # ── Frontend ──
@@ -52,10 +58,10 @@ dev: ## Start DB + backend + frontend (all in background, logs to /tmp)
 	@cd frontend && npm run dev > /tmp/violeta-frontend.log 2>&1 & echo $$! > /tmp/violeta-frontend.pid
 	@sleep 2
 	@echo ""
-	@echo "✓ Violeta is running:"
-	@echo "  Frontend → http://localhost:5173"
-	@echo "  Backend  → http://localhost:8000"
-	@echo "  API docs → http://localhost:8000/docs"
+	@echo "Violeta is running:"
+	@echo "  Frontend: http://localhost:5173"
+	@echo "  Backend:  http://localhost:8000"
+	@echo "  API docs: http://localhost:8000/docs"
 	@echo ""
 	@echo "  Logs: tail -f /tmp/violeta-backend.log /tmp/violeta-frontend.log"
 	@echo "  Stop: make dev-stop"
@@ -71,7 +77,7 @@ dev-stop: ## Stop all dev services
 
 up: ## Start full stack with Docker Compose
 	docker compose up --build -d
-	@echo "Frontend → http://localhost:3000"
+	@echo "Frontend: http://localhost:3000"
 
 down: ## Stop Docker Compose stack
 	docker compose down

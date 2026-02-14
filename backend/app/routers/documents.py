@@ -64,7 +64,7 @@ async def update_document(
         doc.title = data.title
     if data.content is not None:
         doc.content = data.content
-    doc.updated_at = datetime.now(timezone.utc)
+    doc.updated_at = datetime.utcnow()
     session.add(doc)
     await session.commit()
     await session.refresh(doc)

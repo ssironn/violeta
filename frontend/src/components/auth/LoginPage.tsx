@@ -35,35 +35,58 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-surface-bg">
-      <div className="w-full max-w-md mx-4">
-        <div className="bg-surface-panel rounded-2xl border border-surface-border shadow-lg p-8">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-accent mb-1">Violeta</h1>
-            <p className="text-text-muted text-sm">Visual LaTeX Editor</p>
-          </div>
+    <div className="flex items-center justify-center min-h-screen bg-surface-bg relative overflow-hidden">
+      {/* Background texture */}
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: `radial-gradient(circle at 25% 25%, #8b5cf6 1px, transparent 1px),
+                           radial-gradient(circle at 75% 75%, #d4a574 1px, transparent 1px)`,
+          backgroundSize: '60px 60px',
+        }}
+      />
 
+      {/* Decorative gradient orb */}
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-violet-600/8 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-gold/5 rounded-full blur-3xl" />
+
+      <div className="w-full max-w-sm mx-4 relative z-10 animate-slide-up">
+        {/* Brand header — outside the card */}
+        <div className="text-center mb-8">
+          <h1 className="font-serif text-5xl text-text-primary tracking-tight">
+            Violeta
+          </h1>
+          <div className="flex items-center justify-center gap-3 mt-3">
+            <span className="h-px w-8 bg-gradient-to-r from-transparent to-violet-500/40" />
+            <p className="text-text-muted text-xs tracking-[0.2em] uppercase">
+              Visual LaTeX Editor
+            </p>
+            <span className="h-px w-8 bg-gradient-to-l from-transparent to-violet-500/40" />
+          </div>
+        </div>
+
+        {/* Card */}
+        <div className="bg-surface-panel/80 backdrop-blur-sm rounded-2xl border border-surface-border/60 shadow-2xl shadow-violet-950/20 p-7">
           {/* Mode tabs */}
-          <div className="flex mb-6 bg-surface-elevated rounded-lg p-1">
+          <div className="flex mb-6 bg-surface-bg/60 rounded-lg p-0.5">
             <button
               type="button"
               onClick={() => switchMode('login')}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                 mode === 'login'
-                  ? 'bg-accent text-white'
-                  : 'text-text-secondary hover:text-text-primary'
+                  ? 'bg-violet-600 text-white shadow-sm shadow-violet-600/25'
+                  : 'text-text-muted hover:text-text-secondary'
               }`}
             >
-              Login
+              Sign In
             </button>
             <button
               type="button"
               onClick={() => switchMode('register')}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                 mode === 'register'
-                  ? 'bg-accent text-white'
-                  : 'text-text-secondary hover:text-text-primary'
+                  ? 'bg-violet-600 text-white shadow-sm shadow-violet-600/25'
+                  : 'text-text-muted hover:text-text-secondary'
               }`}
             >
               Register
@@ -73,8 +96,8 @@ export function LoginPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && (
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-text-secondary mb-1">
+              <div className="animate-slide-up">
+                <label htmlFor="name" className="block text-xs font-medium text-text-muted mb-1.5 tracking-wide uppercase">
                   Name
                 </label>
                 <input
@@ -83,14 +106,14 @@ export function LoginPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="w-full px-3 py-2 rounded-lg bg-surface-elevated border border-surface-border text-text-primary placeholder-text-muted text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-surface-bg/80 border border-surface-border text-text-primary placeholder-text-muted/50 text-sm focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/30 transition-all"
                   placeholder="Your name"
                 />
               </div>
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-text-secondary mb-1">
+              <label htmlFor="email" className="block text-xs font-medium text-text-muted mb-1.5 tracking-wide uppercase">
                 Email
               </label>
               <input
@@ -99,13 +122,13 @@ export function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-3 py-2 rounded-lg bg-surface-elevated border border-surface-border text-text-primary placeholder-text-muted text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
+                className="w-full px-3.5 py-2.5 rounded-lg bg-surface-bg/80 border border-surface-border text-text-primary placeholder-text-muted/50 text-sm focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/30 transition-all"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-text-secondary mb-1">
+              <label htmlFor="password" className="block text-xs font-medium text-text-muted mb-1.5 tracking-wide uppercase">
                 Password
               </label>
               <input
@@ -114,14 +137,14 @@ export function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-3 py-2 rounded-lg bg-surface-elevated border border-surface-border text-text-primary placeholder-text-muted text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
+                className="w-full px-3.5 py-2.5 rounded-lg bg-surface-bg/80 border border-surface-border text-text-primary placeholder-text-muted/50 text-sm focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/30 transition-all"
                 placeholder="Enter your password"
               />
             </div>
 
             {/* Error message */}
             {error && (
-              <div className="text-error text-sm py-2 px-3 bg-surface-elevated rounded-lg border border-surface-border">
+              <div className="text-error text-sm py-2.5 px-3.5 bg-error/5 rounded-lg border border-error/20 animate-scale-in">
                 {error}
               </div>
             )}
@@ -130,7 +153,7 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 rounded-lg bg-accent text-white font-medium text-sm hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full py-2.5 rounded-lg bg-gradient-to-r from-violet-600 to-violet-500 text-white font-medium text-sm hover:from-violet-500 hover:to-violet-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-violet-600/20 hover:shadow-violet-500/30 active:scale-[0.98]"
             >
               {loading
                 ? 'Please wait...'
@@ -148,7 +171,7 @@ export function LoginPage() {
                 <button
                   type="button"
                   onClick={() => switchMode('register')}
-                  className="text-accent hover:underline font-medium"
+                  className="text-gold hover:text-gold/80 font-medium transition-colors"
                 >
                   Register
                 </button>
@@ -159,7 +182,7 @@ export function LoginPage() {
                 <button
                   type="button"
                   onClick={() => switchMode('login')}
-                  className="text-accent hover:underline font-medium"
+                  className="text-gold hover:text-gold/80 font-medium transition-colors"
                 >
                   Sign In
                 </button>
@@ -167,6 +190,11 @@ export function LoginPage() {
             )}
           </p>
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-text-muted/50 text-[11px] mt-6 tracking-wide">
+          A beautiful way to write LaTeX
+        </p>
       </div>
     </div>
   )

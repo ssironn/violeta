@@ -17,6 +17,11 @@ router = APIRouter(prefix="/api/google", tags=["google-drive"])
 
 @router.get("/auth")
 async def google_auth(user: User = Depends(get_current_user)):
+    if not settings.google_client_id or not settings.google_client_secret:
+        raise HTTPException(
+            status_code=501,
+            detail="Google Drive integration is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.",
+        )
     flow = create_oauth_flow()
     auth_url, _ = flow.authorization_url(
         access_type="offline",

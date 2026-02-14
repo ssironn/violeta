@@ -39,6 +39,11 @@ export async function getMe(): Promise<User> {
   return res.json()
 }
 
-export function logout() {
+export async function logout() {
+  try {
+    await apiFetch('/auth/logout', { method: 'POST' })
+  } catch {
+    // ignore errors — we still want to clear locally
+  }
   setAccessToken(null)
 }
