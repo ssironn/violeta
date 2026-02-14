@@ -13,6 +13,10 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/texlive-api/, ''),
         followRedirects: true,
       },
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
     },
   },
 })
