@@ -23,6 +23,12 @@ import { MathEditRouter } from './components/math-editors/MathEditRouter'
 import { ImageInsertModal } from './components/editor/ImageInsertModal'
 import { GoogleDriveModal } from './components/google/GoogleDriveModal'
 import { getDocument, updateDocument, listDocuments } from './api/documents'
+import { FeedPage } from './components/publications/FeedPage'
+import { ExplorePage } from './components/publications/ExplorePage'
+import { PublicationPage } from './components/publications/PublicationPage'
+import { PublicPublicationPage } from './components/publications/PublicPublicationPage'
+import { ProfilePage } from './components/publications/ProfilePage'
+import { PublishModal } from './components/publications/PublishModal'
 
 /** Requires auth — redirects to /signin if not logged in */
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -72,8 +78,10 @@ function EditorPage() {
 }
 
 function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome: () => void }) {
+  const navigate = useNavigate()
   const [mathEdit, setMathEdit] = useState<MathEditState | null>(null)
   const [imageModalOpen, setImageModalOpen] = useState(false)
+  const [publishModalOpen, setPublishModalOpen] = useState(false)
 
   const [currentDocId] = useState<string | null>(initialDocId)
   const [shareModalOpen, setShareModalOpen] = useState(false)
@@ -261,6 +269,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
             pdfCompiling={pdfCompiling}
             documentTitle={documentTitle}
             onTitleChange={handleTitleChange}
+            onPublish={() => setPublishModalOpen(true)}
           />
         }
         editor={<EditorArea editor={editor} onOpenMathEditor={openMathEditor} onOpenImageModal={() => setImageModalOpen(true)} onHoverMath={setHoveredMath} />}
@@ -314,6 +323,18 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
           onClose={() => setShareModalOpen(false)}
         />
       )}
+      {publishModalOpen && (
+        <PublishModal
+          pdfBlob={pdfBlob}
+          documentId={currentDocId ?? undefined}
+          documentTitle={documentTitle}
+          onPublished={(pubId) => {
+            setPublishModalOpen(false)
+            navigate(`/publication/${pubId}`)
+          }}
+          onClose={() => setPublishModalOpen(false)}
+        />
+      )}
     </>
   )
 }
@@ -331,7 +352,12 @@ export default function App() {
       <Routes>
         <Route path="/signin" element={<GuestOnly><LoginPage /></GuestOnly>} />
         <Route path="/shared/:token" element={<SharedPage />} />
+        <Route path="/p/:token" element={<PublicPublicationPage />} />
         <Route path="/document/:id" element={<RequireAuth><EditorPage /></RequireAuth>} />
+        <Route path="/feed" element={<RequireAuth><FeedPage /></RequireAuth>} />
+        <Route path="/explore" element={<RequireAuth><ExplorePage /></RequireAuth>} />
+        <Route path="/publication/:id" element={<RequireAuth><PublicationPage /></RequireAuth>} />
+        <Route path="/profile/:id" element={<RequireAuth><ProfilePage /></RequireAuth>} />
         <Route path="/" element={<RequireAuth><HomeScreen /></RequireAuth>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

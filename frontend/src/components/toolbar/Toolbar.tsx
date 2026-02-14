@@ -23,6 +23,7 @@ import {
   Undo2,
   Redo2,
   Play,
+  Globe,
 } from 'lucide-react'
 import katex from 'katex'
 import { katexMacros } from '../../latex/katexMacros'
@@ -49,6 +50,7 @@ interface ToolbarProps {
   pdfCompiling: boolean
   documentTitle?: string
   onTitleChange?: (title: string) => void
+  onPublish?: () => void
 }
 
 function SymbolCell({ display, onClick }: { display: string; onClick: () => void }) {
@@ -143,6 +145,7 @@ export function Toolbar({
   pdfCompiling,
   documentTitle,
   onTitleChange,
+  onPublish,
 }: ToolbarProps) {
   const [showSymbols, setShowSymbols] = useState(false)
   const [showMathTemplates, setShowMathTemplates] = useState(false)
@@ -257,6 +260,17 @@ export function Toolbar({
             )}
             <span>{pdfCompiling ? 'Compilando...' : 'Compilar'}</span>
           </button>
+          {onPublish && (
+            <button
+              onClick={onPublish}
+              className="gdocs-compile-btn"
+              style={{ background: 'var(--violet-500, #8b5cf6)' }}
+              title="Publicar documento"
+            >
+              <Globe size={14} />
+              <span>Publicar</span>
+            </button>
+          )}
         </div>
       </div>
 

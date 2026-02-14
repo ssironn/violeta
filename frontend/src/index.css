@@ -1264,6 +1264,27 @@ body {
   background: var(--color-surface-hover);
 }
 
+.home-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  background: none;
+  border: 1px solid transparent;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: var(--font-sans);
+}
+
+.home-nav-link:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-hover);
+  border-color: var(--color-surface-border);
+}
+
 /* Content area */
 .home-content {
   position: relative;

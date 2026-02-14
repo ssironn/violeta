@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { Plus, FileText, Clock, Trash2, Loader2 } from 'lucide-react'
+import { Plus, FileText, Clock, Trash2, Loader2, Globe, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import katex from 'katex'
 import { listDocuments, getDocument, createDocument, deleteDocument } from '../../api/documents'
@@ -346,9 +346,19 @@ export function HomeScreen() {
             {greeting}, <strong>{user?.name?.split(' ')[0]}</strong>
           </span>
         </div>
-        <button onClick={logout} className="home-logout">
-          Sair
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => navigate('/feed')} className="home-nav-link" title="Feed">
+            <Users size={15} />
+            <span>Feed</span>
+          </button>
+          <button onClick={() => navigate('/explore')} className="home-nav-link" title="Explorar">
+            <Globe size={15} />
+            <span>Explorar</span>
+          </button>
+          <button onClick={logout} className="home-logout">
+            Sair
+          </button>
+        </div>
       </header>
 
       {/* Content */}
