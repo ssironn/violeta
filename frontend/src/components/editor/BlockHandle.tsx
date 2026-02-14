@@ -111,6 +111,7 @@ export function BlockHandle({ editor }: Props) {
   const handleRef = useRef<HTMLDivElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hoveringHandleRef = useRef(false)
 
   // Find the closest top-level block to a given Y coordinate
   const findBlockAtY = useCallback(
@@ -170,10 +171,10 @@ export function BlockHandle({ editor }: Props) {
     function onMouseLeave() {
       // Delay hiding so the user can reach the handle
       hideTimeoutRef.current = setTimeout(() => {
-        if (!popoverOpen) {
+        if (!popoverOpen && !hoveringHandleRef.current) {
           setHovered(false)
         }
-      }, 200)
+      }, 300)
     }
 
     editorDom.addEventListener('mousemove', onMouseMove)
@@ -188,6 +189,7 @@ export function BlockHandle({ editor }: Props) {
 
   // Keep handle visible when hovering the handle itself
   const onHandleMouseEnter = () => {
+    hoveringHandleRef.current = true
     if (hideTimeoutRef.current) {
       clearTimeout(hideTimeoutRef.current)
       hideTimeoutRef.current = null
@@ -196,10 +198,13 @@ export function BlockHandle({ editor }: Props) {
   }
 
   const onHandleMouseLeave = () => {
+    hoveringHandleRef.current = false
     if (!popoverOpen) {
       hideTimeoutRef.current = setTimeout(() => {
-        setHovered(false)
-      }, 200)
+        if (!hoveringHandleRef.current) {
+          setHovered(false)
+        }
+      }, 300)
     }
   }
 
@@ -238,7 +243,9 @@ export function BlockHandle({ editor }: Props) {
     if (!popoverOpen) {
       // Give a grace period before hiding handle
       hideTimeoutRef.current = setTimeout(() => {
-        setHovered(false)
+        if (!hoveringHandleRef.current) {
+          setHovered(false)
+        }
       }, 300)
     }
   }, [popoverOpen])
@@ -453,7 +460,7 @@ export function BlockHandle({ editor }: Props) {
       className="absolute z-30"
       style={{
         top: activeBlock.domTop,
-        left: -4,
+        left: 40,
         opacity: isVisible ? 1 : 0,
         pointerEvents: isVisible ? 'auto' : 'none',
         transition: 'opacity 150ms ease',

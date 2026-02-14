@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import katex from 'katex'
 import { katexMacros } from '../../latex/katexMacros'
+import { symbolGroups } from '../../data/symbolMap'
 import { SPACING_OPTIONS } from '../../extensions/LatexSpacing'
 import { ToolbarButton } from './ToolbarButton'
 import { ToolbarDivider } from './ToolbarDivider'
@@ -49,93 +50,6 @@ interface ToolbarProps {
   documentTitle?: string
   onTitleChange?: (title: string) => void
 }
-
-// Quick math symbols for the Símbolos panel
-const symbolGroups = [
-  {
-    label: 'Operadores',
-    symbols: [
-      { latex: '+', display: '+' },
-      { latex: '-', display: '-' },
-      { latex: '\\times', display: '\\times' },
-      { latex: '\\div', display: '\\div' },
-      { latex: '\\pm', display: '\\pm' },
-      { latex: '\\neq', display: '\\neq' },
-      { latex: '\\leq', display: '\\leq' },
-      { latex: '\\geq', display: '\\geq' },
-      { latex: '\\approx', display: '\\approx' },
-      { latex: '\\equiv', display: '\\equiv' },
-      { latex: '\\sim', display: '\\sim' },
-      { latex: '\\propto', display: '\\propto' },
-    ],
-  },
-  {
-    label: 'Gregos',
-    symbols: [
-      { latex: '\\alpha', display: '\\alpha' },
-      { latex: '\\beta', display: '\\beta' },
-      { latex: '\\gamma', display: '\\gamma' },
-      { latex: '\\delta', display: '\\delta' },
-      { latex: '\\epsilon', display: '\\epsilon' },
-      { latex: '\\theta', display: '\\theta' },
-      { latex: '\\lambda', display: '\\lambda' },
-      { latex: '\\mu', display: '\\mu' },
-      { latex: '\\pi', display: '\\pi' },
-      { latex: '\\sigma', display: '\\sigma' },
-      { latex: '\\phi', display: '\\phi' },
-      { latex: '\\omega', display: '\\omega' },
-      { latex: '\\Delta', display: '\\Delta' },
-      { latex: '\\Sigma', display: '\\Sigma' },
-      { latex: '\\Omega', display: '\\Omega' },
-      { latex: '\\Phi', display: '\\Phi' },
-    ],
-  },
-  {
-    label: 'Setas',
-    symbols: [
-      { latex: '\\rightarrow', display: '\\rightarrow' },
-      { latex: '\\leftarrow', display: '\\leftarrow' },
-      { latex: '\\Rightarrow', display: '\\Rightarrow' },
-      { latex: '\\Leftarrow', display: '\\Leftarrow' },
-      { latex: '\\leftrightarrow', display: '\\leftrightarrow' },
-      { latex: '\\mapsto', display: '\\mapsto' },
-    ],
-  },
-  {
-    label: 'Conjuntos',
-    symbols: [
-      { latex: '\\in', display: '\\in' },
-      { latex: '\\notin', display: '\\notin' },
-      { latex: '\\subset', display: '\\subset' },
-      { latex: '\\supset', display: '\\supset' },
-      { latex: '\\cup', display: '\\cup' },
-      { latex: '\\cap', display: '\\cap' },
-      { latex: '\\emptyset', display: '\\emptyset' },
-      { latex: '\\forall', display: '\\forall' },
-      { latex: '\\exists', display: '\\exists' },
-      { latex: '\\infty', display: '\\infty' },
-      { latex: '\\mathbb{R}', display: '\\mathbb{R}' },
-      { latex: '\\mathbb{N}', display: '\\mathbb{N}' },
-    ],
-  },
-  {
-    label: 'Estruturas',
-    symbols: [
-      { latex: '\\frac{a}{b}', display: '\\frac{a}{b}' },
-      { latex: '\\sqrt{x}', display: '\\sqrt{x}' },
-      { latex: '\\sqrt[n]{x}', display: '\\sqrt[n]{x}' },
-      { latex: 'x^{n}', display: 'x^n' },
-      { latex: 'x_{i}', display: 'x_i' },
-      { latex: '\\displaystyle\\int_{a}^{b} f(x)\\,dx', display: '\\int_a^b' },
-      { latex: '\\displaystyle\\sum_{i=1}^{n} a_i', display: '\\sum_{i=1}^n' },
-      { latex: '\\displaystyle\\prod_{i=1}^{n} a_i', display: '\\prod_{i=1}^n' },
-      { latex: '\\displaystyle\\lim_{x \\to \\infty} f(x)', display: '\\lim_{x\\to\\infty}' },
-      { latex: '\\frac{d}{dx} f(x)', display: '\\frac{d}{dx}' },
-      { latex: '\\frac{\\partial f}{\\partial x}', display: '\\frac{\\partial}{\\partial x}' },
-      { latex: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}', display: '\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}' },
-    ],
-  },
-]
 
 function SymbolCell({ display, onClick }: { display: string; onClick: () => void }) {
   const ref = useRef<HTMLSpanElement>(null)

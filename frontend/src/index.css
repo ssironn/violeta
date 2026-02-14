@@ -105,6 +105,39 @@ body {
 .stagger-4 { animation-delay: 0.2s; }
 .stagger-5 { animation-delay: 0.25s; }
 
+/* ── Split Handle (resizable divider) ── */
+
+.split-handle {
+  width: 6px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  transition: background 0.15s ease;
+}
+
+.split-handle:hover,
+.split-handle:active {
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.split-handle-line {
+  width: 2px;
+  height: 32px;
+  border-radius: 1px;
+  background: var(--color-surface-border);
+  transition: background 0.15s ease, height 0.15s ease;
+}
+
+.split-handle:hover .split-handle-line,
+.split-handle:active .split-handle-line {
+  background: var(--color-violet-500);
+  height: 48px;
+}
+
 /* ── Editor Styles ── */
 
 .tiptap {
@@ -114,6 +147,73 @@ body {
   font-size: 1rem;
   line-height: 1.75;
   color: #1e1e2e;
+}
+
+/* ── Block Insert Button (between blocks) ── */
+@keyframes block-insert-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.block-insert-bar {
+  position: absolute;
+  left: 120px;
+  right: 120px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 0;
+  z-index: 10;
+  pointer-events: auto;
+  transform: translateY(-50%);
+  animation: block-insert-fade-in 0.2s ease-out both;
+}
+
+.block-insert-bar.removing {
+  animation: block-insert-fade-in 0.15s ease-in reverse both;
+}
+
+.block-insert-line {
+  flex: 1;
+  height: 1px;
+  background: #c4b5d6;
+  border-radius: 1px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.block-insert-bar:hover .block-insert-line {
+  opacity: 0.75;
+  background: #a89bc4;
+}
+
+.block-insert-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid #d4c8e8;
+  background: #faf8ff;
+  color: #a89bc4;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.block-insert-btn:hover {
+  background: #ede5ff;
+  color: #7c3aed;
+  border-color: #b794f6;
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.15);
+}
+
+.block-insert-btn:active {
+  transform: scale(1);
 }
 
 .tiptap p.is-editor-empty:first-child::before {
@@ -797,7 +897,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 320px;
+  max-width: 520px;
   padding: 1px 4px;
   border: 1px solid transparent;
   border-radius: 4px;
@@ -1335,6 +1435,36 @@ body {
   border-left: 2px solid var(--color-violet-800);
 }
 
+.doc-card-preview-rendered {
+  overflow: hidden;
+  max-height: 72px;
+  padding-left: 10px;
+  border-left: 2px solid var(--color-violet-800);
+}
+
+.doc-card-preview-line {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-card-preview-math .katex {
+  font-size: 0.78rem;
+}
+
+.doc-card-preview-math .katex-display {
+  margin: 0;
+  display: inline;
+}
+
+.doc-card-preview-math .katex-display > .katex {
+  display: inline;
+}
+
 .doc-card-preview-empty {
   font-size: 0.72rem;
   color: var(--color-text-muted);
@@ -1480,4 +1610,520 @@ body {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+/* ══════════════════════════════════════════
+   LaTeX Code Panel — Enhanced Editor
+   ══════════════════════════════════════════ */
+
+/* ── Syntax highlighting tokens ── */
+
+.latex-cmd {
+  color: var(--color-violet-300);
+}
+
+.latex-brace {
+  color: var(--color-gold);
+}
+
+.latex-comment {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.latex-bracket {
+  color: #60a5fa;
+}
+
+.latex-math-delim {
+  color: #f472b6;
+  font-weight: 600;
+}
+
+/* ── Search highlights ── */
+
+.latex-search-match {
+  background: rgba(251, 191, 36, 0.25);
+  outline: 1px solid rgba(251, 191, 36, 0.5);
+  border-radius: 2px;
+  color: inherit;
+}
+
+.latex-search-active {
+  background: rgba(251, 191, 36, 0.5);
+  outline: 2px solid rgba(251, 191, 36, 0.8);
+  border-radius: 2px;
+  color: inherit;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+}
+
+.latex-math-hover {
+  background: rgba(139, 92, 246, 0.2);
+  outline: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 2px;
+  color: inherit;
+}
+
+/* ── Code container (read-only view with line numbers) ── */
+
+.latex-code-container {
+  background: var(--color-surface-panel);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.65;
+}
+
+.latex-code-table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.latex-code-line {
+  display: table-row;
+  transition: background 0.1s ease;
+}
+
+.latex-code-line:hover {
+  background: rgba(139, 92, 246, 0.03);
+}
+
+.latex-code-line--active {
+  background: rgba(251, 191, 36, 0.06) !important;
+}
+
+.latex-line-number {
+  display: table-cell;
+  width: 44px;
+  min-width: 44px;
+  padding: 0 10px 0 12px;
+  text-align: right;
+  color: var(--color-text-muted);
+  opacity: 0.4;
+  user-select: none;
+  font-size: 0.65rem;
+  vertical-align: top;
+  border-right: 1px solid var(--color-surface-border);
+  position: sticky;
+  left: 0;
+  background: var(--color-surface-panel);
+}
+
+.latex-code-line:hover .latex-line-number {
+  opacity: 0.7;
+}
+
+.latex-code-line--active .latex-line-number {
+  opacity: 0.9;
+  color: var(--color-warning);
+}
+
+.latex-line-content {
+  display: table-cell;
+  padding: 0 16px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--color-text-primary);
+}
+
+/* ── Editable code area ── */
+
+.latex-editor-area {
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  background: var(--color-surface-panel);
+}
+
+.latex-editor-gutter {
+  width: 44px;
+  min-width: 44px;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  line-height: 1.65;
+  padding-top: 0;
+  color: var(--color-text-muted);
+  opacity: 0.4;
+  user-select: none;
+  text-align: right;
+  border-right: 1px solid var(--color-surface-border);
+  background: var(--color-surface-panel);
+  flex-shrink: 0;
+}
+
+.latex-editor-gutter-line {
+  padding: 0 10px 0 0;
+  height: calc(0.75rem * 1.65);
+  line-height: calc(0.75rem * 1.65);
+}
+
+.latex-editor-textarea {
+  flex: 1;
+  overflow: auto;
+  padding: 0 16px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.65;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  white-space: pre;
+  tab-size: 2;
+  -moz-tab-size: 2;
+  caret-color: var(--color-violet-400);
+}
+
+.latex-editor-textarea::selection {
+  background: rgba(139, 92, 246, 0.3);
+}
+
+/* ── Search bar ── */
+
+.latex-search-bar {
+  border-bottom: 1px solid var(--color-surface-border);
+  background: var(--color-surface-elevated);
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.latex-search-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.latex-replace-row {
+  padding-left: 0;
+}
+
+.latex-search-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-surface-panel);
+  border: 1px solid var(--color-surface-border);
+  border-radius: 6px;
+  padding: 0 8px;
+  min-height: 28px;
+  transition: border-color 0.15s ease;
+}
+
+.latex-search-input-wrap:focus-within {
+  border-color: var(--color-violet-500);
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+}
+
+.latex-search-icon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.latex-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-text-primary);
+  min-width: 0;
+}
+
+.latex-search-input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.latex-search-count {
+  font-size: 0.62rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.latex-search-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.latex-search-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.latex-search-toggle:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-hover);
+}
+
+.latex-search-toggle--active {
+  color: var(--color-violet-300);
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.latex-search-nav-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--color-surface-border);
+  margin: 0 2px;
+}
+
+.latex-search-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.latex-search-nav:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background: var(--color-surface-hover);
+}
+
+.latex-search-nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.latex-search-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.latex-search-close:hover {
+  color: var(--color-error);
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.latex-replace-btn {
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--color-surface-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.68rem;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.latex-replace-btn:hover:not(:disabled) {
+  border-color: var(--color-violet-600);
+  color: var(--color-violet-300);
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.latex-replace-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Document Search — highlights & search bar
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Text match highlight */
+.search-match {
+  background-color: rgba(250, 204, 21, 0.4);
+  border-radius: 2px;
+}
+
+.search-match-active {
+  background-color: rgba(249, 115, 22, 0.5);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);
+  border-radius: 2px;
+}
+
+/* Math node highlights */
+.tiptap-mathematics-render.search-match {
+  outline: 2px solid rgba(250, 204, 21, 0.6);
+  outline-offset: 2px;
+  border-radius: 4px;
+  background-color: rgba(250, 204, 21, 0.08);
+}
+
+.tiptap-mathematics-render.search-match-active {
+  outline: 2px solid rgba(249, 115, 22, 0.8);
+  outline-offset: 2px;
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.3);
+  background-color: rgba(249, 115, 22, 0.08);
+}
+
+.math-env-block.search-match,
+.raw-latex-block.search-match {
+  outline: 2px solid rgba(250, 204, 21, 0.6);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.math-env-block.search-match-active,
+.raw-latex-block.search-match-active {
+  outline: 2px solid rgba(249, 115, 22, 0.8);
+  outline-offset: 2px;
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.3);
+}
+
+/* Search bar overlay */
+.doc-search-bar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 50;
+  font-family: var(--font-sans);
+}
+
+.doc-search-bar-inner {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.doc-search-input {
+  width: 180px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #1f2937;
+  font-family: var(--font-sans);
+}
+
+.doc-search-input::placeholder {
+  color: #9ca3af;
+}
+
+.doc-search-count {
+  font-size: 0.7rem;
+  color: #6b7280;
+  white-space: nowrap;
+  padding: 0 4px;
+  min-width: 32px;
+  text-align: center;
+}
+
+.doc-search-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  color: #374151;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.doc-search-nav-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.doc-search-nav-btn:disabled {
+  color: #d1d5db;
+  cursor: default;
+}
+
+.doc-search-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  color: #6b7280;
+  cursor: pointer;
+  margin-left: 2px;
+  transition: background-color 0.1s;
+}
+
+.doc-search-close-btn:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Symbol suggestion dropdown */
+.doc-search-symbol-dropdown {
+  margin-top: 4px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.doc-search-symbol-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: #374151;
+  transition: background-color 0.1s;
+  text-align: left;
+}
+
+.doc-search-symbol-item:hover {
+  background: #f3f4f6;
+}
+
+.doc-search-symbol-preview {
+  min-width: 28px;
+  text-align: center;
+}
+
+.doc-search-symbol-name {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #6b7280;
 }

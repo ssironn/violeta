@@ -3,6 +3,8 @@ import { EditorContent, type Editor } from '@tiptap/react'
 import { BlockInsertMenu } from './BlockInsertMenu'
 import { BlockHandle } from './BlockHandle'
 import { SlashCommandMenu } from '../../extensions/SlashCommands'
+import { DocumentSearchBar } from './DocumentSearchBar'
+import { useEditorSearch } from '../../hooks/useEditorSearch'
 
 /** A4 at 96 DPI */
 const A4_WIDTH = 794
@@ -18,6 +20,7 @@ interface EditorAreaProps {
 export function EditorArea({ editor, onOpenMathEditor, onOpenImageModal, onHoverMath }: EditorAreaProps) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [pageBreaks, setPageBreaks] = useState<number[]>([])
+  const { searchState, setQuery, next, prev, close } = useEditorSearch(editor)
 
   // Page break tracking
   useEffect(() => {
@@ -102,6 +105,13 @@ export function EditorArea({ editor, onOpenMathEditor, onOpenImageModal, onHover
               '0 2px 40px rgba(88, 28, 135, 0.12), 0 1px 3px rgba(0,0,0,0.06)',
           }}
         >
+          <DocumentSearchBar
+            searchState={searchState}
+            setQuery={setQuery}
+            next={next}
+            prev={prev}
+            close={close}
+          />
           <EditorContent editor={editor} />
 
           {/* Block drag handle with options popover */}

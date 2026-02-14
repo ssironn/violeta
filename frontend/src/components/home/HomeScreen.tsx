@@ -1,22 +1,78 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Plus, FileText, Clock, Trash2, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import katex from 'katex'
 import { listDocuments, getDocument, createDocument, deleteDocument } from '../../api/documents'
 import type { DocumentListItem } from '../../api/documents'
 import { useAuth } from '../../contexts/AuthContext'
+import { katexMacros } from '../../latex/katexMacros'
+import { parseLatex } from '../../latex/parseLatex'
 
-function extractPreviewText(content: Record<string, any>): string {
-  const lines: string[] = []
+interface PreviewSegment {
+  type: 'text' | 'math'
+  value: string
+  displayMode?: boolean
+}
+
+interface PreviewLine {
+  segments: PreviewSegment[]
+}
+
+function extractPreviewLines(content: Record<string, any>): PreviewLine[] {
+  const lines: PreviewLine[] = []
+
+  function walkInline(node: any, segments: PreviewSegment[]) {
+    if (!node) return
+    if (node.type === 'text' && node.text) {
+      segments.push({ type: 'text', value: node.text })
+      return
+    }
+    if ((node.type === 'inlineMath' || node.type === 'blockMath') && node.attrs?.latex) {
+      segments.push({ type: 'math', value: node.attrs.latex, displayMode: node.type === 'blockMath' })
+      return
+    }
+    if (node.content) {
+      for (const child of node.content) walkInline(child, segments)
+    }
+  }
 
   function walk(node: any) {
     if (lines.length >= 4) return
     if (!node) return
-    if (node.type === 'text' && node.text) {
-      lines[lines.length - 1] = (lines[lines.length - 1] || '') + node.text
+
+    if (node.type === 'paragraph' || node.type === 'heading') {
+      const segments: PreviewSegment[] = []
+      if (node.content) {
+        for (const child of node.content) walkInline(child, segments)
+      }
+      if (segments.length > 0) lines.push({ segments })
       return
     }
-    if (node.type === 'paragraph' || node.type === 'heading') {
-      lines.push('')
+    if (node.type === 'rawLatex' && node.attrs?.content) {
+      // Strip $ delimiters for rendering
+      let latex = node.attrs.content.trim()
+      if (latex.startsWith('$$') && latex.endsWith('$$')) {
+        latex = latex.slice(2, -2)
+        lines.push({ segments: [{ type: 'math', value: latex, displayMode: true }] })
+      } else if (latex.startsWith('$') && latex.endsWith('$')) {
+        latex = latex.slice(1, -1)
+        lines.push({ segments: [{ type: 'math', value: latex, displayMode: false }] })
+      } else {
+        lines.push({ segments: [{ type: 'math', value: latex, displayMode: true }] })
+      }
+      return
+    }
+    if (node.type === 'mathEnvironment' && node.attrs?.latex) {
+      lines.push({ segments: [{ type: 'math', value: node.attrs.latex, displayMode: true }] })
+      return
+    }
+    if (node.type === 'latexTable') {
+      lines.push({ segments: [{ type: 'text', value: '[Tabela]' }] })
+      return
+    }
+    if (node.type === 'calloutBlock') {
+      const label = node.attrs?.calloutType || 'Ambiente'
+      lines.push({ segments: [{ type: 'text', value: `[${label.charAt(0).toUpperCase() + label.slice(1)}]` }] })
       if (node.content) {
         for (const child of node.content) walk(child)
       }
@@ -34,7 +90,47 @@ function extractPreviewText(content: Record<string, any>): string {
     }
   }
 
-  return lines.filter(l => l.trim()).slice(0, 4).join('\n') || ''
+  return lines
+}
+
+function PreviewRenderer({ lines }: { lines: PreviewLine[] }) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!ref.current) return
+    ref.current.innerHTML = ''
+
+    for (const line of lines) {
+      const p = document.createElement('div')
+      p.className = 'doc-card-preview-line'
+
+      for (const seg of line.segments) {
+        if (seg.type === 'text') {
+          const span = document.createElement('span')
+          span.textContent = seg.value
+          p.appendChild(span)
+        } else {
+          const span = document.createElement('span')
+          span.className = 'doc-card-preview-math'
+          try {
+            katex.render(seg.value, span, {
+              displayMode: seg.displayMode ?? false,
+              throwOnError: false,
+              errorColor: '#7a6299',
+              macros: katexMacros,
+            })
+          } catch {
+            span.textContent = seg.value
+          }
+          p.appendChild(span)
+        }
+      }
+
+      ref.current.appendChild(p)
+    }
+  }, [lines])
+
+  return <div ref={ref} className="doc-card-preview-rendered" />
 }
 
 function formatDate(iso: string): string {
@@ -67,7 +163,7 @@ function DocumentCard({
   onOpen: () => void
   onDelete: () => void
 }) {
-  const [preview, setPreview] = useState<string | null>(null)
+  const [previewLines, setPreviewLines] = useState<PreviewLine[] | null>(null)
   const [loadingPreview, setLoadingPreview] = useState(true)
   const [hovered, setHovered] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -75,8 +171,17 @@ function DocumentCard({
   // Eagerly load preview on mount
   useEffect(() => {
     getDocument(doc.id)
-      .then(full => setPreview(extractPreviewText(full.content)))
-      .catch(() => setPreview(''))
+      .then(full => {
+        const content = full.content as Record<string, any>
+        if (content?.type === 'latex' && typeof content.source === 'string') {
+          // New format: parse LaTeX to get TipTap JSON, then extract preview
+          const parsed = parseLatex(content.source)
+          setPreviewLines(extractPreviewLines(parsed))
+        } else {
+          setPreviewLines(extractPreviewLines(content))
+        }
+      })
+      .catch(() => setPreviewLines([]))
       .finally(() => setLoadingPreview(false))
   }, [doc.id])
 
@@ -130,8 +235,8 @@ function DocumentCard({
             <div className="doc-card-preview-loading">
               <Loader2 size={14} className="animate-spin" />
             </div>
-          ) : preview ? (
-            <p className="doc-card-preview-text">{preview}</p>
+          ) : previewLines && previewLines.length > 0 ? (
+            <PreviewRenderer lines={previewLines} />
           ) : (
             <p className="doc-card-preview-empty">Documento vazio</p>
           )}

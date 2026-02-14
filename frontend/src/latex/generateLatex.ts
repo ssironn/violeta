@@ -107,6 +107,9 @@ function processInlineContent(node: JSONContent, escapeText = false): string {
       if (child.type === 'hardBreak') {
         return ' \\\\\n'
       }
+      if (child.type === 'rawLatex') {
+        return child.attrs?.content ?? ''
+      }
       return ''
     })
     .join('')
@@ -134,10 +137,11 @@ function processNode(node: JSONContent): string {
   switch (node.type) {
     case 'heading': {
       const level = node.attrs?.level ?? 1
+      const starred = node.attrs?.starred ? '*' : ''
       const text = processInlineContent(node, true)
       const commands = ['\\section', '\\subsection', '\\subsubsection', '\\paragraph']
       const cmd = commands[Math.min(level - 1, commands.length - 1)]
-      return `${cmd}{${text}}`
+      return `${cmd}${starred}{${text}}`
     }
 
     case 'paragraph': {
@@ -148,19 +152,20 @@ function processNode(node: JSONContent): string {
     }
 
     case 'bulletList': {
+      const env = node.attrs?.environment === 'description' ? 'description' : 'itemize'
       const items = (node.content ?? [])
         .map((item) => {
-          const inner = processNodes(item.content ?? [])
+          const inner = processListItemContent(item.content ?? [])
           return `  \\item ${inner}`
         })
         .join('\n')
-      return `\\begin{itemize}\n${items}\n\\end{itemize}`
+      return `\\begin{${env}}\n${items}\n\\end{${env}}`
     }
 
     case 'orderedList': {
       const items = (node.content ?? [])
         .map((item) => {
-          const inner = processNodes(item.content ?? [])
+          const inner = processListItemContent(item.content ?? [])
           return `  \\item ${inner}`
         })
         .join('\n')
@@ -168,13 +173,15 @@ function processNode(node: JSONContent): string {
     }
 
     case 'blockquote': {
+      const env = node.attrs?.environment ?? 'quote'
       const inner = processNodes(node.content ?? [])
-      return `\\begin{quote}\n${inner}\n\\end{quote}`
+      return `\\begin{${env}}\n${inner}\n\\end{${env}}`
     }
 
     case 'codeBlock': {
+      const env = node.attrs?.environment ?? 'verbatim'
       const code = node.content?.map((c) => c.text ?? '').join('') ?? ''
-      return `\\begin{verbatim}\n${code}\n\\end{verbatim}`
+      return `\\begin{${env}}\n${code}\n\\end{${env}}`
     }
 
     case 'horizontalRule':
@@ -183,16 +190,22 @@ function processNode(node: JSONContent): string {
     case 'image': {
       const src = node.attrs?.src ?? ''
       const alt = node.attrs?.alt ?? ''
+      const assetFilename = node.attrs?.assetFilename ?? ''
+      const position = node.attrs?.position ?? 'h'
+      const options = node.attrs?.options ?? 'width=0.8\\textwidth'
       const isBase64 = src.startsWith('data:')
       const lines = [
-        '\\begin{figure}[h]',
+        `\\begin{figure}[${position}]`,
         '  \\centering',
       ]
-      if (isBase64) {
+      if (isBase64 && assetFilename) {
+        // Asset registered — use the filename (file sent alongside .tex)
+        lines.push(`  \\includegraphics[${options}]{${assetFilename}}`)
+      } else if (isBase64) {
         lines.push('  % Imagem embutida (base64) — substitua pelo caminho do arquivo')
-        lines.push('  % \\includegraphics[width=0.8\\textwidth]{imagem.png}')
+        lines.push(`  % \\includegraphics[${options}]{imagem.png}`)
       } else {
-        lines.push(`  \\includegraphics[width=0.8\\textwidth]{${src}}`)
+        lines.push(`  \\includegraphics[${options}]{${src}}`)
       }
       if (alt) {
         lines.push(`  \\caption{${escapeLatex(alt)}}`)
@@ -204,6 +217,14 @@ function processNode(node: JSONContent): string {
     case 'math':
     case 'blockMath': {
       const latex = sanitizeMathUnicode(node.attrs?.latex ?? '')
+      // Preserve original environment if it was a named one (eqnarray, displaymath, etc)
+      const env = node.attrs?.environment
+      if (env) {
+        return `\\begin{${env}}\n${latex}\n\\end{${env}}`
+      }
+      // Preserve $$ vs \[ format
+      const format = node.attrs?.format
+      if (format === 'dollars') return `$$\n${latex}\n$$`
       return `\\[\n${latex}\n\\]`
     }
 
@@ -272,6 +293,11 @@ function processNode(node: JSONContent): string {
 
 function processNodes(nodes: JSONContent[]): string {
   return nodes.map(processNode).filter(Boolean).join('\n\n')
+}
+
+/** Process list item content — join with \n (not \n\n) to avoid breaking list structure */
+function processListItemContent(nodes: JSONContent[]): string {
+  return nodes.map(processNode).filter(Boolean).join('\n')
 }
 
 const CALLOUT_THEOREM_DEFS: Record<string, string> = {

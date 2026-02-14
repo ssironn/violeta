@@ -10,9 +10,11 @@ import { useLatexGenerator } from './hooks/useLatexGenerator'
 import { usePdfCompiler } from './hooks/usePdfCompiler'
 import { useLatexSync } from './hooks/useLatexSync'
 import { parseLatex, extractCustomPreamble } from './latex/parseLatex'
+import { generateLatex } from './latex/generateLatex'
 import { updateKatexMacros } from './latex/katexMacros'
 import { beautifyLatex } from './latex/beautifyLatex'
 import { uploadTexFile } from './utils/uploadTex'
+import { useDocumentAssets } from './hooks/useDocumentAssets'
 import { AppLayout } from './components/layout/AppLayout'
 import { RightPanel } from './components/layout/RightPanel'
 import { EditorArea } from './components/editor/EditorArea'
@@ -85,6 +87,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
   }, [])
 
   const editor = useVioletaEditor({ onMathClick })
+  const { registerAsset, registerUploadedFile, clearAssets, getCompileAssets } = useDocumentAssets()
   const [customPreamble, setCustomPreamble] = useState('')
   const generatedLatex = useLatexGenerator(editor, customPreamble)
 
@@ -99,7 +102,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
 
   const effectiveLatex = editingLatex && manualLatex !== null ? manualLatex : generatedLatex
 
-  const { pdfUrl, pdfBlob, compiling: pdfCompiling, error: pdfError, autoCompile, setAutoCompile, compile } = usePdfCompiler(effectiveLatex)
+  const { pdfUrl, pdfBlob, compiling: pdfCompiling, error: pdfError, autoCompile, setAutoCompile, compile } = usePdfCompiler(effectiveLatex, getCompileAssets)
 
   function handleToggleEditing() {
     if (!editingLatex) {
@@ -122,8 +125,14 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
   }
 
   function handleUploadTex() {
-    uploadTexFile((content) => {
+    uploadTexFile((result) => {
       if (!editor) return
+      // Register imported assets (images, .bib, etc.)
+      clearAssets()
+      for (const asset of result.assets) {
+        registerAsset(asset)
+      }
+      const content = result.tex
       const preamble = extractCustomPreamble(content)
       setCustomPreamble(preamble)
       updateKatexMacros(preamble)
@@ -151,20 +160,34 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
       getDocument(initialDocId)
         .then(doc => {
           setDocumentTitle(doc.title || '')
-          editor.commands.setContent(doc.content || { type: 'doc', content: [{ type: 'paragraph' }] })
+          const content = doc.content as Record<string, any>
+          if (content?.type === 'latex' && typeof content.source === 'string') {
+            // New format: raw LaTeX source — parse into visual editor
+            const preamble = extractCustomPreamble(content.source)
+            setCustomPreamble(preamble)
+            updateKatexMacros(preamble)
+            const parsed = parseLatex(content.source)
+            editor.commands.setContent(parsed)
+          } else if (content?.type === 'doc') {
+            // Legacy format: TipTap JSON — load directly
+            editor.commands.setContent(content)
+          } else {
+            editor.commands.setContent({ type: 'doc', content: [{ type: 'paragraph' }] })
+          }
         })
         .catch(console.error)
     }
   }, [initialDocId, editor])
 
-  // Auto-save content with debounce
+  // Auto-save content as LaTeX source with debounce
   useEffect(() => {
     if (!editor || !currentDocId) return
     const docId = currentDocId
     const handler = () => {
-      const content = editor.getJSON()
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
       saveTimerRef.current = setTimeout(() => {
+        const latexSource = generateLatex(editor.getJSON(), customPreamble)
+        const content = { type: 'latex', source: latexSource }
         updateDocument(docId, { content }).catch(console.error)
       }, 2000)
     }
@@ -173,7 +196,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
       editor.off('update', handler)
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     }
-  }, [editor, currentDocId])
+  }, [editor, currentDocId, customPreamble])
 
   function handleTitleChange(title: string) {
     setDocumentTitle(title)
@@ -268,10 +291,11 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
       )}
       {imageModalOpen && (
         <ImageInsertModal
-          onInsert={(src, alt) => {
-            editor!.chain().focus().setImage({ src, alt }).run()
+          onInsert={(src, alt, assetFilename) => {
+            editor!.chain().focus().setImage({ src, alt, assetFilename } as any).run()
             setImageModalOpen(false)
           }}
+          onRegisterAsset={registerUploadedFile}
           onClose={() => setImageModalOpen(false)}
         />
       )}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { compileLatexSource } from '../utils/latexEngine'
+import type { CompileAsset } from './useDocumentAssets'
 
 interface PdfCompilerState {
   pdfUrl: string | null
@@ -17,6 +18,7 @@ interface PdfCompilerState {
  */
 export function usePdfCompiler(
   latex: string,
+  getAssets: () => CompileAsset[] = () => [],
   debounceMs = 4000,
 ): PdfCompilerState {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
@@ -28,6 +30,8 @@ export function usePdfCompiler(
   const versionRef = useRef(0)
   const latexRef = useRef(latex)
   latexRef.current = latex
+  const getAssetsRef = useRef(getAssets)
+  getAssetsRef.current = getAssets
 
   const doCompile = useCallback(async (source: string) => {
     const version = ++versionRef.current
@@ -35,7 +39,8 @@ export function usePdfCompiler(
     setError(null)
 
     try {
-      const { pdf } = await compileLatexSource(source)
+      const assets = getAssetsRef.current()
+      const { pdf } = await compileLatexSource(source, assets)
 
       if (version !== versionRef.current) return
 

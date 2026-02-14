@@ -4,15 +4,17 @@ import { X, Link, Upload } from 'lucide-react'
 type Mode = 'url' | 'upload'
 
 interface ImageInsertModalProps {
-  onInsert: (src: string, alt: string) => void
+  onInsert: (src: string, alt: string, assetFilename?: string) => void
+  onRegisterAsset?: (file: File, dataUrl: string) => string
   onClose: () => void
 }
 
-export function ImageInsertModal({ onInsert, onClose }: ImageInsertModalProps) {
+export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageInsertModalProps) {
   const [mode, setMode] = useState<Mode>('url')
   const [url, setUrl] = useState('')
   const [fileData, setFileData] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [alt, setAlt] = useState('')
   const [dragging, setDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -22,7 +24,11 @@ export function ImageInsertModal({ onInsert, onClose }: ImageInsertModalProps) {
 
   function handleInsert() {
     if (!src) return
-    onInsert(src, alt.trim())
+    let assetFilename: string | undefined
+    if (mode === 'upload' && uploadedFile && fileData && onRegisterAsset) {
+      assetFilename = onRegisterAsset(uploadedFile, fileData)
+    }
+    onInsert(src, alt.trim(), assetFilename)
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -36,6 +42,7 @@ export function ImageInsertModal({ onInsert, onClose }: ImageInsertModalProps) {
   const readFile = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) return
     setFileName(file.name)
+    setUploadedFile(file)
     const reader = new FileReader()
     reader.onload = () => {
       setFileData(reader.result as string)

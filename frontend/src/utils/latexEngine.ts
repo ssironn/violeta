@@ -4,15 +4,31 @@
  * to avoid CORS issues.
  */
 
+import { type CompileAsset, dataUrlToBlob } from '../hooks/useDocumentAssets'
+
 const TEXLIVE_ENDPOINT = '/texlive-api/cgi-bin/latexcgi'
 
 /**
  * Compile a LaTeX source string via texlive.net and return a PDF Blob.
+ * Optionally include asset files (images, .bib, etc.) that the LaTeX references.
  */
-export async function compileLatexSource(latexSource: string): Promise<{ pdf: Blob; log: string }> {
+export async function compileLatexSource(
+  latexSource: string,
+  assets: CompileAsset[] = [],
+): Promise<{ pdf: Blob; log: string }> {
   const formData = new FormData()
+
+  // Main .tex file
   formData.append('filecontents[]', latexSource)
   formData.append('filename[]', 'document.tex')
+
+  // Asset files (images, .bib, etc.)
+  for (const asset of assets) {
+    const blob = dataUrlToBlob(asset.dataUrl)
+    formData.append('filecontents[]', blob, asset.filename)
+    formData.append('filename[]', asset.filename)
+  }
+
   formData.append('engine', 'pdflatex')
   formData.append('return', 'pdf')
 

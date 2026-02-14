@@ -40,20 +40,33 @@ function normalize(latex: string): string {
     .join('\n')
 }
 
-// ─── Commands to skip (consume command + brace group, produce nothing) ───
+// ─── Commands to preserve as rawLatex inline (not editable but round-trip safe) ───
+
+const PRESERVE_COMMANDS = new Set([
+  'label', 'ref', 'pageref', 'cite', 'eqref', 'autoref', 'nameref',
+  'vspace', 'hspace',
+  'phantom', 'hphantom', 'vphantom',
+  'footnote', 'footnotemark', 'footnotetext',
+  'bibliographystyle', 'bibliography',
+])
+
+// ─── Commands to skip (truly no-op in visual editor) ───
 
 const SKIP_COMMANDS = new Set([
-  'vspace', 'hspace', 'label', 'ref', 'pageref', 'cite',
-  'vfill', 'hfill', 'smallskip', 'medskip', 'bigskip',
-  'newpage', 'clearpage', 'newline', 'linebreak', 'pagebreak',
-  'phantom', 'hphantom', 'vphantom',
   'maketitle', 'tableofcontents',
   'centering', 'raggedleft', 'raggedright',
   'indent', 'noindent',
   'pagestyle', 'thispagestyle',
   'setlength', 'addtolength',
   'setcounter', 'addtocounter',
-  'bibliographystyle', 'bibliography',
+  'newline', 'linebreak', 'pagebreak',
+])
+
+// ─── Standalone spacing commands → rawLatex block (no args, just the command) ───
+
+const STANDALONE_SPACING_COMMANDS = new Set([
+  'vfill', 'hfill', 'smallskip', 'medskip', 'bigskip',
+  'newpage', 'clearpage',
 ])
 
 // Commands that just change font style — pass through inner content
@@ -215,7 +228,27 @@ function parseInline(text: string): JSONContent[] {
             continue
           }
 
-          // Skip commands (consume but don't output)
+          // Preserve commands → rawLatex inline (round-trip safe)
+          if (PRESERVE_COMMANDS.has(cmd)) {
+            let end = afterCmd
+            // Capture optional [] and {} args as part of the raw command
+            while (end < text.length && (text[end] === '[' || text[end] === '{' || text[end] === ' ')) {
+              if (text[end] === ' ') { end++; continue }
+              if (text[end] === '[') {
+                const close = text.indexOf(']', end)
+                end = close !== -1 ? close + 1 : end + 1
+              } else if (text[end] === '{') {
+                const group = extractBraceGroup(text, end)
+                end = group.end
+              }
+            }
+            const rawContent = text.slice(i, end)
+            nodes.push({ type: 'rawLatex', attrs: { content: rawContent, inline: true } })
+            i = end
+            continue
+          }
+
+          // Skip commands (truly no-op in visual editor)
           if (SKIP_COMMANDS.has(cmd)) {
             i = afterCmd
             // Consume optional [] and {} args
@@ -249,26 +282,27 @@ function parseInline(text: string): JSONContent[] {
             continue
           }
 
-          // Unknown command with brace group — extract inner text
+          // Unknown command with brace group — preserve as rawLatex inline
           if (text[afterCmd] === '{') {
             const group = extractBraceGroup(text, afterCmd)
-            const inner = parseInline(group.content)
-            nodes.push(...inner)
+            const rawContent = text.slice(i, group.end)
+            nodes.push({ type: 'rawLatex', attrs: { content: rawContent, inline: true } })
             i = group.end
             continue
           }
 
-          // Unknown command with [] args
+          // Unknown command with [] then {} args — preserve as rawLatex inline
           if (text[afterCmd] === '[') {
             const closeBracket = text.indexOf(']', afterCmd)
             if (closeBracket !== -1) {
-              i = closeBracket + 1
-              if (i < text.length && text[i] === '{') {
-                const group = extractBraceGroup(text, i)
-                const inner = parseInline(group.content)
-                nodes.push(...inner)
-                i = group.end
+              let end = closeBracket + 1
+              if (end < text.length && text[end] === '{') {
+                const group = extractBraceGroup(text, end)
+                end = group.end
               }
+              const rawContent = text.slice(i, end)
+              nodes.push({ type: 'rawLatex', attrs: { content: rawContent, inline: true } })
+              i = end
               continue
             }
           }
@@ -420,7 +454,9 @@ function parseListItems(inner: string): JSONContent[] {
     const trimmed = part.trim()
     if (!trimmed) continue
 
-    if (/\\begin\{(itemize|enumerate|description)\}/.test(trimmed)) {
+    // If the item contains any \begin{...} environment, parse as blocks
+    // (handles nested lists, equation*, align*, etc.)
+    if (/\\begin\{/.test(trimmed)) {
       const blocks = flatParseBlocks(trimmed)
       if (blocks.length > 0) {
         items.push({ type: 'listItem', content: blocks })
@@ -537,14 +573,15 @@ function parseBlock(block: string): JSONContent[] {
   if (!trimmed) return []
 
   // Heading commands
-  const headingMatch = trimmed.match(/^\\(section|subsection|subsubsection|paragraph)\*?\{/)
+  const headingMatch = trimmed.match(/^\\(section|subsection|subsubsection|paragraph)(\*?)\{/)
   if (headingMatch) {
     const cmd = headingMatch[1]
+    const starred = headingMatch[2] === '*'
     const levels: Record<string, number> = { section: 1, subsection: 2, subsubsection: 3, paragraph: 4 }
     const level = levels[cmd] ?? 1
     const group = extractBraceGroup(trimmed, headingMatch[0].length - 1)
     const content = parseInline(group.content)
-    return content.length > 0 ? [{ type: 'heading', attrs: { level }, content }] : []
+    return content.length > 0 ? [{ type: 'heading', attrs: { level, starred }, content }] : []
   }
 
   // Horizontal rule
@@ -555,18 +592,23 @@ function parseBlock(block: string): JSONContent[] {
   // Display math $$...$$
   const displayMathMatch = trimmed.match(/^\$\$([\s\S]*?)\$\$$/)
   if (displayMathMatch) {
-    return [{ type: 'blockMath', attrs: { latex: displayMathMatch[1].trim() } }]
+    return [{ type: 'blockMath', attrs: { latex: displayMathMatch[1].trim(), format: 'dollars' } }]
   }
 
   // Block math \[...\]
   const blockMathMatch = trimmed.match(/^\\\[([\s\S]*?)\\\]$/)
   if (blockMathMatch) {
-    return [{ type: 'blockMath', attrs: { latex: blockMathMatch[1].trim() } }]
+    return [{ type: 'blockMath', attrs: { latex: blockMathMatch[1].trim(), format: 'brackets' } }]
   }
 
-  // Skip standalone spacing commands
-  if (/^\\(vspace|hspace|vfill|hfill|smallskip|medskip|bigskip|newpage|clearpage)\b/.test(trimmed)) {
-    return []
+  // Standalone spacing commands → preserve as rawLatex block
+  const spacingMatch = trimmed.match(/^\\(vspace|hspace|vfill|hfill|smallskip|medskip|bigskip|newpage|clearpage)\b/)
+  if (spacingMatch) {
+    if (STANDALONE_SPACING_COMMANDS.has(spacingMatch[1])) {
+      return [{ type: 'rawLatex', attrs: { content: trimmed } }]
+    }
+    // vspace/hspace with args — also preserve
+    return [{ type: 'rawLatex', attrs: { content: trimmed } }]
   }
 
   // Environments
@@ -583,28 +625,30 @@ function parseBlock(block: string): JSONContent[] {
       return [{ type: 'mathEnvironment', attrs: { environment: envName, latex: inner } }]
     }
 
-    // Plain math environments → blockMath
+    // Plain math environments → blockMath (preserve environment name)
     if (PLAIN_MATH_ENVIRONMENTS.has(envName)) {
-      return [{ type: 'blockMath', attrs: { latex: inner } }]
+      return [{ type: 'blockMath', attrs: { latex: inner, environment: envName } }]
     }
 
-    // List environments
+    // List environments — preserve environment name
     if (LIST_ENVIRONMENTS.has(envName)) {
       const items = parseListItems(inner)
       if (items.length === 0) return []
       const listType = envName === 'enumerate' ? 'orderedList' : 'bulletList'
-      return [{ type: listType, content: items }]
+      const attrs: Record<string, any> = {}
+      if (envName === 'description') attrs.environment = 'description'
+      return [{ type: listType, ...(Object.keys(attrs).length > 0 ? { attrs } : {}), content: items }]
     }
 
-    // Quote environments
+    // Quote environments — preserve environment name
     if (QUOTE_ENVIRONMENTS.has(envName)) {
       const innerBlocks = flatParseBlocks(inner)
-      return [{ type: 'blockquote', content: innerBlocks.length > 0 ? innerBlocks : [{ type: 'paragraph' }] }]
+      return [{ type: 'blockquote', attrs: { environment: envName }, content: innerBlocks.length > 0 ? innerBlocks : [{ type: 'paragraph' }] }]
     }
 
-    // Code environments
+    // Code environments — preserve environment name
     if (CODE_ENVIRONMENTS.has(envName)) {
-      return [{ type: 'codeBlock', content: [{ type: 'text', text: inner }] }]
+      return [{ type: 'codeBlock', attrs: { environment: envName }, content: [{ type: 'text', text: inner }] }]
     }
 
     // Alignment environments
@@ -616,15 +660,22 @@ function parseBlock(block: string): JSONContent[] {
       return [{ type: 'paragraph', ...(align ? { attrs: { textAlign: align } } : {}), content }]
     }
 
-    // Figure
-    if (envName === 'figure') {
+    // Figure — preserve position and image options
+    if (envName === 'figure' || envName === 'figure*') {
       let src = ''
       let alt = ''
-      const imgMatch = inner.match(/\\includegraphics(?:\[[^\]]*\])?\{([^}]*)\}/)
-      if (imgMatch) src = imgMatch[1]
+      let imgOptions = 'width=0.8\\textwidth'
+      // Extract position from \begin{figure}[pos]
+      const posMatch = trimmed.match(/^\\begin\{figure\*?\}\s*\[([^\]]*)\]/)
+      const position = posMatch ? posMatch[1] : 'h'
+      const imgMatch = inner.match(/\\includegraphics(?:\[([^\]]*)\])?\{([^}]*)\}/)
+      if (imgMatch) {
+        if (imgMatch[1]) imgOptions = imgMatch[1]
+        src = imgMatch[2]
+      }
       const captionMatch = inner.match(/\\caption\{([^}]*)\}/)
       if (captionMatch) alt = unescapeLatex(captionMatch[1])
-      return [{ type: 'image', attrs: { src, alt } }]
+      return [{ type: 'image', attrs: { src, alt, position, options: imgOptions } }]
     }
 
     // Table environment
@@ -647,7 +698,7 @@ function parseBlock(block: string): JSONContent[] {
         title = titleMatch[1]
         cleanInner = cleanInner.slice(titleMatch[0].length)
       }
-      cleanInner = cleanInner.replace(/^\s*\\label\{[^}]*\}\s*/g, '')
+      // \label is now preserved by parseInline as rawLatex inline
       const innerBlocks = flatParseBlocks(cleanInner)
       // Map 'ques' to 'exercise' for the callout type
       const calloutType = envName === 'ques' ? 'exercise' : envName
@@ -658,11 +709,10 @@ function parseBlock(block: string): JSONContent[] {
       }]
     }
 
-    // Unknown environment — parse inner content as blocks
-    // Strip any \label{} at the start of inner content
-    const cleanInner = inner.replace(/^\\label\{[^}]*\}\s*/g, '')
-    const innerBlocks = flatParseBlocks(cleanInner)
-    return innerBlocks
+    // Unknown environment — preserve as rawLatex block (opaque passthrough)
+    const endTag = `\\end{${envName}}`
+    const fullEnv = trimmed.slice(0, endPos + endTag.length)
+    return [{ type: 'rawLatex', attrs: { content: fullEnv } }]
   }
 
   // Paragraph wrapped in $...$ (Violeta-style)
@@ -717,9 +767,10 @@ function splitIntoBlocks(body: string): string[] {
       continue
     }
 
-    // Skip standalone spacing/skip commands
+    // Standalone spacing/skip commands → preserve as rawLatex block
     if (/^\\(vspace|hspace|vfill|hfill|smallskip|medskip|bigskip|newpage|clearpage)\b/.test(trimmedLine)) {
       flushCurrent()
+      blocks.push(trimmedLine)
       i++
       continue
     }

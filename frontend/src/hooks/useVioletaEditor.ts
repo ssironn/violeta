@@ -16,6 +16,8 @@ import { LatexTable } from '../extensions/LatexTable'
 import { CalloutBlock } from '../extensions/CalloutBlock'
 import { SlashCommands } from '../extensions/SlashCommands'
 import { LatexSpacing } from '../extensions/LatexSpacing'
+import { BlockInsertButton } from '../extensions/BlockInsertButton'
+import { SearchHighlight } from '../extensions/SearchHighlight'
 
 export interface MathEditState {
   latex: string
@@ -52,7 +54,14 @@ export function useVioletaEditor({ onMathClick }: UseVioletaEditorOptions) {
       }),
       TextStyle,
       Color,
-      Image.configure({
+      Image.extend({
+        addAttributes() {
+          return {
+            ...this.parent?.(),
+            assetFilename: { default: null },
+          }
+        },
+      }).configure({
         inline: false,
         allowBase64: true,
       }),
@@ -82,6 +91,8 @@ export function useVioletaEditor({ onMathClick }: UseVioletaEditorOptions) {
       CalloutBlock,
       SlashCommands,
       LatexSpacing,
+      BlockInsertButton,
+      SearchHighlight,
     ],
     content: '',
     editorProps: {
