@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useAuth } from './contexts/AuthContext'
 import { LoginPage } from './components/auth/LoginPage'
+import { SharedDocumentView } from './components/documents/SharedDocumentView'
+import { ShareModal } from './components/documents/ShareModal'
 import { useVioletaEditor, type MathEditState } from './hooks/useVioletaEditor'
 import { useLatexGenerator } from './hooks/useLatexGenerator'
 import { usePdfCompiler } from './hooks/usePdfCompiler'
@@ -16,6 +18,7 @@ import { EditorArea } from './components/editor/EditorArea'
 import { Toolbar } from './components/toolbar/Toolbar'
 import { MathEditRouter } from './components/math-editors/MathEditRouter'
 import { ImageInsertModal } from './components/editor/ImageInsertModal'
+import { GoogleDriveModal } from './components/google/GoogleDriveModal'
 import { listDocuments, getDocument, createDocument, updateDocument, deleteDocument } from './api/documents'
 import type { DocumentListItem } from './api/documents'
 
@@ -26,6 +29,8 @@ function EditorApp() {
   // Document management state
   const [documents, setDocuments] = useState<DocumentListItem[]>([])
   const [currentDocId, setCurrentDocId] = useState<string | null>(null)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [googleDriveModalOpen, setGoogleDriveModalOpen] = useState(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const onMathClick = useCallback((state: MathEditState) => {
@@ -210,6 +215,7 @@ function EditorApp() {
             onOpenMathEditor={openMathEditor}
             onOpenImageModal={() => setImageModalOpen(true)}
             onUploadTex={handleUploadTex}
+            onOpenGoogleDrive={() => setGoogleDriveModalOpen(true)}
           />
         }
         sidebar={
@@ -222,6 +228,10 @@ function EditorApp() {
             onSelectDocument={handleSelectDocument}
             onCreateDocument={handleCreateDocument}
             onDeleteDocument={handleDeleteDocument}
+            onShareDocument={(id) => {
+              setCurrentDocId(id)
+              setShareModalOpen(true)
+            }}
           />
         }
         editor={<EditorArea editor={editor} onOpenMathEditor={openMathEditor} onOpenImageModal={() => setImageModalOpen(true)} onHoverMath={setHoveredMath} />}
@@ -260,12 +270,33 @@ function EditorApp() {
           onClose={() => setImageModalOpen(false)}
         />
       )}
+      {googleDriveModalOpen && (
+        <GoogleDriveModal
+          currentDocId={currentDocId}
+          onDocumentImported={() => {
+            listDocuments().then(setDocuments).catch(console.error)
+          }}
+          onClose={() => setGoogleDriveModalOpen(false)}
+        />
+      )}
+      {shareModalOpen && currentDocId && (
+        <ShareModal
+          docId={currentDocId}
+          onClose={() => setShareModalOpen(false)}
+        />
+      )}
     </>
   )
 }
 
 export default function App() {
   const { user, loading } = useAuth()
+  const [shareToken, setShareToken] = useState<string | null>(null)
+
+  useEffect(() => {
+    const match = window.location.pathname.match(/^\/shared\/(.+)$/)
+    if (match) setShareToken(match[1])
+  }, [])
 
   if (loading) {
     return (
@@ -273,6 +304,10 @@ export default function App() {
         <div className="text-text-muted text-sm">Loading...</div>
       </div>
     )
+  }
+
+  if (shareToken) {
+    return <SharedDocumentView shareToken={shareToken} user={user} />
   }
 
   if (!user) {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { Editor } from '@tiptap/core'
-import { FileText, ChevronLeft, Plus, Trash2 } from 'lucide-react'
+import { FileText, ChevronLeft, Plus, Trash2, Share2 } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { DocumentListItem } from '../../api/documents'
 
@@ -13,6 +13,7 @@ interface SidebarProps {
   onSelectDocument: (id: string) => void
   onCreateDocument: () => void
   onDeleteDocument: (id: string) => void
+  onShareDocument?: (id: string) => void
 }
 
 interface HeadingItem {
@@ -31,6 +32,7 @@ export function Sidebar({
   onSelectDocument,
   onCreateDocument,
   onDeleteDocument,
+  onShareDocument,
 }: SidebarProps) {
   const [headings, setHeadings] = useState<HeadingItem[]>([])
 
@@ -114,7 +116,7 @@ export function Sidebar({
                   <button
                     onClick={() => onSelectDocument(doc.id)}
                     className={clsx(
-                      'w-full text-left px-2 py-1.5 rounded text-sm truncate transition-colors pr-7',
+                      'w-full text-left px-2 py-1.5 rounded text-sm truncate transition-colors pr-12',
                       currentDocId === doc.id
                         ? 'bg-surface-hover text-text-primary font-medium'
                         : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
@@ -123,6 +125,18 @@ export function Sidebar({
                   >
                     {doc.title || 'Untitled'}
                   </button>
+                  {onShareDocument && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onShareDocument(doc.id)
+                      }}
+                      className="absolute right-6 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-surface-hover text-text-muted hover:text-accent transition-all"
+                      title="Compartilhar documento"
+                    >
+                      <Share2 size={12} />
+                    </button>
+                  )}
                   <button
                     onClick={(e) => {
                       e.stopPropagation()

@@ -19,6 +19,7 @@ import {
   Quote,
   Minus,
   Loader2,
+  HardDrive,
 } from 'lucide-react'
 import { ToolbarButton } from './ToolbarButton'
 import { ToolbarDivider } from './ToolbarDivider'
@@ -37,9 +38,10 @@ interface ToolbarProps {
   onOpenMathEditor: (templateLatex: string) => void
   onOpenImageModal: () => void
   onUploadTex: () => void
+  onOpenGoogleDrive?: () => void
 }
 
-export function Toolbar({ editor, latex, pdfBlob, showCode, onToggleCode, onOpenMathEditor, onOpenImageModal, onUploadTex }: ToolbarProps) {
+export function Toolbar({ editor, latex, pdfBlob, showCode, onToggleCode, onOpenMathEditor, onOpenImageModal, onUploadTex, onOpenGoogleDrive }: ToolbarProps) {
   const [showMath, setShowMath] = useState(false)
   const [compiling, setCompiling] = useState(false)
   const [compileStatus, setCompileStatus] = useState('')
@@ -184,6 +186,16 @@ export function Toolbar({ editor, latex, pdfBlob, showCode, onToggleCode, onOpen
           tooltip={compileStatus || 'Baixar PDF'}
           onClick={handleDownloadPdf}
         />
+        {onOpenGoogleDrive && (
+          <>
+            <ToolbarDivider />
+            <ToolbarButton
+              icon={<HardDrive size={16} />}
+              tooltip="Google Drive"
+              onClick={onOpenGoogleDrive}
+            />
+          </>
+        )}
       </div>
 
       {showMath && (
