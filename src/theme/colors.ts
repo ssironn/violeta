@@ -1,0 +1,31 @@
+export const colors = {
+  violet: {
+    50: '#f3e8ff',
+    100: '#e4ccff',
+    200: '#c898ff',
+    300: '#a855f7',
+    400: '#8b2cf5',
+    500: '#7c22e6',
+    600: '#6b1dbd',
+    700: '#5a1894',
+    800: '#49136b',
+    900: '#2d0b42',
+    950: '#1a0626',
+  },
+  surface: {
+    bg: '#0f0a18',
+    panel: '#1a1028',
+    elevated: '#241738',
+    border: '#3d2a5c',
+    hover: '#2e1f47',
+  },
+  text: {
+    primary: '#f0e6ff',
+    secondary: '#b89edb',
+    muted: '#7a6299',
+  },
+  accent: '#a855f7',
+  success: '#4ade80',
+  warning: '#fbbf24',
+  error: '#f87171',
+} as const
