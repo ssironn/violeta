@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:16
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: violeta
+      POSTGRES_USER: violeta
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-violeta}
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql+asyncpg://violeta:${DB_PASSWORD:-violeta}@db:5432/violeta
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  pgdata:
