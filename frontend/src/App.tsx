@@ -1,4 +1,6 @@
 import { useState, useCallback } from 'react'
+import { useAuth } from './contexts/AuthContext'
+import { LoginPage } from './components/auth/LoginPage'
 import { useVioletaEditor, type MathEditState } from './hooks/useVioletaEditor'
 import { useLatexGenerator } from './hooks/useLatexGenerator'
 import { usePdfCompiler } from './hooks/usePdfCompiler'
@@ -15,7 +17,7 @@ import { Toolbar } from './components/toolbar/Toolbar'
 import { MathEditRouter } from './components/math-editors/MathEditRouter'
 import { ImageInsertModal } from './components/editor/ImageInsertModal'
 
-export default function App() {
+function EditorApp() {
   const [mathEdit, setMathEdit] = useState<MathEditState | null>(null)
   const [imageModalOpen, setImageModalOpen] = useState(false)
 
@@ -190,4 +192,22 @@ export default function App() {
       )}
     </>
   )
+}
+
+export default function App() {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-surface-bg">
+        <div className="text-text-muted text-sm">Loading...</div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return <LoginPage />
+  }
+
+  return <EditorApp />
 }
