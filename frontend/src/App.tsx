@@ -32,7 +32,7 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex items-center justify-center h-screen bg-surface-bg">
         <div className="flex flex-col items-center gap-3 animate-fade-in">
-          <h1 className="font-serif text-2xl text-text-primary tracking-tight">Violeta</h1>
+          <h1 className="font-serif text-2xl font-medium text-text-primary tracking-wide">Violeta</h1>
           <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
@@ -51,7 +51,7 @@ function GuestOnly({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex items-center justify-center h-screen bg-surface-bg">
         <div className="flex flex-col items-center gap-3 animate-fade-in">
-          <h1 className="font-serif text-2xl text-text-primary tracking-tight">Violeta</h1>
+          <h1 className="font-serif text-2xl font-medium text-text-primary tracking-wide">Violeta</h1>
           <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
@@ -212,7 +212,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
     return (
       <div className="flex items-center justify-center h-screen bg-surface-bg">
         <div className="flex flex-col items-center gap-3 animate-fade-in">
-          <h1 className="font-serif text-2xl text-text-primary tracking-tight">Violeta</h1>
+          <h1 className="font-serif text-2xl font-medium text-text-primary tracking-wide">Violeta</h1>
           <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
         </div>
       </div>

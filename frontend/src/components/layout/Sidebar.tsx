@@ -96,7 +96,7 @@ export function Sidebar({
               <Home size={14} />
             </button>
           )}
-          <h1 className="font-serif text-lg text-text-primary tracking-tight">
+          <h1 className="font-serif text-lg font-medium text-text-primary tracking-wide">
             Violeta
           </h1>
         </div>

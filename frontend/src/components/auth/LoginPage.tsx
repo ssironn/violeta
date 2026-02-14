@@ -53,7 +53,7 @@ export function LoginPage() {
       <div className="w-full max-w-sm mx-4 relative z-10 animate-slide-up">
         {/* Brand header — outside the card */}
         <div className="text-center mb-8">
-          <h1 className="font-serif text-5xl text-text-primary tracking-tight">
+          <h1 className="font-serif text-5xl font-medium text-text-primary tracking-wide">
             Violeta
           </h1>
           <div className="flex items-center justify-center gap-3 mt-3">

@@ -14,15 +14,15 @@
   --color-violet-900: #3b1178;
   --color-violet-950: #1e0a3e;
 
-  --color-surface-bg: #0c0814;
-  --color-surface-panel: #15101f;
-  --color-surface-elevated: #1e1730;
-  --color-surface-border: #2d2345;
-  --color-surface-hover: #261e3a;
+  --color-surface-bg: #0b0c12;
+  --color-surface-panel: #121318;
+  --color-surface-elevated: #1a1b24;
+  --color-surface-border: #28293a;
+  --color-surface-hover: #222336;
 
-  --color-text-primary: #ede8f5;
-  --color-text-secondary: #a99bc4;
-  --color-text-muted: #6b5d84;
+  --color-text-primary: #f0f1f5;
+  --color-text-secondary: #b4b6ce;
+  --color-text-muted: #7b7e9a;
 
   --color-accent: #8b5cf6;
   --color-gold: #d4a574;
@@ -31,7 +31,7 @@
   --color-error: #f87171;
 
   --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
-  --font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --font-serif: "Cormorant", Georgia, "Times New Roman", serif;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
@@ -1200,8 +1200,8 @@ body {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(ellipse 70% 50% at 20% 0%, rgba(139, 92, 246, 0.06) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 60% at 80% 100%, rgba(109, 40, 217, 0.04) 0%, transparent 70%);
+    radial-gradient(ellipse 70% 50% at 20% 0%, rgba(139, 92, 246, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 80% 100%, rgba(109, 40, 217, 0.03) 0%, transparent 70%);
 }
 
 /* Header */
@@ -1223,10 +1223,10 @@ body {
 
 .home-logo {
   font-family: var(--font-serif);
-  font-size: 1.4rem;
-  font-weight: 400;
+  font-size: 1.5rem;
+  font-weight: 500;
   color: var(--color-text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.02em;
 }
 
 .home-divider {
@@ -1237,12 +1237,12 @@ body {
 
 .home-greeting {
   font-size: 0.82rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   font-weight: 400;
 }
 
 .home-greeting strong {
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   font-weight: 500;
 }
 
@@ -1288,13 +1288,12 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .home-section-count {
   font-size: 0.7rem;
   color: var(--color-text-muted);
-  opacity: 0.6;
 }
 
 .home-loading {
@@ -1390,7 +1389,7 @@ body {
   align-items: center;
   gap: 4px;
   font-size: 0.68rem;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .doc-card-title {
@@ -1422,7 +1421,7 @@ body {
 .doc-card-preview-text {
   font-size: 0.75rem;
   line-height: 1.55;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -1445,7 +1444,7 @@ body {
 .doc-card-preview-line {
   font-size: 0.72rem;
   line-height: 1.5;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1487,7 +1486,7 @@ body {
   justify-content: space-between;
   padding: 10px 20px;
   border-top: 1px solid var(--color-surface-border);
-  opacity: 0.5;
+  opacity: 0.7;
   transition: opacity 0.2s ease;
 }
 
@@ -1578,7 +1577,7 @@ body {
   border-radius: 12px;
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-surface-border);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   transition: all 0.25s ease;
 }
 
@@ -1592,7 +1591,7 @@ body {
 .new-doc-card-label {
   font-size: 0.82rem;
   font-weight: 500;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   transition: color 0.2s ease;
 }
 
