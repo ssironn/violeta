@@ -7,6 +7,7 @@ from app.config import settings
 from app.database import create_db_and_tables
 from app.routers.auth import router as auth_router
 from app.routers.documents import router as documents_router
+from app.routers.sharing import router as sharing_router
 
 
 @asynccontextmanager
@@ -28,6 +29,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(documents_router)
+app.include_router(sharing_router)
 
 
 @app.get("/api/health")
