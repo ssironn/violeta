@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useAuth } from './contexts/AuthContext'
 import { LoginPage } from './components/auth/LoginPage'
 import { useVioletaEditor, type MathEditState } from './hooks/useVioletaEditor'
@@ -16,10 +16,17 @@ import { EditorArea } from './components/editor/EditorArea'
 import { Toolbar } from './components/toolbar/Toolbar'
 import { MathEditRouter } from './components/math-editors/MathEditRouter'
 import { ImageInsertModal } from './components/editor/ImageInsertModal'
+import { listDocuments, getDocument, createDocument, updateDocument, deleteDocument } from './api/documents'
+import type { DocumentListItem } from './api/documents'
 
 function EditorApp() {
   const [mathEdit, setMathEdit] = useState<MathEditState | null>(null)
   const [imageModalOpen, setImageModalOpen] = useState(false)
+
+  // Document management state
+  const [documents, setDocuments] = useState<DocumentListItem[]>([])
+  const [currentDocId, setCurrentDocId] = useState<string | null>(null)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const onMathClick = useCallback((state: MathEditState) => {
     setMathEdit(state)
@@ -95,6 +102,64 @@ function EditorApp() {
     })
   }, [editor])
 
+  // Load documents on mount
+  useEffect(() => {
+    listDocuments().then(setDocuments).catch(console.error)
+  }, [])
+
+  // Auto-save with debounce
+  useEffect(() => {
+    if (!editor || !currentDocId) return
+    const docId = currentDocId
+    const handler = () => {
+      const content = editor.getJSON()
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+      saveTimerRef.current = setTimeout(() => {
+        updateDocument(docId, { content }).catch(console.error)
+      }, 2000)
+    }
+    editor.on('update', handler)
+    return () => {
+      editor.off('update', handler)
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    }
+  }, [editor, currentDocId])
+
+  async function handleSelectDocument(id: string) {
+    try {
+      const doc = await getDocument(id)
+      setCurrentDocId(id)
+      if (editor) {
+        editor.commands.setContent(doc.content || { type: 'doc', content: [{ type: 'paragraph' }] })
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  async function handleCreateDocument() {
+    try {
+      const doc = await createDocument()
+      setDocuments(prev => [doc, ...prev])
+      handleSelectDocument(doc.id)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  async function handleDeleteDocument(id: string) {
+    try {
+      await deleteDocument(id)
+      setDocuments(prev => prev.filter(d => d.id !== id))
+      if (currentDocId === id) {
+        setCurrentDocId(null)
+        if (editor) editor.commands.setContent({ type: 'doc', content: [{ type: 'paragraph' }] })
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   if (!editor) {
     return (
       <div className="flex items-center justify-center h-screen bg-surface-bg">
@@ -152,6 +217,11 @@ function EditorApp() {
             editor={editor}
             collapsed={sidebarCollapsed}
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+            documents={documents}
+            currentDocId={currentDocId}
+            onSelectDocument={handleSelectDocument}
+            onCreateDocument={handleCreateDocument}
+            onDeleteDocument={handleDeleteDocument}
           />
         }
         editor={<EditorArea editor={editor} onOpenMathEditor={openMathEditor} onOpenImageModal={() => setImageModalOpen(true)} onHoverMath={setHoveredMath} />}
