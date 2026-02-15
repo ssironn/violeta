@@ -229,7 +229,7 @@ interface TikzPreviewProps {
   height?: number
 }
 
-export default function TikzPreview({
+export function TikzPreview({
   shapes,
   selectedId,
   showGrid = true,

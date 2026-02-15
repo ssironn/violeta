@@ -12,8 +12,8 @@ import {
 import type { TikzShape, ShapeType } from './types'
 import { createDefaultShape } from './types'
 import { generateTikzCode } from './tikzGenerator'
-import TikzPreview from './TikzPreview'
-import ShapeConfigForm from './ShapeConfigForm'
+import { TikzPreview } from './TikzPreview'
+import { ShapeConfigForm } from './ShapeConfigForm'
 
 interface TikzShapeEditorProps {
   initialShapes: TikzShape[]
@@ -54,7 +54,7 @@ function shapeLabel(type: ShapeType): string {
   }
 }
 
-export default function TikzShapeEditor({
+export function TikzShapeEditor({
   initialShapes,
   onSave,
   onDelete,

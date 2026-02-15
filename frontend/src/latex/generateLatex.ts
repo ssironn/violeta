@@ -390,6 +390,15 @@ function collectCalloutTypes(nodes: JSONContent[]): Set<string> {
   return types
 }
 
+function hasTikzFigure(nodes: JSONContent[]): boolean {
+  for (const node of nodes) {
+    if (node.type === 'tikzFigure') return true
+    if (node.type === 'rawLatex' && typeof node.attrs?.content === 'string' && node.attrs.content.includes('\\begin{tikzpicture}')) return true
+    if (node.content && hasTikzFigure(node.content)) return true
+  }
+  return false
+}
+
 export function generateLatex(doc: JSONContent, customPreamble?: string): string {
   const body = processNodes(doc.content ?? [])
 
@@ -419,6 +428,20 @@ export function generateLatex(doc: JSONContent, customPreamble?: string): string
     if (defs.length > 0) theoremDefs = '\n' + defs.join('\n') + '\n'
   }
 
+  // Auto-detect TikZ figures and add required packages
+  const needsTikz = hasTikzFigure(doc.content ?? []) || body.includes('\\begin{tikzpicture}')
+  let tikzDefs = ''
+  if (needsTikz && !extraBlock.includes('\\usepackage{tikz}')) {
+    const defs: string[] = ['\\usepackage{tikz}']
+    if (!extraBlock.includes('shapes.geometric')) {
+      defs.push('\\usetikzlibrary{shapes.geometric}')
+    }
+    if (body.includes('drop shadow') && !extraBlock.includes('shadows')) {
+      defs.push('\\usetikzlibrary{shadows}')
+    }
+    tikzDefs = '\n' + defs.join('\n') + '\n'
+  }
+
   // Auto-detect shorthand commands (\N, \R, etc.) and generate definitions
   const shorthandDefs = collectShorthandDefs(body, extraBlock)
   const shorthandBlock = shorthandDefs.length > 0
@@ -436,7 +459,7 @@ export function generateLatex(doc: JSONContent, customPreamble?: string): string
 \\usepackage{geometry}
 \\usepackage{xspace}
 \\geometry{margin=2.5cm}
-${extraBlock}${theoremDefs}${shorthandBlock}
+${extraBlock}${tikzDefs}${theoremDefs}${shorthandBlock}
 \\begin{document}
 
 ${body}

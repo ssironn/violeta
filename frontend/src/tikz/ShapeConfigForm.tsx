@@ -11,7 +11,7 @@ interface Props {
   onChange: (updated: TikzShape) => void
 }
 
-export default function ShapeConfigForm({ shape, onChange }: Props) {
+export function ShapeConfigForm({ shape, onChange }: Props) {
   function set<K extends keyof TikzShape>(key: K, value: TikzShape[K]) {
     onChange({ ...shape, [key]: value })
   }
