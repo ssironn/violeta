@@ -279,6 +279,11 @@ function processNode(node: JSONContent): string {
       return lines.join('\n')
     }
 
+    case 'tikzFigure': {
+      const tikzCode = (node.attrs?.tikzCode ?? '') as string
+      return tikzCode
+    }
+
     case 'calloutBlock': {
       const calloutType = (node.attrs?.calloutType ?? 'theorem') as string
       const title = (node.attrs?.title ?? '') as string

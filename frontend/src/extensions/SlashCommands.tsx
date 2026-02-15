@@ -23,6 +23,7 @@ import {
   GraduationCap,
   FlaskConical,
   PenLine,
+  Shapes,
 } from 'lucide-react'
 import { mathTemplates } from './mathTemplates'
 
@@ -33,6 +34,7 @@ import { mathTemplates } from './mathTemplates'
 interface SlashCommandCallbacks {
   onOpenMathEditor?: (latex: string) => void
   onOpenImageModal?: () => void
+  onOpenTikzEditor?: () => void
 }
 
 interface SlashCommandItem {
@@ -374,6 +376,17 @@ const slashCommandItems: SlashCommandItem[] = [
     },
   },
 
+  {
+    id: 'tikzFigure',
+    label: 'Figura TikZ',
+    category: 'Midia',
+    icon: Shapes,
+    aliases: ['tikz', 'figura', 'geometria', 'desenho', 'forma', 'tikzpicture'],
+    action: (_editor, { onOpenTikzEditor }) => {
+      onOpenTikzEditor?.()
+    },
+  },
+
   // -- Avancado --
   {
     id: 'rawLatex',
@@ -479,6 +492,7 @@ function createSlashCommandPlugin(extensionStorage: SlashCommandState) {
 interface SlashCommandsOptions {
   onOpenMathEditor?: (latex: string) => void
   onOpenImageModal?: () => void
+  onOpenTikzEditor?: () => void
 }
 
 export const SlashCommands = Extension.create<SlashCommandsOptions>({
@@ -488,6 +502,7 @@ export const SlashCommands = Extension.create<SlashCommandsOptions>({
     return {
       onOpenMathEditor: undefined,
       onOpenImageModal: undefined,
+      onOpenTikzEditor: undefined,
     }
   },
 
@@ -537,9 +552,10 @@ interface SlashCommandMenuProps {
   editor: Editor
   onOpenMathEditor?: (latex: string) => void
   onOpenImageModal?: () => void
+  onOpenTikzEditor?: () => void
 }
 
-export function SlashCommandMenu({ editor, onOpenMathEditor, onOpenImageModal }: SlashCommandMenuProps) {
+export function SlashCommandMenu({ editor, onOpenMathEditor, onOpenImageModal, onOpenTikzEditor }: SlashCommandMenuProps) {
   const [active, setActive] = useState(false)
   const [query, setQuery] = useState('')
   const [range, setRange] = useState<{ from: number; to: number } | null>(null)
@@ -601,7 +617,7 @@ export function SlashCommandMenu({ editor, onOpenMathEditor, onOpenImageModal }:
     editor.chain().focus().deleteRange({ from: range.from, to: range.to }).run()
 
     // Execute the action
-    item.action(editor, { onOpenMathEditor, onOpenImageModal })
+    item.action(editor, { onOpenMathEditor, onOpenImageModal, onOpenTikzEditor })
   }
 
   // Keyboard handler: intercept keys when menu is active

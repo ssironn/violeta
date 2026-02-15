@@ -14,10 +14,11 @@ interface EditorAreaProps {
   editor: Editor
   onOpenMathEditor: (latex: string) => void
   onOpenImageModal: () => void
+  onOpenTikzEditor?: () => void
   onHoverMath: (latex: string | null) => void
 }
 
-export function EditorArea({ editor, onOpenMathEditor, onOpenImageModal, onHoverMath }: EditorAreaProps) {
+export function EditorArea({ editor, onOpenMathEditor, onOpenImageModal, onOpenTikzEditor, onHoverMath }: EditorAreaProps) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [pageBreaks, setPageBreaks] = useState<number[]>([])
   const { searchState, setQuery, next, prev, close } = useEditorSearch(editor)
@@ -118,7 +119,7 @@ export function EditorArea({ editor, onOpenMathEditor, onOpenImageModal, onHover
           <BlockHandle editor={editor} />
 
           {/* Slash command floating menu */}
-          <SlashCommandMenu editor={editor} onOpenMathEditor={onOpenMathEditor} onOpenImageModal={onOpenImageModal} />
+          <SlashCommandMenu editor={editor} onOpenMathEditor={onOpenMathEditor} onOpenImageModal={onOpenImageModal} onOpenTikzEditor={onOpenTikzEditor} />
 
           {/* Notion-like + button */}
           <BlockInsertMenu editor={editor} onOpenMathEditor={onOpenMathEditor} onOpenImageModal={onOpenImageModal} />

@@ -617,6 +617,13 @@ function parseBlock(block: string): JSONContent[] {
       return [{ type: 'blockMath', attrs: { latex: inner, environment: envName } }]
     }
 
+    // TikZ figures → tikzFigure node
+    if (envName === 'tikzpicture') {
+      const endTag = `\\end{tikzpicture}`
+      const fullEnv = `\\begin{tikzpicture}\n${inner}\n${endTag}`
+      return [{ type: 'tikzFigure', attrs: { tikzCode: fullEnv, shapes: [] } }]
+    }
+
     // List environments — preserve environment name
     if (LIST_ENVIRONMENTS.has(envName)) {
       const items = parseListItems(inner)

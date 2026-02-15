@@ -30,6 +30,8 @@ import { PublicationPage } from './components/publications/PublicationPage'
 import { PublicPublicationPage } from './components/publications/PublicPublicationPage'
 import { ProfilePage } from './components/publications/ProfilePage'
 import { PublishModal } from './components/publications/PublishModal'
+import { TikzShapeEditor } from './tikz/TikzShapeEditor'
+import type { TikzShape } from './tikz/types'
 
 /** Requires auth — redirects to /signin if not logged in */
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -83,6 +85,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
   const [mathEdit, setMathEdit] = useState<MathEditState | null>(null)
   const [imageModalOpen, setImageModalOpen] = useState(false)
   const [publishModalOpen, setPublishModalOpen] = useState(false)
+  const [tikzEdit, setTikzEdit] = useState<{ shapes: TikzShape[]; pos: number; mode: 'insert' | 'edit' } | null>(null)
 
   const [currentDocId] = useState<string | null>(initialDocId)
   const [shareModalOpen, setShareModalOpen] = useState(false)
@@ -162,6 +165,26 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
       mode: 'insert',
     })
   }, [editor])
+
+  const openTikzEditor = useCallback(() => {
+    if (!editor) return
+    setTikzEdit({
+      shapes: [],
+      pos: editor.state.selection.from,
+      mode: 'insert',
+    })
+  }, [editor])
+
+  useEffect(() => {
+    function handleTikzClick(e: Event) {
+      const detail = (e as CustomEvent).detail
+      if (detail) {
+        setTikzEdit({ shapes: detail.shapes || [], pos: detail.pos, mode: 'edit' })
+      }
+    }
+    document.addEventListener('tikz-figure-click', handleTikzClick)
+    return () => document.removeEventListener('tikz-figure-click', handleTikzClick)
+  }, [])
 
   // Load initial document
   useEffect(() => {
@@ -253,6 +276,29 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
     editor!.commands.focus()
   }
 
+  function handleTikzSave(tikzCode: string, shapes: TikzShape[]) {
+    if (!tikzEdit || !editor) return
+    if (tikzEdit.mode === 'insert') {
+      editor.chain().focus().insertContent({
+        type: 'tikzFigure',
+        attrs: { tikzCode, shapes },
+      }).run()
+    } else {
+      ;(editor.commands as any).updateTikzFigure({ tikzCode, shapes, pos: tikzEdit.pos })
+    }
+    setTikzEdit(null)
+    editor.commands.focus()
+  }
+
+  function handleTikzDelete() {
+    if (!tikzEdit || !editor) return
+    if (tikzEdit.mode === 'edit') {
+      ;(editor.commands as any).deleteTikzFigure({ pos: tikzEdit.pos })
+    }
+    setTikzEdit(null)
+    editor.commands.focus()
+  }
+
   return (
     <>
       <AppLayout
@@ -273,7 +319,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
             onPublish={() => setPublishModalOpen(true)}
           />
         }
-        editor={<EditorArea editor={editor} onOpenMathEditor={openMathEditor} onOpenImageModal={() => setImageModalOpen(true)} onHoverMath={setHoveredMath} />}
+        editor={<EditorArea editor={editor} onOpenMathEditor={openMathEditor} onOpenImageModal={() => setImageModalOpen(true)} onOpenTikzEditor={openTikzEditor} onHoverMath={setHoveredMath} />}
         rightPanel={
           <RightPanel
             latex={effectiveLatex}
@@ -297,6 +343,15 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
           onDelete={handleMathDelete}
           onClose={() => setMathEdit(null)}
           isInsert={mathEdit.mode === 'insert'}
+        />
+      )}
+      {tikzEdit && (
+        <TikzShapeEditor
+          initialShapes={tikzEdit.shapes}
+          onSave={handleTikzSave}
+          onDelete={handleTikzDelete}
+          onClose={() => setTikzEdit(null)}
+          isInsert={tikzEdit.mode === 'insert'}
         />
       )}
       {imageModalOpen && (
