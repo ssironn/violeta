@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { Plus, FileText, Clock, Trash2, Loader2, Globe, Users } from 'lucide-react'
+import { Plus, FileText, Clock, Trash2, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import katex from 'katex'
 import { listDocuments, getDocument, createDocument, deleteDocument } from '../../api/documents'
 import type { DocumentListItem } from '../../api/documents'
-import { useAuth } from '../../contexts/AuthContext'
 import { katexMacros } from '../../latex/katexMacros'
 import { parseLatex } from '../../latex/parseLatex'
 
@@ -295,7 +294,6 @@ function NewDocumentCard({ onCreate, index }: { onCreate: () => void; index: num
 }
 
 export function HomeScreen() {
-  const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [documents, setDocuments] = useState<DocumentListItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -325,70 +323,33 @@ export function HomeScreen() {
     }
   }
 
-  const greeting = (() => {
-    const h = new Date().getHours()
-    if (h < 12) return 'Bom dia'
-    if (h < 18) return 'Boa tarde'
-    return 'Boa noite'
-  })()
-
   return (
-    <div className="home-screen">
-      {/* Ambient background */}
-      <div className="home-bg" />
+    <main className="max-w-6xl mx-auto px-4 py-8">
+      <div className="home-section-header">
+        <h2 className="home-section-title">Seus documentos</h2>
+        <span className="home-section-count">
+          {documents.length} {documents.length === 1 ? 'documento' : 'documentos'}
+        </span>
+      </div>
 
-      {/* Header */}
-      <header className="home-header">
-        <div className="home-header-left">
-          <h1 className="home-logo">Violeta</h1>
-          <span className="home-divider" />
-          <span className="home-greeting">
-            {greeting}, <strong>{user?.name?.split(' ')[0]}</strong>
-          </span>
+      {loading ? (
+        <div className="home-loading">
+          <Loader2 size={28} className="animate-spin text-violet-400" />
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => navigate('/feed')} className="home-nav-link" title="Feed">
-            <Users size={15} />
-            <span>Feed</span>
-          </button>
-          <button onClick={() => navigate('/explore')} className="home-nav-link" title="Explorar">
-            <Globe size={15} />
-            <span>Explorar</span>
-          </button>
-          <button onClick={logout} className="home-logout">
-            Sair
-          </button>
+      ) : (
+        <div className="home-grid">
+          <NewDocumentCard onCreate={handleCreate} index={0} />
+          {documents.map((doc, i) => (
+            <DocumentCard
+              key={doc.id}
+              doc={doc}
+              index={i + 1}
+              onOpen={() => navigate(`/document/${doc.id}`)}
+              onDelete={() => handleDelete(doc.id)}
+            />
+          ))}
         </div>
-      </header>
-
-      {/* Content */}
-      <main className="home-content">
-        <div className="home-section-header">
-          <h2 className="home-section-title">Seus documentos</h2>
-          <span className="home-section-count">
-            {documents.length} {documents.length === 1 ? 'documento' : 'documentos'}
-          </span>
-        </div>
-
-        {loading ? (
-          <div className="home-loading">
-            <Loader2 size={28} className="animate-spin text-violet-400" />
-          </div>
-        ) : (
-          <div className="home-grid">
-            <NewDocumentCard onCreate={handleCreate} index={0} />
-            {documents.map((doc, i) => (
-              <DocumentCard
-                key={doc.id}
-                doc={doc}
-                index={i + 1}
-                onOpen={() => navigate(`/document/${doc.id}`)}
-                onDelete={() => handleDelete(doc.id)}
-              />
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
+      )}
+    </main>
   )
 }

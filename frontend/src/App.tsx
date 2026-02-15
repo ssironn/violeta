@@ -16,6 +16,7 @@ import { beautifyLatex } from './latex/beautifyLatex'
 import { uploadTexFile } from './utils/uploadTex'
 import { useDocumentAssets } from './hooks/useDocumentAssets'
 import { AppLayout } from './components/layout/AppLayout'
+import { AppShell } from './components/layout/AppShell'
 import { RightPanel } from './components/layout/RightPanel'
 import { EditorArea } from './components/editor/EditorArea'
 import { Toolbar } from './components/toolbar/Toolbar'
@@ -354,11 +355,13 @@ export default function App() {
         <Route path="/shared/:token" element={<SharedPage />} />
         <Route path="/p/:token" element={<PublicPublicationPage />} />
         <Route path="/document/:id" element={<RequireAuth><EditorPage /></RequireAuth>} />
-        <Route path="/feed" element={<RequireAuth><FeedPage /></RequireAuth>} />
-        <Route path="/explore" element={<RequireAuth><ExplorePage /></RequireAuth>} />
-        <Route path="/publication/:id" element={<RequireAuth><PublicationPage /></RequireAuth>} />
-        <Route path="/profile/:id" element={<RequireAuth><ProfilePage /></RequireAuth>} />
-        <Route path="/" element={<RequireAuth><HomeScreen /></RequireAuth>} />
+        <Route element={<RequireAuth><AppShell /></RequireAuth>}>
+          <Route path="/feed" element={<FeedPage />} />
+          <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/publication/:id" element={<PublicationPage />} />
+          <Route path="/profile/:id" element={<ProfilePage />} />
+          <Route path="/" element={<HomeScreen />} />
+        </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
