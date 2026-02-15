@@ -9,6 +9,7 @@ interface Props {
   editor: Editor
   onOpenMathEditor: (latex: string) => void
   onOpenImageModal: () => void
+  onOpenTikzEditor?: () => void
 }
 
 function MiniPreview({ latex }: { latex: string }) {
@@ -24,7 +25,7 @@ function MiniPreview({ latex }: { latex: string }) {
   return <span ref={ref} className="[&_.katex]:text-[0.75em] text-gray-500" />
 }
 
-export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal }: Props) {
+export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, onOpenTikzEditor }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [buttonPos, setButtonPos] = useState<{ top: number } | null>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -160,6 +161,17 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal }: 
           >
             <span className="text-[13px] text-gray-700">Imagem</span>
           </button>
+          {onOpenTikzEditor && (
+            <button
+              onClick={() => {
+                onOpenTikzEditor()
+                setMenuOpen(false)
+              }}
+              className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-violet-50 transition-colors"
+            >
+              <span className="text-[13px] text-gray-700">Figura TikZ</span>
+            </button>
+          )}
           <button
             onClick={() => {
               editor.chain().focus().setHorizontalRule().run()

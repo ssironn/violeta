@@ -122,7 +122,7 @@ export function EditorArea({ editor, onOpenMathEditor, onOpenImageModal, onOpenT
           <SlashCommandMenu editor={editor} onOpenMathEditor={onOpenMathEditor} onOpenImageModal={onOpenImageModal} onOpenTikzEditor={onOpenTikzEditor} />
 
           {/* Notion-like + button */}
-          <BlockInsertMenu editor={editor} onOpenMathEditor={onOpenMathEditor} onOpenImageModal={onOpenImageModal} />
+          <BlockInsertMenu editor={editor} onOpenMathEditor={onOpenMathEditor} onOpenImageModal={onOpenImageModal} onOpenTikzEditor={onOpenTikzEditor} />
         </div>
 
         {/* Page break indicators */}
