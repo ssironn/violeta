@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Plus, FileText, Clock, Trash2, Loader2, Globe, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import katex from 'katex'
@@ -165,7 +165,7 @@ function DocumentCard({
 }) {
   const [previewLines, setPreviewLines] = useState<PreviewLine[] | null>(null)
   const [loadingPreview, setLoadingPreview] = useState(true)
-  const [hovered, setHovered] = useState(false)
+  const [_hovered, setHovered] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   // Eagerly load preview on mount

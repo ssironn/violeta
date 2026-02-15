@@ -25,9 +25,10 @@ export function FeedCard({ publication, onClick }: FeedCardProps) {
 
   return (
     <button onClick={onClick} className="w-full text-left bg-surface-card border border-surface-border rounded-xl overflow-hidden hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/5 transition-all group">
-      <div className="aspect-[3/4] max-h-[280px] bg-white overflow-hidden">
+      <div className="aspect-[3/4] max-h-[280px] bg-white overflow-hidden flex items-center justify-center">
         <img src={getThumbnailUrl(publication.id)} alt={publication.title} loading="lazy"
-          className="w-full h-full object-cover object-top group-hover:scale-[1.02] transition-transform duration-300" />
+          onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.classList.add('thumbnail-fallback') }}
+          className="w-full h-full object-contain object-top group-hover:scale-[1.02] transition-transform duration-300" />
       </div>
       <div className="p-3 space-y-2">
         <div className="flex items-center gap-2">

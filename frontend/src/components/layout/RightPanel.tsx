@@ -185,9 +185,7 @@ function CodeWithLineNumbers({
 
   // Build per-line highlighted HTML
   const lineHtmls = useMemo(() => {
-    const fullHtml = highlightWithSearch(code, hoveredMath, matches, activeMatchIndex)
-    // Split by newlines in the HTML - we need to track which line each char belongs to
-    // Simpler approach: highlight each line individually by mapping matches to lines
+    // highlight each line individually by mapping matches to lines
     const lineOffsets: number[] = []
     let offset = 0
     for (const line of lines) {

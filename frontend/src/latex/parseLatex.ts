@@ -462,8 +462,7 @@ function parseListItems(inner: string): JSONContent[] {
         items.push({ type: 'listItem', content: blocks })
       }
     } else {
-      const unwrapped = unwrapDollarParagraph(trimmed)
-      const inlineContent = parseInline(unwrapped)
+      const inlineContent = parseInline(trimmed)
       if (inlineContent.length > 0) {
         items.push({
           type: 'listItem',
@@ -474,18 +473,6 @@ function parseListItems(inner: string): JSONContent[] {
   }
 
   return items
-}
-
-function unwrapDollarParagraph(text: string): string {
-  const t = text.trim()
-  if (t.startsWith('$') && t.endsWith('$') && !t.startsWith('$$')) {
-    let depth = 0
-    for (let i = 1; i < t.length - 1; i++) {
-      if (t[i] === '$') depth++
-    }
-    if (depth === 0) return t.slice(1, -1)
-  }
-  return t
 }
 
 /** Named math environments → mathEnvironment node (preserves environment name) */
@@ -653,8 +640,7 @@ function parseBlock(block: string): JSONContent[] {
 
     // Alignment environments
     if (ALIGN_ENVIRONMENTS.has(envName)) {
-      const unwrapped = unwrapDollarParagraph(inner)
-      const content = parseInline(unwrapped)
+      const content = parseInline(inner)
       const align = envName === 'flushright' ? 'right' : envName === 'center' ? 'center' : undefined
       if (content.length === 0) return []
       return [{ type: 'paragraph', ...(align ? { attrs: { textAlign: align } } : {}), content }]
@@ -713,13 +699,6 @@ function parseBlock(block: string): JSONContent[] {
     const endTag = `\\end{${envName}}`
     const fullEnv = trimmed.slice(0, endPos + endTag.length)
     return [{ type: 'rawLatex', attrs: { content: fullEnv } }]
-  }
-
-  // Paragraph wrapped in $...$ (Violeta-style)
-  const unwrapped = unwrapDollarParagraph(trimmed)
-  if (unwrapped !== trimmed) {
-    const content = parseInline(unwrapped)
-    if (content.length > 0) return [{ type: 'paragraph', content }]
   }
 
   // Plain text paragraph

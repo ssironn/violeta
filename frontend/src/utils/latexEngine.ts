@@ -1,7 +1,9 @@
 /**
  * LaTeX compilation via texlive.net public API.
- * In development, requests go through Vite's proxy (/texlive-api)
- * to avoid CORS issues.
+ * Requests go through a reverse proxy (/texlive-api) to avoid CORS issues.
+ * - Dev: Vite proxy with followRedirects handles the 301 server-side.
+ * - Prod: nginx proxies both /texlive-api and /latexcgi, so the browser
+ *   follows the 301 redirect to /latexcgi/document_xxx.pdf transparently.
  */
 
 import { type CompileAsset, dataUrlToBlob } from '../hooks/useDocumentAssets'
@@ -38,7 +40,6 @@ export async function compileLatexSource(
   })
 
   if (!response.ok) {
-    // Try to read error info from body
     const text = await response.text().catch(() => '')
     throw new Error(extractErrorFromLog(text) || `Erro do servidor: ${response.status}`)
   }
@@ -54,7 +55,6 @@ export async function compileLatexSource(
   const text = await response.text()
 
   if (response.url?.endsWith('.pdf')) {
-    // The content-type might be wrong but the URL says PDF
     const blob = new Blob([text], { type: 'application/pdf' })
     return { pdf: blob, log: '' }
   }

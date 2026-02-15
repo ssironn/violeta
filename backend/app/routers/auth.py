@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -23,10 +24,14 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 async def register(data: UserRegister, session: AsyncSession = Depends(get_session)):
     existing = await session.exec(select(User).where(User.email == data.email))
     if existing.first():
-        raise HTTPException(status_code=409, detail="Email already registered")
+        raise HTTPException(status_code=409, detail="Este email já está cadastrado")
     user = User(name=data.name, email=data.email, password_hash=hash_password(data.password))
     session.add(user)
-    await session.commit()
+    try:
+        await session.commit()
+    except IntegrityError:
+        await session.rollback()
+        raise HTTPException(status_code=409, detail="Este email já está cadastrado")
     await session.refresh(user)
     return user
 
@@ -36,7 +41,7 @@ async def login(data: UserLogin, response: Response, session: AsyncSession = Dep
     result = await session.exec(select(User).where(User.email == data.email))
     user = result.first()
     if not user or not verify_password(data.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Email ou senha incorretos")
     access_token = create_access_token(subject=str(user.id))
     refresh_token = create_refresh_token(subject=str(user.id))
     response.set_cookie(

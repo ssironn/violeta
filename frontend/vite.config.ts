@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+    host: true,
     allowedHosts: true,
     proxy: {
       '/texlive-api': {
@@ -14,7 +15,7 @@ export default defineConfig({
         followRedirects: true,
       },
       '/api': {
-        target: 'http://localhost:8000',
+        target: process.env.API_URL || 'http://localhost:8000',
         changeOrigin: true,
       },
     },

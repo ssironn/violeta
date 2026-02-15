@@ -150,7 +150,7 @@ export function Toolbar({
   const [showSymbols, setShowSymbols] = useState(false)
   const [showMathTemplates, setShowMathTemplates] = useState(false)
   const [compiling, setCompiling] = useState(false)
-  const [compileStatus, setCompileStatus] = useState('')
+  const [_compileStatus, setCompileStatus] = useState('')
 
   async function handleDownloadPdf() {
     if (compiling) return

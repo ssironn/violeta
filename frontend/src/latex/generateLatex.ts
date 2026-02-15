@@ -99,7 +99,11 @@ function processInlineContent(node: JSONContent, escapeText = false): string {
         return processMarks(text, child.marks)
       }
       if (child.type === 'inlineMath') {
-        return `$${sanitizeMathUnicode(child.attrs?.latex ?? '')}$`
+        // Collapse newlines to spaces so inline math stays on one line.
+        // This prevents splitIntoBlocks from breaking $...$ across paragraphs
+        // when the math content contains \\ followed by newlines (e.g. matrices).
+        const inlineLatex = sanitizeMathUnicode(child.attrs?.latex ?? '').replace(/\n/g, ' ')
+        return `$${inlineLatex}$`
       }
       if (child.type === 'latexSpacing') {
         return child.attrs?.command ?? '\\quad'
@@ -300,6 +304,59 @@ function processListItemContent(nodes: JSONContent[]): string {
   return nodes.map(processNode).filter(Boolean).join('\n')
 }
 
+/**
+ * Common LaTeX shorthand commands that aren't defined by default.
+ * Maps command name (without backslash) → its \newcommand definition.
+ * These are auto-injected into the preamble when detected in the document body.
+ */
+const SHORTHAND_COMMANDS: Record<string, string> = {
+  // Number sets
+  'N': '\\newcommand{\\N}{\\mathbb{N}}',
+  'Z': '\\newcommand{\\Z}{\\mathbb{Z}}',
+  'Q': '\\newcommand{\\Q}{\\mathbb{Q}}',
+  'R': '\\newcommand{\\R}{\\mathbb{R}}',
+  'C': '\\newcommand{\\C}{\\mathbb{C}}',
+  'F': '\\newcommand{\\F}{\\mathbb{F}}',
+  'K': '\\newcommand{\\K}{\\mathbb{K}}',
+  'P': '\\newcommand{\\P}{\\mathbb{P}}',
+  // Common operators
+  'abs': '\\newcommand{\\abs}[1]{\\left|#1\\right|}',
+  'norm': '\\newcommand{\\norm}[1]{\\left\\|#1\\right\\|}',
+  'ceil': '\\newcommand{\\ceil}[1]{\\left\\lceil#1\\right\\rceil}',
+  'floor': '\\newcommand{\\floor}[1]{\\left\\lfloor#1\\right\\rfloor}',
+  'inner': '\\newcommand{\\inner}[2]{\\left\\langle#1,#2\\right\\rangle}',
+  // Differential/calculus
+  'dd': '\\newcommand{\\dd}{\\,\\mathrm{d}}',
+  'dv': '\\newcommand{\\dv}[2]{\\frac{\\mathrm{d}#1}{\\mathrm{d}#2}}',
+  'pdv': '\\newcommand{\\pdv}[2]{\\frac{\\partial#1}{\\partial#2}}',
+  // Set theory
+  'powerset': '\\newcommand{\\powerset}{\\mathcal{P}}',
+  // Linear algebra
+  'tr': '\\newcommand{\\tr}{\\operatorname{tr}}',
+  'rank': '\\newcommand{\\rank}{\\operatorname{rank}}',
+  'diag': '\\newcommand{\\diag}{\\operatorname{diag}}',
+  'sgn': '\\newcommand{\\sgn}{\\operatorname{sgn}}',
+  'id': '\\newcommand{\\id}{\\operatorname{id}}',
+  'im': '\\newcommand{\\im}{\\operatorname{im}}',
+}
+
+/**
+ * Scan LaTeX source for shorthand commands (e.g. \N, \R) and return
+ * the \newcommand definitions needed. Skips commands already defined
+ * in the custom preamble.
+ */
+function collectShorthandDefs(body: string, customPreamble: string): string[] {
+  const defs: string[] = []
+  for (const [cmd, def] of Object.entries(SHORTHAND_COMMANDS)) {
+    // Match \cmd when followed by a non-letter (word boundary in LaTeX)
+    const regex = new RegExp(`\\\\${cmd}(?![a-zA-Z])`)
+    if (regex.test(body) && !customPreamble.includes(`\\newcommand{\\${cmd}}`)) {
+      defs.push(def)
+    }
+  }
+  return defs
+}
+
 const CALLOUT_THEOREM_DEFS: Record<string, string> = {
   theorem: '\\newtheorem{theorem}{Teorema}',
   definition: '\\newtheorem{definition}{Definição}',
@@ -342,7 +399,12 @@ export function generateLatex(doc: JSONContent, customPreamble?: string): string
     if (needsAmsthm) defs.push('\\usepackage{amsthm}')
     // proof is built-in with amsthm, no \newtheorem needed
     for (const t of calloutTypes) {
-      if (t === 'proof') continue
+      if (t === 'proof') {
+        if (!extraBlock.includes('\\qedsymbol')) {
+          defs.push('\\renewcommand{\\qedsymbol}{$\\blacksquare$}')
+        }
+        continue
+      }
       // Only add if not already defined in custom preamble
       if (!extraBlock.includes(`\\newtheorem{${t}}`)) {
         const def = CALLOUT_THEOREM_DEFS[t]
@@ -351,6 +413,12 @@ export function generateLatex(doc: JSONContent, customPreamble?: string): string
     }
     if (defs.length > 0) theoremDefs = '\n' + defs.join('\n') + '\n'
   }
+
+  // Auto-detect shorthand commands (\N, \R, etc.) and generate definitions
+  const shorthandDefs = collectShorthandDefs(body, extraBlock)
+  const shorthandBlock = shorthandDefs.length > 0
+    ? '\n' + shorthandDefs.join('\n') + '\n'
+    : ''
 
   const preamble = `\\documentclass[12pt,a4paper]{article}
 
@@ -361,8 +429,9 @@ export function generateLatex(doc: JSONContent, customPreamble?: string): string
 \\usepackage{graphicx}
 \\usepackage{hyperref}
 \\usepackage{geometry}
+\\usepackage{xspace}
 \\geometry{margin=2.5cm}
-${extraBlock}${theoremDefs}
+${extraBlock}${theoremDefs}${shorthandBlock}
 \\begin{document}
 
 ${body}

@@ -6,7 +6,43 @@
  * in the editor previews.
  */
 
-export const katexMacros: Record<string, string> = {}
+/**
+ * Default macros for common shorthand commands.
+ * These ensure previews work out of the box even without a custom preamble.
+ * Kept in sync with SHORTHAND_COMMANDS in generateLatex.ts.
+ */
+const DEFAULT_KATEX_MACROS: Record<string, string> = {
+  // Number sets
+  '\\N': '\\mathbb{N}',
+  '\\Z': '\\mathbb{Z}',
+  '\\Q': '\\mathbb{Q}',
+  '\\R': '\\mathbb{R}',
+  '\\C': '\\mathbb{C}',
+  '\\F': '\\mathbb{F}',
+  '\\K': '\\mathbb{K}',
+  '\\P': '\\mathbb{P}',
+  // Common operators
+  '\\abs': '\\left|#1\\right|',
+  '\\norm': '\\left\\|#1\\right\\|',
+  '\\ceil': '\\left\\lceil#1\\right\\rceil',
+  '\\floor': '\\left\\lfloor#1\\right\\rfloor',
+  '\\inner': '\\left\\langle#1,#2\\right\\rangle',
+  // Differential/calculus
+  '\\dd': '\\,\\mathrm{d}',
+  '\\dv': '\\frac{\\mathrm{d}#1}{\\mathrm{d}#2}',
+  '\\pdv': '\\frac{\\partial#1}{\\partial#2}',
+  // Set theory
+  '\\powerset': '\\mathcal{P}',
+  // Linear algebra
+  '\\tr': '\\operatorname{tr}',
+  '\\rank': '\\operatorname{rank}',
+  '\\diag': '\\operatorname{diag}',
+  '\\sgn': '\\operatorname{sgn}',
+  '\\id': '\\operatorname{id}',
+  '\\im': '\\operatorname{im}',
+}
+
+export const katexMacros: Record<string, string> = { ...DEFAULT_KATEX_MACROS }
 
 /**
  * Parse \newcommand, \renewcommand, \def, and \DeclareMathOperator
@@ -78,7 +114,8 @@ export function updateKatexMacros(preamble: string): void {
   for (const key of Object.keys(katexMacros)) {
     delete katexMacros[key]
   }
-  // Parse and populate
+  // Restore defaults, then overlay user-defined macros (which take precedence)
+  Object.assign(katexMacros, DEFAULT_KATEX_MACROS)
   const parsed = parsePreambleMacros(preamble)
   Object.assign(katexMacros, parsed)
 }

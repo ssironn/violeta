@@ -2147,3 +2147,11 @@ body {
   font-size: 0.72rem;
   color: #6b7280;
 }
+
+.thumbnail-fallback::after {
+  content: 'PDF';
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #c4b5d4;
+  letter-spacing: 0.1em;
+}
