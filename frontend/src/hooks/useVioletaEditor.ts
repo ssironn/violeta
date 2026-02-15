@@ -18,6 +18,7 @@ import { SlashCommands } from '../extensions/SlashCommands'
 import { LatexSpacing } from '../extensions/LatexSpacing'
 import { BlockInsertButton } from '../extensions/BlockInsertButton'
 import { SearchHighlight } from '../extensions/SearchHighlight'
+import { TikzFigureBlock } from '../extensions/TikzFigureBlock'
 
 export interface MathEditState {
   latex: string
@@ -93,6 +94,7 @@ export function useVioletaEditor({ onMathClick }: UseVioletaEditorOptions) {
       LatexSpacing,
       BlockInsertButton,
       SearchHighlight,
+      TikzFigureBlock,
     ],
     content: '',
     editorProps: {
