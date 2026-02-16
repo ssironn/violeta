@@ -19,7 +19,7 @@ function ColorPicker({
     <div className="flex items-center gap-2">
       <div className="relative">
         <div
-          className="w-8 h-8 rounded-lg border border-white/[0.12] cursor-pointer"
+          className="w-8 h-8 rounded-lg border v-modal-divider cursor-pointer"
           style={{ backgroundColor: value }}
         />
         <input
@@ -71,7 +71,7 @@ function NumericInput({
       onChange={(e) => handleChange(e.target.value)}
       onBlur={handleBlur}
       placeholder={placeholder}
-      className="w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-400/30 focus:outline-none focus:border-accent-500/40 font-mono"
+      className="w-full v-modal-input rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-400/30 focus:outline-none focus:border-accent-500/40 font-mono"
     />
   )
 }
@@ -185,7 +185,7 @@ export function PlotConfigForm({ plot, axis, onPlotChange, onAxisChange }: PlotC
                 className={`px-3 py-1.5 rounded-lg border text-[12px] transition-colors ${
                   p.plotStyle === s
                     ? 'bg-accent-500/20 border-accent-500/40 text-accent-200'
-                    : 'bg-black/20 border-white/[0.08] text-accent-400/60 hover:text-accent-300'
+                    : 'v-modal-input text-accent-400/60 hover:text-accent-300'
                 }`}
               >
                 {s}
@@ -198,7 +198,7 @@ export function PlotConfigForm({ plot, axis, onPlotChange, onAxisChange }: PlotC
           <select
             value={p.colormap}
             onChange={(e) => updatePlot({ colormap: e.target.value as FunctionPlot3D['colormap'] })}
-            className="w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-accent-100 focus:outline-none focus:border-accent-500/40"
+            className="w-full v-modal-input rounded-lg px-3 py-2 text-sm text-accent-100 focus:outline-none focus:border-accent-500/40"
           >
             {['viridis', 'hot', 'cool', 'spring', 'winter', 'jet'].map(cm => (
               <option key={cm} value={cm}>{cm}</option>
@@ -223,7 +223,7 @@ export function PlotConfigForm({ plot, axis, onPlotChange, onAxisChange }: PlotC
                 className={`px-3 py-1.5 rounded-lg border text-[12px] transition-colors ${
                   p.chartType === ct
                     ? 'bg-accent-500/20 border-accent-500/40 text-accent-200'
-                    : 'bg-black/20 border-white/[0.08] text-accent-400/60 hover:text-accent-300'
+                    : 'v-modal-input text-accent-400/60 hover:text-accent-300'
                 }`}
               >
                 {ct === 'line' ? 'Linha' : ct === 'scatter' ? 'Dispersao' : 'Barras'}
@@ -238,7 +238,7 @@ export function PlotConfigForm({ plot, axis, onPlotChange, onAxisChange }: PlotC
             onChange={(e) => updatePlot({ data: e.target.value })}
             placeholder="x, y&#10;0, 0&#10;1, 1&#10;2, 4"
             rows={6}
-            className="w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-400/30 focus:outline-none focus:border-accent-500/40 font-mono resize-none"
+            className="w-full v-modal-input rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-400/30 focus:outline-none focus:border-accent-500/40 font-mono resize-none"
           />
         </FieldGroup>
         <FieldRow>
@@ -307,7 +307,7 @@ export function PlotConfigForm({ plot, axis, onPlotChange, onAxisChange }: PlotC
       {renderPlotFields()}
 
       {/* ── Common fields ── */}
-      <div className="border-t border-white/[0.06] pt-3 mt-1 flex flex-col gap-3">
+      <div className="border-t v-modal-divider pt-3 mt-1 flex flex-col gap-3">
         <FieldGroup>
           <FieldLabel>Legenda</FieldLabel>
           <FieldInput
@@ -342,7 +342,7 @@ export function PlotConfigForm({ plot, axis, onPlotChange, onAxisChange }: PlotC
                 className={`px-3 py-1.5 rounded-lg border text-[12px] transition-colors ${
                   plot.lineStyle === ls.value
                     ? 'bg-accent-500/20 border-accent-500/40 text-accent-200'
-                    : 'bg-black/20 border-white/[0.08] text-accent-400/60 hover:text-accent-300'
+                    : 'v-modal-input text-accent-400/60 hover:text-accent-300'
                 }`}
               >
                 {ls.label}
@@ -356,7 +356,7 @@ export function PlotConfigForm({ plot, axis, onPlotChange, onAxisChange }: PlotC
           <select
             value={plot.mark}
             onChange={(e) => updatePlot({ mark: e.target.value as PlotSeries['mark'] })}
-            className="w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-accent-100 focus:outline-none focus:border-accent-500/40"
+            className="w-full v-modal-input rounded-lg px-3 py-2 text-sm text-accent-100 focus:outline-none focus:border-accent-500/40"
           >
             {marks.map((m) => (
               <option key={m.value} value={m.value}>{m.label}</option>
@@ -366,10 +366,59 @@ export function PlotConfigForm({ plot, axis, onPlotChange, onAxisChange }: PlotC
       </div>
 
       {/* ── Axis configuration ── */}
-      <div className="border-t border-white/[0.06] pt-3 mt-1 flex flex-col gap-3">
+      <div className="border-t v-modal-divider pt-3 mt-1 flex flex-col gap-3">
         <span className="text-[10px] font-semibold uppercase tracking-widest text-accent-400/40">
           Eixos
         </span>
+
+        <FieldGroup>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={axis.showAxis}
+              onChange={(e) => updateAxis({ showAxis: e.target.checked })}
+              className="accent-accent-500"
+            />
+            <FieldLabel>Mostrar eixos</FieldLabel>
+          </div>
+        </FieldGroup>
+
+        <FieldGroup>
+          <FieldLabel>Cor de fundo</FieldLabel>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <div
+                className="w-8 h-8 rounded-lg border v-modal-divider cursor-pointer"
+                style={{
+                  backgroundColor: axis.backgroundColor || 'transparent',
+                  backgroundImage: !axis.backgroundColor
+                    ? 'linear-gradient(45deg, #666 25%, transparent 25%), linear-gradient(-45deg, #666 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #666 75%), linear-gradient(-45deg, transparent 75%, #666 75%)'
+                    : undefined,
+                  backgroundSize: !axis.backgroundColor ? '8px 8px' : undefined,
+                  backgroundPosition: !axis.backgroundColor ? '0 0, 0 4px, 4px -4px, -4px 0px' : undefined,
+                }}
+              />
+              <input
+                type="color"
+                value={axis.backgroundColor || '#ffffff'}
+                onChange={(e) => updateAxis({ backgroundColor: e.target.value })}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+            </div>
+            <span className="text-[11px] text-accent-300/60 font-mono">
+              {axis.backgroundColor || 'transparente'}
+            </span>
+            {axis.backgroundColor && (
+              <button
+                type="button"
+                onClick={() => updateAxis({ backgroundColor: '' })}
+                className="text-[11px] text-accent-400/60 hover:text-accent-300 underline"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
+        </FieldGroup>
 
         <FieldGroup>
           <FieldLabel>Titulo</FieldLabel>
@@ -402,7 +451,7 @@ export function PlotConfigForm({ plot, axis, onPlotChange, onAxisChange }: PlotC
                 className={`px-3 py-1.5 rounded-lg border text-[12px] transition-colors ${
                   axis.grid === g
                     ? 'bg-accent-500/20 border-accent-500/40 text-accent-200'
-                    : 'bg-black/20 border-white/[0.08] text-accent-400/60 hover:text-accent-300'
+                    : 'v-modal-input text-accent-400/60 hover:text-accent-300'
                 }`}
               >
                 {g === 'none' ? 'Nenhuma' : g}

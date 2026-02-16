@@ -256,7 +256,7 @@ export function MatrixEditor({ initialLatex, onSave, onDelete, onClose, isInsert
               type="checkbox"
               checked={enumerate}
               onChange={(e) => toggleEnumerate(e.target.checked)}
-              className="w-3.5 h-3.5 rounded border border-white/[0.12] bg-black/20 accent-accent-500 cursor-pointer"
+              className="w-3.5 h-3.5 rounded border v-modal-input accent-accent-500 cursor-pointer"
             />
             <span className="text-[11px] text-accent-300/50">
               Enumerar elementos ({elementLetter}&#8203;<sub>ij</sub>)
@@ -270,7 +270,7 @@ export function MatrixEditor({ initialLatex, onSave, onDelete, onClose, isInsert
             type="checkbox"
             checked={genericMode === 'mxn'}
             onChange={(e) => toggleGenericMode(e.target.checked ? 'mxn' : 'off')}
-            className="w-3.5 h-3.5 rounded border border-white/[0.12] bg-black/20 accent-accent-500 cursor-pointer"
+            className="w-3.5 h-3.5 rounded border v-modal-input accent-accent-500 cursor-pointer"
           />
           <span className="text-[11px] text-accent-300/50">
             Genérica {rowIndexLetter} &times; {colIndexLetter}
@@ -283,7 +283,7 @@ export function MatrixEditor({ initialLatex, onSave, onDelete, onClose, isInsert
             type="checkbox"
             checked={genericMode === 'nxn'}
             onChange={(e) => toggleGenericMode(e.target.checked ? 'nxn' : 'off')}
-            className="w-3.5 h-3.5 rounded border border-white/[0.12] bg-black/20 accent-accent-500 cursor-pointer"
+            className="w-3.5 h-3.5 rounded border v-modal-input accent-accent-500 cursor-pointer"
           />
           <span className="text-[11px] text-accent-300/50">
             Quadrada {colIndexLetter} &times; {colIndexLetter}
@@ -307,7 +307,7 @@ export function MatrixEditor({ initialLatex, onSave, onDelete, onClose, isInsert
 
       {/* Advanced options panel */}
       {showAdvanced && (
-        <div className="flex items-center justify-center gap-4 mb-2 py-2 px-3 rounded-lg border border-white/[0.04] bg-black/20">
+        <div className="flex items-center justify-center gap-4 mb-2 py-2 px-3 rounded-lg border v-modal-preview-box">
           <LetterInput
             label="Elemento"
             value={elementLetter}
@@ -359,7 +359,7 @@ export function MatrixEditor({ initialLatex, onSave, onDelete, onClose, isInsert
                   className={`w-16 h-9 text-center text-sm font-mono rounded-lg border transition-all focus:outline-none ${
                     focusedCell?.[0] === r && focusedCell?.[1] === c
                       ? 'border-accent-500/60 bg-accent-500/10 text-accent-100 ring-1 ring-accent-500/20'
-                      : 'border-white/[0.06] bg-black/20 text-accent-200 hover:border-white/[0.12]'
+                      : 'v-modal-input text-accent-200 hover:border-white/[0.12]'
                   }`}
                   placeholder={String.fromCharCode(97 + (r * cols + c) % 26)}
                 />
@@ -400,14 +400,14 @@ function DimControl({
       <button
         onClick={onDec}
         disabled={value <= 1}
-        className="w-6 h-6 rounded-md flex items-center justify-center border border-white/[0.08] bg-black/20 text-accent-300 hover:bg-accent-500/20 hover:border-accent-500/30 transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+        className="w-6 h-6 rounded-md flex items-center justify-center border v-modal-input text-accent-300 hover:bg-accent-500/20 hover:border-accent-500/30 transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
       >
         <Minus size={12} />
       </button>
       <span className="text-sm font-mono text-accent-200 w-5 text-center tabular-nums">{value}</span>
       <button
         onClick={onInc}
-        className="w-6 h-6 rounded-md flex items-center justify-center border border-white/[0.08] bg-black/20 text-accent-300 hover:bg-accent-500/20 hover:border-accent-500/30 transition-colors"
+        className="w-6 h-6 rounded-md flex items-center justify-center border v-modal-input text-accent-300 hover:bg-accent-500/20 hover:border-accent-500/30 transition-colors"
       >
         <Plus size={12} />
       </button>

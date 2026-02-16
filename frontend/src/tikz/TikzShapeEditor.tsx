@@ -139,14 +139,10 @@ export function TikzShapeEditor({
 
       {/* Modal card */}
       <div
-        className="relative max-w-4xl w-full mx-4 border border-surface-border rounded-2xl shadow-[0_24px_80px_rgba(88,28,135,0.3)] flex flex-col overflow-hidden"
-        style={{
-          background:
-            'linear-gradient(170deg, #2a1842 0%, #1a1028 40%, #150d22 100%)',
-        }}
+        className="relative max-w-4xl w-full mx-4 border border-surface-border rounded-2xl shadow-[0_24px_80px_rgba(88,28,135,0.3)] flex flex-col overflow-hidden v-modal-bg"
       >
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-5 py-4 border-b v-modal-divider">
           <h2 className="text-sm font-semibold text-accent-100">
             Construtor de Figuras TikZ
           </h2>
@@ -162,7 +158,7 @@ export function TikzShapeEditor({
         {/* ── Body: 3 panels ── */}
         <div className="flex min-h-[420px]">
           {/* Left panel – shape list */}
-          <div className="w-44 border-r border-white/[0.06] flex flex-col p-3 gap-2">
+          <div className="w-44 border-r v-modal-divider flex flex-col p-3 gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-widest text-accent-400/40 mb-1">
               Formas
             </span>
@@ -213,7 +209,7 @@ export function TikzShapeEditor({
               </button>
 
               {showAddMenu && (
-                <div className="absolute bottom-full left-0 mb-1 w-52 bg-[#1e1334] border border-white/[0.08] rounded-xl shadow-2xl p-1.5 z-10">
+                <div className="absolute bottom-full left-0 mb-1 w-52 v-dropdown-bg border rounded-xl shadow-2xl p-1.5 z-10">
                   {SHAPE_TYPE_OPTIONS.map(({ type, label, Icon }) => (
                     <button
                       key={type}
@@ -242,7 +238,7 @@ export function TikzShapeEditor({
           </div>
 
           {/* Right panel – preview */}
-          <div className="w-80 border-l border-white/[0.06] flex flex-col p-3 gap-2">
+          <div className="w-80 border-l v-modal-divider flex flex-col p-3 gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-widest text-accent-400/40 mb-1">
               Pré-visualização
             </span>
@@ -310,7 +306,7 @@ export function TikzShapeEditor({
         </div>
 
         {/* ── Footer ── */}
-        <div className="flex items-center justify-between px-5 py-3 border-t border-white/[0.06]">
+        <div className="flex items-center justify-between px-5 py-3 border-t v-modal-divider">
           <div>
             {!isInsert && (
               <button

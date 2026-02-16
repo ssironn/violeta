@@ -142,6 +142,7 @@ function renderGrid(
   svgW: number,
   svgH: number,
   padding: number,
+  showAxis: boolean = true,
 ): React.ReactNode[] {
   const elements: React.ReactNode[] = []
 
@@ -156,17 +157,18 @@ function renderGrid(
   for (let x = xStart; x <= bounds.xmax; x += xStep) {
     const sx = toX(x)
     const isAxis = Math.abs(x) < xStep * 0.01
+    // When showAxis is false, render axis lines as normal grid lines
     elements.push(
       <line
         key={`gv${x}`}
         x1={sx} y1={padding} x2={sx} y2={svgH - padding}
         stroke={COLORS.grid}
-        strokeWidth={isAxis ? 1.5 : 0.5}
-        opacity={isAxis ? 0.5 : 0.15}
+        strokeWidth={isAxis && showAxis ? 1.5 : 0.5}
+        opacity={isAxis && showAxis ? 0.5 : 0.15}
       />
     )
-    // Label
-    elements.push(
+    // Labels only when showAxis is true
+    {showAxis && elements.push(
       <text
         key={`lv${x}`}
         x={sx} y={svgH - padding + 14}
@@ -177,7 +179,7 @@ function renderGrid(
       >
         {Number(x.toFixed(6))}
       </text>
-    )
+    )}
   }
 
   // Horizontal grid lines
@@ -190,12 +192,12 @@ function renderGrid(
         key={`gh${y}`}
         x1={padding} y1={sy} x2={svgW - padding} y2={sy}
         stroke={COLORS.grid}
-        strokeWidth={isAxis ? 1.5 : 0.5}
-        opacity={isAxis ? 0.5 : 0.15}
+        strokeWidth={isAxis && showAxis ? 1.5 : 0.5}
+        opacity={isAxis && showAxis ? 0.5 : 0.15}
       />
     )
-    // Label
-    elements.push(
+    // Labels only when showAxis is true
+    {showAxis && elements.push(
       <text
         key={`lh${y}`}
         x={padding - 6} y={sy + 3}
@@ -206,7 +208,7 @@ function renderGrid(
       >
         {Number(y.toFixed(6))}
       </text>
-    )
+    )}
   }
 
   return elements
@@ -418,7 +420,8 @@ export function PlotPreview({
     const toX = (x: number) => padding + ((x - bounds.xmin) / (bounds.xmax - bounds.xmin)) * plotW
     const toY = (y: number) => padding + ((bounds.ymax - y) / (bounds.ymax - bounds.ymin)) * plotH
 
-    const gridElements = showGrid ? renderGrid(bounds, toX, toY, width, height, padding) : []
+    const showAxisLines = config.axis.showAxis !== false
+    const gridElements = showGrid ? renderGrid(bounds, toX, toY, width, height, padding, showAxisLines) : []
 
     const plotElements = config.plots.map(plot => {
       const dimmed = selectedId != null && plot.id !== selectedId
@@ -457,11 +460,11 @@ export function PlotPreview({
       )
     }
 
-    return { gridElements, plotElements, labels }
+    return { gridElements, plotElements, labels, backgroundColor: config.axis.backgroundColor, padding }
   }, [config, selectedId, showGrid, width, height, zoom])
 
   return (
-    <div className="bg-black/20 rounded-xl border border-white/[0.06]">
+    <div className="v-modal-preview-box rounded-xl">
       <svg
         width={width}
         height={height}
@@ -469,6 +472,15 @@ export function PlotPreview({
         xmlns="http://www.w3.org/2000/svg"
         className="block"
       >
+        {svgContent.backgroundColor && (
+          <rect
+            x={svgContent.padding}
+            y={svgContent.padding}
+            width={width - svgContent.padding * 2}
+            height={height - svgContent.padding * 2}
+            fill={svgContent.backgroundColor}
+          />
+        )}
         {svgContent.gridElements}
         {svgContent.plotElements}
         {svgContent.labels}

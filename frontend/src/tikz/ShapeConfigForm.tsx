@@ -24,7 +24,7 @@ function ColorPicker({
     <div className="flex items-center gap-2">
       <div className="relative">
         <div
-          className="w-8 h-8 rounded-lg border border-white/[0.12] cursor-pointer"
+          className="w-8 h-8 rounded-lg border v-modal-divider cursor-pointer"
           style={{ backgroundColor: hasColor ? displayColor : 'transparent' }}
         >
           {!hasColor && (
@@ -102,7 +102,7 @@ function NumericInput({
       onChange={(e) => handleChange(e.target.value)}
       onBlur={handleBlur}
       placeholder={placeholder}
-      className="w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-400/30 focus:outline-none focus:border-accent-500/40 font-mono"
+      className="w-full v-modal-input rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-400/30 focus:outline-none focus:border-accent-500/40 font-mono"
     />
   )
 }
@@ -246,14 +246,14 @@ export function ShapeConfigForm({ shape, onChange }: Props) {
                 type="text"
                 value={v.x}
                 onChange={(e) => updateVertex(i, 'x', e.target.value)}
-                className="w-16 bg-black/20 border border-white/[0.08] rounded-lg px-2 py-1.5 text-sm text-accent-100 font-mono"
+                className="w-16 v-modal-input rounded-lg px-2 py-1.5 text-sm text-accent-100 font-mono"
                 placeholder="x"
               />
               <input
                 type="text"
                 value={v.y}
                 onChange={(e) => updateVertex(i, 'y', e.target.value)}
-                className="w-16 bg-black/20 border border-white/[0.08] rounded-lg px-2 py-1.5 text-sm text-accent-100 font-mono"
+                className="w-16 v-modal-input rounded-lg px-2 py-1.5 text-sm text-accent-100 font-mono"
                 placeholder="y"
               />
               {poly.vertices.length > 3 && (
@@ -297,7 +297,7 @@ export function ShapeConfigForm({ shape, onChange }: Props) {
       {renderShapeFields()}
 
       {/* ── separator ── */}
-      <div className="border-t border-white/[0.06] pt-3 mt-3 flex flex-col gap-3">
+      <div className="border-t v-modal-divider pt-3 mt-3 flex flex-col gap-3">
         {/* Position */}
         <FieldRow>
           <FieldGroup>
@@ -359,7 +359,7 @@ export function ShapeConfigForm({ shape, onChange }: Props) {
                 className={`px-3 py-1.5 rounded-lg border text-[12px] transition-colors ${
                   currentLineStyle === ls.value
                     ? 'bg-accent-500/20 border-accent-500/40 text-accent-200'
-                    : 'bg-black/20 border-white/[0.08] text-accent-400/60 hover:text-accent-300'
+                    : 'v-modal-input text-accent-400/60 hover:text-accent-300'
                 }`}
               >
                 {ls.label}

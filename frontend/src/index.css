@@ -308,13 +308,6 @@
   border-color: #c4b5fd;
 }
 
-[data-theme="light"] .tiptap code {
-  background: #f0e6ff;
-}
-
-[data-theme="light"] .tiptap hr {
-  border-top-color: #e0d4f0;
-}
 
 [data-theme="light"] .doc-search-bar-inner {
   background: #fff;
@@ -443,7 +436,7 @@ body {
   padding: 72px 72px; /* ~19mm margins, matching A4 standard margins */
   font-size: 1rem;
   line-height: 1.75;
-  color: var(--color-text-primary);
+  color: #1e1e2e;
 }
 
 /* ── Block Insert Button (between blocks) ── */
@@ -516,7 +509,7 @@ body {
 .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: var(--color-text-muted);
+  color: #a0a0b8;
   pointer-events: none;
   height: 0;
 }
@@ -587,12 +580,12 @@ body {
 
 .tiptap hr {
   border: none;
-  border-top: 2px solid var(--color-surface-border);
+  border-top: 2px solid #e0d4f0;
   margin: 1.5rem 0;
 }
 
 .tiptap code {
-  background: color-mix(in srgb, var(--color-accent-500) 15%, var(--color-surface-elevated));
+  background: #f0e6ff;
   padding: 0.1em 0.35em;
   border-radius: 0.25rem;
   font-size: 0.9em;
@@ -627,7 +620,7 @@ body {
 }
 
 .tiptap .tiptap-mathematics-render--editable:hover {
-  background: color-mix(in srgb, var(--color-accent-500) 12%, transparent);
+  background: #f3e8ff;
   outline: 2px solid var(--color-accent-500);
   border-radius: 0.25rem;
 }
@@ -2746,6 +2739,150 @@ body {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--color-text-muted);
+}
+
+/* ══════════════════════════════════════════
+   Modal & Dropdown — theme-aware styles
+   ══════════════════════════════════════════ */
+
+.v-modal-bg {
+  background: linear-gradient(170deg, #2a1842 0%, #1a1028 40%, #150d22 100%);
+}
+
+.v-modal-divider {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.v-modal-footer {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.v-modal-input {
+  background: rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.v-modal-input:focus {
+  border-color: color-mix(in srgb, var(--color-accent-500) 50%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent-500) 20%, transparent);
+}
+
+.v-modal-preview-box {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.v-dropdown-bg {
+  background: #1e1334;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .v-modal-bg {
+  background: linear-gradient(170deg, #f8f5ff 0%, #f0ecf9 40%, #eae4f5 100%);
+}
+
+[data-theme="light"] .v-modal-bg h2,
+[data-theme="light"] .v-modal-bg h3 {
+  color: var(--color-accent-700);
+}
+
+[data-theme="light"] .v-modal-divider {
+  border-color: var(--color-surface-border);
+}
+
+[data-theme="light"] .v-modal-footer {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .v-modal-input {
+  background: #fff;
+  border-color: var(--color-surface-border);
+  color: var(--color-text-primary);
+}
+
+[data-theme="light"] .v-modal-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+[data-theme="light"] .v-modal-preview-box {
+  border-color: var(--color-surface-border);
+  background: #fff;
+}
+
+/* Light mode: force readable text colors on all accent-tinted text inside modals */
+[data-theme="light"] .v-modal-bg [class*="text-accent-1"],
+[data-theme="light"] .v-modal-bg [class*="text-accent-2"] {
+  color: var(--color-text-primary) !important;
+}
+
+[data-theme="light"] .v-modal-bg [class*="text-accent-3"] {
+  color: var(--color-text-secondary) !important;
+}
+
+[data-theme="light"] .v-modal-bg [class*="text-accent-4"] {
+  color: var(--color-text-muted) !important;
+}
+
+/* Light mode: accent-tinted text in modal buttons should also be readable */
+[data-theme="light"] .v-modal-bg [class*="text-accent-200"],
+[data-theme="light"] .v-modal-bg [class*="text-accent-100"] {
+  color: var(--color-text-primary) !important;
+}
+
+/* Preserve white text on accent bg buttons (Inserir, Salvar, etc.) */
+[data-theme="light"] .v-modal-bg .bg-accent-500,
+[data-theme="light"] .v-modal-bg .bg-accent-600 {
+  color: white !important;
+}
+
+/* Light mode: placeholder text */
+[data-theme="light"] .v-modal-bg [class*="placeholder\:text-accent"] {
+  --tw-placeholder-opacity: 1;
+}
+
+[data-theme="light"] .v-modal-bg input::placeholder,
+[data-theme="light"] .v-modal-bg textarea::placeholder {
+  color: var(--color-text-muted) !important;
+}
+
+[data-theme="light"] .v-dropdown-bg {
+  background: #fff;
+  border-color: var(--color-surface-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .v-dropdown-bg button {
+  color: var(--color-text-secondary) !important;
+}
+
+[data-theme="light"] .v-dropdown-bg button:hover {
+  color: var(--color-text-primary) !important;
+  background: var(--color-surface-hover);
+}
+
+/* Light mode: modal selected items & hover states */
+[data-theme="light"] .v-modal-bg [class*="bg-accent-500\/20"],
+[data-theme="light"] .v-modal-bg [class*="bg-accent-500/20"] {
+  background: color-mix(in srgb, var(--color-accent-500) 12%, transparent);
+}
+
+[data-theme="light"] .v-modal-bg button:hover {
+  background: color-mix(in srgb, var(--color-accent-500) 8%, transparent);
+}
+
+/* Light mode: modal panel borders — override white/ borders */
+[data-theme="light"] .v-modal-bg [class*="border-white"],
+[data-theme="light"] .v-modal-bg [class*="border-accent-500/3"] {
+  border-color: var(--color-surface-border) !important;
+}
+
+/* Light mode: ensure red/error text stays visible */
+[data-theme="light"] .v-modal-bg [class*="text-red-4"] {
+  color: #dc2626 !important;
+}
+
+[data-theme="light"] .v-modal-bg [class*="text-amber-4"] {
+  color: #d97706 !important;
 }
 
 .thumbnail-fallback::after {

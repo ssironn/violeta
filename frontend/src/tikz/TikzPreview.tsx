@@ -293,7 +293,7 @@ export function TikzPreview({
   }, [showGrid, viewBox])
 
   return (
-    <div className="bg-black/20 rounded-xl border border-white/[0.06]">
+    <div className="v-modal-preview-box rounded-xl">
       <svg
         width={width}
         height={height}

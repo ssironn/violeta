@@ -89,13 +89,10 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
 
       {/* Modal */}
       <div
-        className="relative border border-surface-border rounded-2xl shadow-[0_24px_80px_rgba(88,28,135,0.3)] overflow-hidden w-full max-w-lg mx-4"
-        style={{
-          background: 'linear-gradient(170deg, #2a1842 0%, #1a1028 40%, #150d22 100%)',
-        }}
+        className="relative border border-surface-border rounded-2xl shadow-[0_24px_80px_rgba(88,28,135,0.3)] overflow-hidden w-full max-w-lg mx-4 v-modal-bg"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b v-modal-divider">
           <h3 className="text-[13px] font-semibold tracking-wide text-accent-200 uppercase">
             Inserir Imagem
           </h3>
@@ -137,7 +134,7 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://exemplo.com/imagem.png"
                 autoFocus
-                className="w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-100/20 focus:outline-none focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/20 transition-all"
+                className="w-full v-modal-input rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-100/20 focus:outline-none focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/20 transition-all"
               />
             </div>
           )}
@@ -189,7 +186,7 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
               value={alt}
               onChange={(e) => setAlt(e.target.value)}
               placeholder="Descrição da imagem"
-              className="w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-100/20 focus:outline-none focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/20 transition-all"
+              className="w-full v-modal-input rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-100/20 focus:outline-none focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/20 transition-all"
             />
           </div>
 
@@ -199,7 +196,7 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
               <label className="block text-[11px] font-semibold uppercase tracking-widest text-accent-300/70 mb-1.5">
                 Pré-visualização
               </label>
-              <div className="rounded-xl border border-white/[0.06] bg-black/20 p-3 flex items-center justify-center min-h-[80px] max-h-[200px] overflow-hidden">
+              <div className="rounded-xl v-modal-preview-box p-3 flex items-center justify-center min-h-[80px] max-h-[200px] overflow-hidden">
                 <img
                   src={previewSrc}
                   alt={alt || 'preview'}
@@ -217,7 +214,7 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end px-5 py-3.5 border-t border-white/[0.06] bg-black/10 gap-2">
+        <div className="flex items-center justify-end px-5 py-3.5 border-t v-modal-divider v-modal-footer gap-2">
           <button
             onClick={onClose}
             className="px-4 py-1.5 text-[13px] text-text-secondary hover:text-text-primary hover:bg-white/[0.05] rounded-lg transition-colors"

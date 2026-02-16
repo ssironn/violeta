@@ -12,6 +12,8 @@ export interface AxisConfig {
   legendPos: 'north east' | 'north west' | 'south east' | 'south west' | 'outer north east'
   width: string
   height: string
+  showAxis: boolean
+  backgroundColor: string
 }
 
 export interface PlotSeriesBase {
@@ -70,6 +72,8 @@ export function createDefaultAxisConfig(): AxisConfig {
     legendPos: 'north east',
     width: '10cm',
     height: '7cm',
+    showAxis: true,
+    backgroundColor: '',
   }
 }
 

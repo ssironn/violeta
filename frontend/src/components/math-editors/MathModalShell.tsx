@@ -52,15 +52,12 @@ export function MathModalShell({
 
       {/* Modal */}
       <div
-        className={`relative border border-surface-border rounded-2xl shadow-[0_24px_80px_rgba(88,28,135,0.3)] overflow-hidden ${
+        className={`relative border border-surface-border rounded-2xl shadow-[0_24px_80px_rgba(88,28,135,0.3)] overflow-hidden v-modal-bg ${
           wide ? 'w-full max-w-2xl' : 'w-full max-w-lg'
         } mx-4`}
-        style={{
-          background: 'linear-gradient(170deg, #2a1842 0%, #1a1028 40%, #150d22 100%)',
-        }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b v-modal-divider">
           <h3 className="text-[13px] font-semibold tracking-wide text-accent-200 uppercase">
             {title}
           </h3>
@@ -73,7 +70,7 @@ export function MathModalShell({
         </div>
 
         {/* Preview */}
-        <div className="mx-5 mt-4 rounded-xl border border-white/[0.06] bg-black/20 p-5 min-h-[56px] flex items-center justify-center">
+        <div className="mx-5 mt-4 rounded-xl v-modal-preview-box p-5 min-h-[56px] flex items-center justify-center">
           <div ref={previewRef} className="text-accent-100 [&_.katex]:text-[1.4em]" />
         </div>
 
@@ -83,7 +80,7 @@ export function MathModalShell({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-t border-white/[0.06] bg-black/10">
+        <div className="flex items-center justify-between px-5 py-3.5 border-t v-modal-divider v-modal-footer">
           {isInsert ? (
             <div />
           ) : (
@@ -218,7 +215,7 @@ export function FieldInput({
           onKeyDown={onKeyDown}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          className={`w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-100/20 focus:outline-none focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/20 transition-all ${
+          className={`w-full v-modal-input rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-100/20 focus:outline-none focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/20 transition-all ${
             mono ? 'font-mono' : ''
           }`}
         />
@@ -276,7 +273,7 @@ export function FieldInput({
       {pickerOpen && (
         <div
           ref={pickerRef}
-          className="absolute right-0 top-9 mt-1.5 z-50 bg-[#1e1334] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 py-1.5 w-56 max-h-64 overflow-auto"
+          className="absolute right-0 top-9 mt-1.5 z-50 v-dropdown-bg border rounded-xl shadow-2xl shadow-black/40 py-1.5 w-56 max-h-64 overflow-auto"
         >
           <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-accent-400/40">
             Inserir componente
