@@ -1,4 +1,5 @@
 import type { JSONContent } from '@tiptap/core'
+import { parsePgfplotsCode } from '../pgfplots/pgfplotsParser'
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
@@ -623,7 +624,8 @@ function parseBlock(block: string): JSONContent[] {
       const fullEnv = `\\begin{tikzpicture}\n${inner}\n${endTag}`
       // Detect pgfplots: if inner contains \begin{axis}, treat as pgfplotBlock
       if (inner.includes('\\begin{axis}')) {
-        return [{ type: 'pgfplotBlock', attrs: { pgfCode: fullEnv, plotConfig: null } }]
+        const plotConfig = parsePgfplotsCode(fullEnv)
+        return [{ type: 'pgfplotBlock', attrs: { pgfCode: fullEnv, plotConfig } }]
       }
       return [{ type: 'tikzFigure', attrs: { tikzCode: fullEnv, shapes: [] } }]
     }
@@ -657,8 +659,13 @@ function parseBlock(block: string): JSONContent[] {
       return [{ type: 'paragraph', ...(align ? { attrs: { textAlign: align } } : {}), content }]
     }
 
-    // Figure — preserve position and image options
+    // Figure — may contain an image, tikzpicture, or pgfplot
     if (envName === 'figure' || envName === 'figure*') {
+      // Check if figure wraps a tikzpicture (with or without pgfplots axis)
+      if (inner.includes('\\begin{tikzpicture}')) {
+        return flatParseBlocks(inner)
+      }
+
       let src = ''
       let alt = ''
       let imgOptions = 'width=0.8\\textwidth'

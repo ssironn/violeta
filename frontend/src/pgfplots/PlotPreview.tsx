@@ -50,9 +50,24 @@ function parseBounds(axis: AxisConfig, plots: PlotSeries[]): Bounds {
   return { xmin, xmax, ymin, ymax }
 }
 
+/** Convert pgfplots expression syntax to mathjs-compatible syntax */
+function normalizePgfExpr(expr: string): string {
+  // pgfplots trig functions expect degrees; deg(x) converts rad→deg.
+  // mathjs trig functions expect radians, so sin(deg(x)) in pgfplots = sin(x) in mathjs.
+  // Remove deg(...) wrapper — keeps the inner expression.
+  let e = expr.replace(/\bdeg\(([^)]+)\)/g, '($1)')
+  // pgfplots uses ^ for power, mathjs supports it too — no change needed
+  // pgfplots uses e.g. \pi — strip backslash
+  e = e.replace(/\\pi\b/g, 'pi')
+  e = e.replace(/\\e\b/g, 'e')
+  // pgfplots ln → mathjs log (natural log)
+  e = e.replace(/\bln\(/g, 'log(')
+  return e
+}
+
 function evaluateFunction2D(expr: string, xmin: number, xmax: number, samples: number): { x: number; y: number }[] {
   try {
-    const compiled = compile(expr)
+    const compiled = compile(normalizePgfExpr(expr))
     const points: { x: number; y: number }[] = []
     const step = (xmax - xmin) / (samples - 1)
     for (let i = 0; i < samples; i++) {
@@ -74,7 +89,7 @@ function evaluateFunction2D(expr: string, xmin: number, xmax: number, samples: n
 
 function evaluateFunction3D(expr: string, plot: FunctionPlot3D): { x: number; y: number; z: number }[] {
   try {
-    const compiled = compile(expr)
+    const compiled = compile(normalizePgfExpr(expr))
     const points: { x: number; y: number; z: number }[] = []
     const samplesX = Math.min(plot.samples, 30)
     const samplesY = Math.min(plot.samples, 30)

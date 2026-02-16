@@ -45,9 +45,18 @@ function niceStep(range: number): number {
   return 10 * pow
 }
 
+/** Convert pgfplots expression syntax to mathjs-compatible syntax */
+function normalizePgfExpr(expr: string): string {
+  let e = expr.replace(/\bdeg\(([^)]+)\)/g, '($1)')
+  e = e.replace(/\\pi\b/g, 'pi')
+  e = e.replace(/\\e\b/g, 'e')
+  e = e.replace(/\bln\(/g, 'log(')
+  return e
+}
+
 function evaluateFunction2D(expr: string, xmin: number, xmax: number, samples: number): { x: number; y: number }[] {
   try {
-    const compiled = compile(expr)
+    const compiled = compile(normalizePgfExpr(expr))
     const points: { x: number; y: number }[] = []
     const step = (xmax - xmin) / (samples - 1)
     for (let i = 0; i < samples; i++) {
@@ -69,7 +78,7 @@ function evaluateFunction2D(expr: string, xmin: number, xmax: number, samples: n
 
 function evaluateFunction3D(expr: string, plot: FunctionPlot3D): { x: number; y: number; z: number }[] {
   try {
-    const compiled = compile(expr)
+    const compiled = compile(normalizePgfExpr(expr))
     const points: { x: number; y: number; z: number }[] = []
     const samplesX = Math.min(plot.samples, 30)
     const samplesY = Math.min(plot.samples, 30)
