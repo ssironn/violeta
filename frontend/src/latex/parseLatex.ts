@@ -663,7 +663,24 @@ function parseBlock(block: string): JSONContent[] {
     if (envName === 'figure' || envName === 'figure*') {
       // Check if figure wraps a tikzpicture (with or without pgfplots axis)
       if (inner.includes('\\begin{tikzpicture}')) {
-        return flatParseBlocks(inner)
+        // Strip figure-level commands, keep only the tikzpicture environment
+        const cleaned = inner
+          .replace(/\\centering\b/g, '')
+          .replace(/\\caption\{[^}]*\}/g, '')
+          .replace(/\\label\{[^}]*\}/g, '')
+          .trim()
+        const results: JSONContent[] = flatParseBlocks(cleaned)
+        // Add caption as a styled paragraph if present
+        const captionMatch = inner.match(/\\caption\{([^}]*)\}/)
+        if (captionMatch) {
+          const captionText = unescapeLatex(captionMatch[1])
+          results.push({
+            type: 'paragraph',
+            attrs: { textAlign: 'center' },
+            content: [{ type: 'text', marks: [{ type: 'italic' }], text: captionText }],
+          })
+        }
+        return results
       }
 
       let src = ''
