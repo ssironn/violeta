@@ -1,20 +1,20 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
-import { renderTikzSvg } from '../tikz/renderTikzSvg'
-import type { TikzShape } from '../tikz/types'
+import { renderPlotSvg } from '../pgfplots/renderPlotSvg'
+import type { PgfplotConfig } from '../pgfplots/types'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
-    tikzFigure: {
-      insertTikzFigure: (attrs?: { tikzCode?: string; shapes?: unknown[] }) => ReturnType
-      updateTikzFigure: (opts: { tikzCode?: string; shapes?: unknown[]; pos: number }) => ReturnType
-      deleteTikzFigure: (opts: { pos: number }) => ReturnType
+    pgfplotBlock: {
+      insertPgfplot: (attrs?: { pgfCode?: string; plotConfig?: unknown }) => ReturnType
+      updatePgfplot: (opts: { pgfCode?: string; plotConfig?: unknown; pos: number }) => ReturnType
+      deletePgfplot: (opts: { pos: number }) => ReturnType
     }
   }
 }
 
-export const TikzFigureBlock = Node.create({
-  name: 'tikzFigure',
+export const PgfplotBlock = Node.create({
+  name: 'pgfplotBlock',
 
   group: 'block',
 
@@ -22,17 +22,17 @@ export const TikzFigureBlock = Node.create({
 
   addAttributes() {
     return {
-      tikzCode: {
+      pgfCode: {
         default: '',
       },
-      shapes: {
-        default: [],
+      plotConfig: {
+        default: null,
         parseHTML: (element: HTMLElement) => {
-          const val = element.getAttribute('data-shapes')
-          return val ? JSON.parse(val) : []
+          const val = element.getAttribute('data-plot-config')
+          return val ? JSON.parse(val) : null
         },
         renderHTML: (attributes: Record<string, unknown>) => {
-          return { 'data-shapes': JSON.stringify(attributes.shapes) }
+          return { 'data-plot-config': JSON.stringify(attributes.plotConfig) }
         },
       },
       textAlign: {
@@ -47,45 +47,45 @@ export const TikzFigureBlock = Node.create({
   parseHTML() {
     return [
       {
-        tag: 'div[data-type="tikz-figure"]',
+        tag: 'div[data-type="pgfplot-block"]',
       },
     ]
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'tikz-figure' })]
+    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'pgfplot-block' })]
   },
 
   addCommands() {
     return {
-      insertTikzFigure:
+      insertPgfplot:
         (attrs) =>
         ({ commands }) => {
           return commands.insertContent({
             type: this.name,
             attrs: {
-              tikzCode: attrs?.tikzCode ?? '',
-              shapes: attrs?.shapes ?? [],
+              pgfCode: attrs?.pgfCode ?? '',
+              plotConfig: attrs?.plotConfig ?? null,
             },
           })
         },
 
-      updateTikzFigure:
-        ({ tikzCode, shapes, pos }) =>
+      updatePgfplot:
+        ({ pgfCode, plotConfig, pos }) =>
         ({ tr, dispatch }) => {
           if (dispatch) {
             const node = tr.doc.nodeAt(pos)
             if (!node || node.type.name !== this.name) return false
             tr.setNodeMarkup(pos, undefined, {
               ...node.attrs,
-              ...(tikzCode !== undefined ? { tikzCode } : {}),
-              ...(shapes !== undefined ? { shapes } : {}),
+              ...(pgfCode !== undefined ? { pgfCode } : {}),
+              ...(plotConfig !== undefined ? { plotConfig } : {}),
             })
           }
           return true
         },
 
-      deleteTikzFigure:
+      deletePgfplot:
         ({ pos }) =>
         ({ tr, dispatch }) => {
           if (dispatch) {
@@ -102,7 +102,7 @@ export const TikzFigureBlock = Node.create({
     return ({ node, getPos }) => {
       const dom = document.createElement('div')
       dom.classList.add(
-        'tikz-figure-block',
+        'pgfplot-block',
         'relative',
         'my-4',
         'border',
@@ -116,7 +116,7 @@ export const TikzFigureBlock = Node.create({
 
       const label = document.createElement('div')
       label.classList.add('text-xs', 'font-semibold', 'text-purple-600', 'mb-2')
-      label.textContent = 'Figuras Geom\u00e9tricas'
+      label.textContent = 'Gr\u00e1fico de Fun\u00e7\u00f5es'
       dom.appendChild(label)
 
       const previewContainer = document.createElement('div')
@@ -148,10 +148,10 @@ export const TikzFigureBlock = Node.create({
       }
 
       function renderPreview(n: ProseMirrorNode) {
-        const shapes = (n.attrs.shapes as TikzShape[]) || []
+        const config = n.attrs.plotConfig as PgfplotConfig | null
         applyAlignment(n)
 
-        if (shapes.length === 0) {
+        if (!config || !config.plots || config.plots.length === 0) {
           previewContainer.innerHTML = ''
           previewContainer.textContent = '(vazio)'
           previewContainer.style.color = '#9ca3af'
@@ -163,7 +163,7 @@ export const TikzFigureBlock = Node.create({
         previewContainer.style.color = ''
         previewContainer.style.fontSize = ''
         previewContainer.style.padding = ''
-        renderTikzSvg(previewContainer, shapes, 400, 280)
+        renderPlotSvg(previewContainer, config, 400, 280)
       }
 
       renderPreview(node)
@@ -172,10 +172,10 @@ export const TikzFigureBlock = Node.create({
         const pos = getPos()
         if (pos == null) return
         window.dispatchEvent(
-          new CustomEvent('tikz-figure-click', {
+          new CustomEvent('pgfplot-block-click', {
             detail: {
-              shapes: node.attrs.shapes,
-              tikzCode: node.attrs.tikzCode,
+              plotConfig: node.attrs.plotConfig,
+              pgfCode: node.attrs.pgfCode,
               pos,
             },
           }),
@@ -186,7 +186,7 @@ export const TikzFigureBlock = Node.create({
         dom,
 
         update(updatedNode: ProseMirrorNode) {
-          if (updatedNode.type.name !== 'tikzFigure') {
+          if (updatedNode.type.name !== 'pgfplotBlock') {
             return false
           }
           node = updatedNode

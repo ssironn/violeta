@@ -58,7 +58,7 @@ export function PublishModal({ pdfBlob, documentId, documentTitle, onPublished, 
         style={{ background: 'linear-gradient(170deg, #2a1842 0%, #1a1028 40%, #150d22 100%)' }}
       >
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
-          <h3 className="text-[13px] font-semibold tracking-wide text-violet-200 uppercase">Publicar Documento</h3>
+          <h3 className="text-[13px] font-semibold tracking-wide text-accent-200 uppercase">Publicar Documento</h3>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/[0.06] text-text-muted hover:text-text-primary transition-colors">
             <X size={15} />
           </button>
@@ -66,18 +66,18 @@ export function PublishModal({ pdfBlob, documentId, documentTitle, onPublished, 
 
         <div className="px-5 py-4 space-y-4">
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-widest text-violet-300/70 mb-1.5">Titulo</label>
+            <label className="block text-[11px] font-semibold uppercase tracking-widest text-accent-300/70 mb-1.5">Titulo</label>
             <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus
-              className="w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-violet-100 placeholder:text-violet-100/20 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all" />
+              className="w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-100/20 focus:outline-none focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/20 transition-all" />
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-widest text-violet-300/70 mb-1.5">Tipo</label>
+            <label className="block text-[11px] font-semibold uppercase tracking-widest text-accent-300/70 mb-1.5">Tipo</label>
             <div className="grid grid-cols-2 gap-2">
               {PUBLICATION_TYPES.map(({ value, label, icon: Icon }) => (
                 <button key={value} onClick={() => setType(value)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-medium transition-all border ${
-                    type === value ? 'bg-violet-500/20 text-violet-200 border-violet-500/30' : 'text-violet-300/40 hover:text-violet-300/70 hover:bg-white/[0.03] border-transparent'
+                    type === value ? 'bg-accent-500/20 text-accent-200 border-accent-500/30' : 'text-accent-300/40 hover:text-accent-300/70 hover:bg-white/[0.03] border-transparent'
                   }`}>
                   <Icon size={14} />{label}
                 </button>
@@ -86,11 +86,11 @@ export function PublishModal({ pdfBlob, documentId, documentTitle, onPublished, 
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-widest text-violet-300/70 mb-1.5">
-              Resumo <span className="text-violet-400/30 normal-case tracking-normal">(opcional)</span>
+            <label className="block text-[11px] font-semibold uppercase tracking-widest text-accent-300/70 mb-1.5">
+              Resumo <span className="text-accent-400/30 normal-case tracking-normal">(opcional)</span>
             </label>
             <textarea value={abstract} onChange={(e) => setAbstract(e.target.value)} rows={3} placeholder="Breve descricao do conteudo..."
-              className="w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-violet-100 placeholder:text-violet-100/20 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all resize-none" />
+              className="w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-100/20 focus:outline-none focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/20 transition-all resize-none" />
           </div>
 
           {!pdfBlob && <p className="text-[12px] text-amber-400/80">Compile o documento primeiro para gerar o PDF.</p>}
@@ -100,7 +100,7 @@ export function PublishModal({ pdfBlob, documentId, documentTitle, onPublished, 
         <div className="flex items-center justify-end px-5 py-3.5 border-t border-white/[0.06] bg-black/10 gap-2">
           <button onClick={onClose} className="px-4 py-1.5 text-[13px] text-text-secondary hover:text-text-primary hover:bg-white/[0.05] rounded-lg transition-colors">Cancelar</button>
           <button onClick={handlePublish} disabled={!pdfBlob || publishing || !title.trim()}
-            className="px-5 py-1.5 text-[13px] font-semibold bg-violet-500 text-white rounded-lg hover:bg-violet-400 transition-colors shadow-lg shadow-violet-500/20 disabled:opacity-40 disabled:pointer-events-none">
+            className="px-5 py-1.5 text-[13px] font-semibold bg-accent-500 text-white rounded-lg hover:bg-accent-400 transition-colors shadow-lg shadow-accent-500/20 disabled:opacity-40 disabled:pointer-events-none">
             {publishing ? 'Publicando...' : 'Publicar'}
           </button>
         </div>

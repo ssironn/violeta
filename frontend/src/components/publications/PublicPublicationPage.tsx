@@ -17,11 +17,11 @@ export function PublicPublicationPage() {
     getPublicPublication(token).then(setPub).catch(() => setError(true)).finally(() => setLoading(false))
   }, [token])
 
-  if (loading) return <div className="flex items-center justify-center h-screen bg-surface-bg"><div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" /></div>
+  if (loading) return <div className="flex items-center justify-center h-screen bg-surface-bg"><div className="w-5 h-5 border-2 border-accent-500 border-t-transparent rounded-full animate-spin" /></div>
   if (error || !pub) return (
     <div className="flex flex-col items-center justify-center h-screen bg-surface-bg gap-4">
       <p className="text-text-secondary">Publicacao nao encontrada.</p>
-      <button onClick={() => navigate('/')} className="text-sm text-violet-400 hover:text-violet-300">Ir para Violeta</button>
+      <button onClick={() => navigate('/')} className="text-sm text-accent-400 hover:text-accent-300">Ir para Violeta</button>
     </div>
   )
 
@@ -29,8 +29,8 @@ export function PublicPublicationPage() {
     <div className="min-h-screen bg-surface-bg">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-4">
-          <button onClick={() => navigate('/')} className="text-sm text-violet-400 hover:text-violet-300 transition-colors font-serif tracking-wide">Violeta</button>
-          <button onClick={() => navigate('/signin')} className="px-4 py-1.5 text-[13px] font-semibold bg-violet-500 text-white rounded-lg hover:bg-violet-400 transition-colors">Entrar</button>
+          <button onClick={() => navigate('/')} className="text-sm text-accent-400 hover:text-accent-300 transition-colors font-serif tracking-wide">Violeta</button>
+          <button onClick={() => navigate('/signin')} className="px-4 py-1.5 text-[13px] font-semibold bg-accent-500 text-white rounded-lg hover:bg-accent-400 transition-colors">Entrar</button>
         </div>
         <div className="mb-4">
           <h1 className="text-2xl font-semibold text-text-primary">{pub.title}</h1>
@@ -50,7 +50,7 @@ export function PublicPublicationPage() {
         </div>
         <div className="text-center py-8">
           <p className="text-sm text-text-secondary mb-3">Entre no Violeta para curtir, comentar e publicar.</p>
-          <button onClick={() => navigate('/signin')} className="px-6 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-400 transition-colors text-sm font-medium">Criar conta gratis</button>
+          <button onClick={() => navigate('/signin')} className="px-6 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-400 transition-colors text-sm font-medium">Criar conta gratis</button>
         </div>
       </div>
     </div>

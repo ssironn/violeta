@@ -41,7 +41,7 @@ export function FractionEditor({ initialLatex, onSave, onDelete, onClose, isInse
           <FieldInput value={num} onChange={setNum} autoFocus placeholder="a" onKeyDown={handleKey} />
         </FieldGroup>
 
-        <div className="w-48 h-px bg-violet-400/40 my-1 rounded-full" />
+        <div className="w-48 h-px bg-accent-400/40 my-1 rounded-full" />
 
         <FieldGroup>
           <FieldLabel>Denominador</FieldLabel>

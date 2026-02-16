@@ -12,7 +12,14 @@ function toSvgY(y: number): number {
   return -y * SCALE // TikZ Y is up, SVG Y is down
 }
 
-function shapeToSvgStyle(shape: TikzShape): React.CSSProperties {
+interface SvgShapeAttrs {
+  fill: string
+  stroke: string
+  strokeWidth: number
+  strokeDasharray?: string
+}
+
+function shapeToSvgAttrs(shape: TikzShape): SvgShapeAttrs {
   const fill = tikzColorToCSS(shape.fill ?? '')
   const stroke = tikzColorToCSS(shape.stroke ?? 'black')
   const strokeWidth = (shape.lineWidth ?? 0.4) * SCALE * 0.05
@@ -29,7 +36,6 @@ function shapeToSvgStyle(shape: TikzShape): React.CSSProperties {
     stroke,
     strokeWidth,
     strokeDasharray,
-    opacity: shape.opacity ?? 1,
   }
 }
 
@@ -89,23 +95,16 @@ function regularPolygonPoints(cx: number, cy: number, sides: number, radius: num
   return points.join(' ')
 }
 
-function renderShape(shape: TikzShape, isSelected: boolean): React.ReactNode {
-  const style = shapeToSvgStyle(shape)
+function renderShape(shape: TikzShape, _isSelected: boolean, dimmed: boolean = false): React.ReactNode {
+  const attrs = dimmed
+    ? { ...shapeToSvgAttrs(shape), fill: 'none', stroke: '#c4b5fd', strokeWidth: 1.2, strokeDasharray: undefined }
+    : shapeToSvgAttrs(shape)
   const cx = shape.position.x
   const cy = shape.position.y
   const transform = shape.rotation ? `rotate(${-shape.rotation} ${toSvgX(cx)} ${toSvgY(cy)})` : undefined
-  const filter = shape.shadow ? 'url(#shadow)' : undefined
+  const filter = dimmed ? undefined : (shape.shadow ? 'url(#shadow)' : undefined)
 
   let mainElement: React.ReactNode
-  let selectionElement: React.ReactNode
-
-  const selectionStyle: React.CSSProperties = {
-    fill: 'none',
-    stroke: '#8000ff',
-    strokeWidth: 2,
-    strokeDasharray: '6 3',
-    opacity: 0.8,
-  }
 
   switch (shape.type) {
     case 'circle': {
@@ -113,13 +112,8 @@ function renderShape(shape: TikzShape, isSelected: boolean): React.ReactNode {
       const svgCy = toSvgY(cy)
       const r = shape.radius * SCALE
       mainElement = (
-        <circle cx={svgCx} cy={svgCy} r={r} style={style} transform={transform} filter={filter} />
+        <circle cx={svgCx} cy={svgCy} r={r} {...attrs} transform={transform} filter={filter} />
       )
-      if (isSelected) {
-        selectionElement = (
-          <circle cx={svgCx} cy={svgCy} r={r + 3} style={selectionStyle} transform={transform} />
-        )
-      }
       break
     }
     case 'rectangle': {
@@ -128,13 +122,8 @@ function renderShape(shape: TikzShape, isSelected: boolean): React.ReactNode {
       const rx = toSvgX(cx) - w / 2
       const ry = toSvgY(cy) - h / 2
       mainElement = (
-        <rect x={rx} y={ry} width={w} height={h} style={style} transform={transform} filter={filter} />
+        <rect x={rx} y={ry} width={w} height={h} {...attrs} transform={transform} filter={filter} />
       )
-      if (isSelected) {
-        selectionElement = (
-          <rect x={rx - 3} y={ry - 3} width={w + 6} height={h + 6} style={selectionStyle} transform={transform} />
-        )
-      }
       break
     }
     case 'square': {
@@ -142,13 +131,8 @@ function renderShape(shape: TikzShape, isSelected: boolean): React.ReactNode {
       const rx = toSvgX(cx) - s / 2
       const ry = toSvgY(cy) - s / 2
       mainElement = (
-        <rect x={rx} y={ry} width={s} height={s} style={style} transform={transform} filter={filter} />
+        <rect x={rx} y={ry} width={s} height={s} {...attrs} transform={transform} filter={filter} />
       )
-      if (isSelected) {
-        selectionElement = (
-          <rect x={rx - 3} y={ry - 3} width={s + 6} height={s + 6} style={selectionStyle} transform={transform} />
-        )
-      }
       break
     }
     case 'triangle': {
@@ -160,25 +144,15 @@ function renderShape(shape: TikzShape, isSelected: boolean): React.ReactNode {
         `${toSvgX(cx + hb)},${toSvgY(cy)}`,
       ].join(' ')
       mainElement = (
-        <polygon points={points} style={style} transform={transform} filter={filter} />
+        <polygon points={points} {...attrs} transform={transform} filter={filter} />
       )
-      if (isSelected) {
-        selectionElement = (
-          <polygon points={points} style={selectionStyle} transform={transform} />
-        )
-      }
       break
     }
     case 'regular-polygon': {
       const points = regularPolygonPoints(cx, cy, shape.sides, shape.radius)
       mainElement = (
-        <polygon points={points} style={style} transform={transform} filter={filter} />
+        <polygon points={points} {...attrs} transform={transform} filter={filter} />
       )
-      if (isSelected) {
-        selectionElement = (
-          <polygon points={regularPolygonPoints(cx, cy, shape.sides, shape.radius * 1.05)} style={selectionStyle} transform={transform} />
-        )
-      }
       break
     }
     case 'custom-polygon': {
@@ -186,13 +160,8 @@ function renderShape(shape: TikzShape, isSelected: boolean): React.ReactNode {
         .map((v) => `${toSvgX(cx + v.x)},${toSvgY(cy + v.y)}`)
         .join(' ')
       mainElement = (
-        <polygon points={points} style={style} transform={transform} filter={filter} />
+        <polygon points={points} {...attrs} transform={transform} filter={filter} />
       )
-      if (isSelected) {
-        selectionElement = (
-          <polygon points={points} style={selectionStyle} transform={transform} />
-        )
-      }
       break
     }
   }
@@ -211,11 +180,12 @@ function renderShape(shape: TikzShape, isSelected: boolean): React.ReactNode {
     </text>
   ) : null
 
+  const groupOpacity = dimmed ? 0.6 : (shape.opacity ?? 1)
+
   return (
-    <g key={shape.id}>
-      {selectionElement}
+    <g key={shape.id} style={{ opacity: groupOpacity }}>
       {mainElement}
-      {labelElement}
+      {dimmed ? null : labelElement}
     </g>
   )
 }
@@ -224,6 +194,7 @@ interface TikzPreviewProps {
   shapes: TikzShape[]
   selectedId?: string
   showGrid?: boolean
+  hideOthers?: boolean
   zoom?: number
   width?: number
   height?: number
@@ -233,6 +204,7 @@ export function TikzPreview({
   shapes,
   selectedId,
   showGrid = true,
+  hideOthers = false,
   zoom = 1,
   width = 600,
   height = 400,
@@ -337,7 +309,18 @@ export function TikzPreview({
 
         {gridLines}
 
-        {shapes.map((shape) => renderShape(shape, shape.id === selectedId))}
+        {/* When no shape is selected, render all shapes normally */}
+        {selectedId == null && shapes.map((shape) => renderShape(shape, false, false))}
+
+        {/* Background shapes (non-selected, rendered first = behind) */}
+        {selectedId != null && !hideOthers && shapes
+          .filter((s) => s.id !== selectedId)
+          .map((shape) => renderShape(shape, false, true))}
+
+        {/* Selected shape on top */}
+        {selectedId != null && shapes
+          .filter((s) => s.id === selectedId)
+          .map((shape) => renderShape(shape, true, false))}
       </svg>
     </div>
   )

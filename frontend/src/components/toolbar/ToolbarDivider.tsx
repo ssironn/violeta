@@ -1,3 +1,3 @@
 export function ToolbarDivider() {
-  return <div className="w-px h-6 bg-surface-border mx-1" />
+  return <div className="w-px h-4 bg-surface-border/60 mx-0.5" />
 }

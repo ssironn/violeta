@@ -51,7 +51,7 @@ export function DerivativeEditor({ initialLatex, onSave, onDelete, onClose, isIn
       >
         <div
           className={`w-9 h-5 rounded-full transition-colors relative ${
-            isPartial ? 'bg-violet-500' : 'bg-white/10'
+            isPartial ? 'bg-accent-500' : 'bg-white/10'
           }`}
         >
           <div
@@ -60,7 +60,7 @@ export function DerivativeEditor({ initialLatex, onSave, onDelete, onClose, isIn
             }`}
           />
         </div>
-        <span className="text-xs text-violet-300/70 group-hover:text-violet-200 transition-colors font-medium">
+        <span className="text-xs text-accent-300/70 group-hover:text-accent-200 transition-colors font-medium">
           Derivada parcial (∂)
         </span>
       </button>

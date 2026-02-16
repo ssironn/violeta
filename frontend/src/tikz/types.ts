@@ -54,8 +54,8 @@ export function createDefaultShape(type: ShapeType): TikzShape {
   const base = {
     id: crypto.randomUUID(),
     position: { x: 0, y: 0 },
-    fill: '',
-    stroke: 'black',
+    fill: '#c4b5fd',
+    stroke: '#8b5cf6',
     lineWidth: 0.4,
     lineStyle: 'solid' as const,
     opacity: 1,

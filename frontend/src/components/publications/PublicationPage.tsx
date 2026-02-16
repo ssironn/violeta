@@ -40,7 +40,7 @@ export function PublicationPage() {
   }
 
   if (loading || !pub) {
-    return <div className="flex items-center justify-center h-screen bg-surface-bg"><div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" /></div>
+    return <div className="flex items-center justify-center h-screen bg-surface-bg"><div className="w-5 h-5 border-2 border-accent-500 border-t-transparent rounded-full animate-spin" /></div>
   }
 
   const isAuthor = user?.id === pub.author_id
@@ -64,7 +64,7 @@ export function PublicationPage() {
       <div className="mb-4">
         <h1 className="text-2xl font-semibold text-text-primary">{pub.title}</h1>
         <div className="flex items-center gap-3 mt-2 text-sm text-text-secondary">
-          <button onClick={() => navigate(`/profile/${pub.author_id}`)} className="hover:text-violet-300 transition-colors">{pub.author_name}</button>
+          <button onClick={() => navigate(`/profile/${pub.author_id}`)} className="hover:text-accent-300 transition-colors">{pub.author_name}</button>
           <span className="text-text-muted">{TYPE_LABELS[pub.type]}</span>
           <span className="text-text-muted">{new Date(pub.created_at).toLocaleDateString('pt-BR')}</span>
         </div>

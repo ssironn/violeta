@@ -1,16 +1,16 @@
 export const colors = {
-  violet: {
-    50: '#f5f0ff',
-    100: '#ede5ff',
-    200: '#d4c0ff',
-    300: '#b794f6',
-    400: '#9f6bee',
+  accent: {
+    50: '#f5f3ff',
+    100: '#ede9fe',
+    200: '#ddd6fe',
+    300: '#c4b5fd',
+    400: '#a78bfa',
     500: '#8b5cf6',
     600: '#7c3aed',
     700: '#6d28d9',
     800: '#5b21b6',
-    900: '#3b1178',
-    950: '#1e0a3e',
+    900: '#4c1d95',
+    950: '#2e1065',
   },
   surface: {
     bg: '#0b0c12',
@@ -24,7 +24,6 @@ export const colors = {
     secondary: '#b4b6ce',
     muted: '#7b7e9a',
   },
-  accent: '#8b5cf6',
   gold: '#d4a574',
   success: '#4ade80',
   warning: '#fbbf24',

@@ -23,6 +23,12 @@ export const RawLatexBlock = Node.create({
       content: {
         default: '',
       },
+      textAlign: {
+        default: 'left',
+        renderHTML: (attributes: Record<string, unknown>) => {
+          return { style: `text-align: ${attributes.textAlign}` }
+        },
+      },
     }
   },
 
@@ -121,8 +127,14 @@ export const RawLatexBlock = Node.create({
         textarea.style.height = textarea.scrollHeight + 'px'
       }
 
+      function applyAlignment(n: ProseMirrorNode) {
+        const align = (n.attrs.textAlign as string) || 'left'
+        dom.style.textAlign = align
+      }
+
       // Initial render
       renderPreview(node.attrs.content as string)
+      applyAlignment(node)
 
       // Auto-resize after the textarea is in the DOM
       requestAnimationFrame(() => {
@@ -162,6 +174,7 @@ export const RawLatexBlock = Node.create({
             renderPreview(newContent)
             autoResize()
           }
+          applyAlignment(updatedNode)
           return true
         },
 

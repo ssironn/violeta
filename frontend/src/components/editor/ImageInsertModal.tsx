@@ -96,7 +96,7 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
-          <h3 className="text-[13px] font-semibold tracking-wide text-violet-200 uppercase">
+          <h3 className="text-[13px] font-semibold tracking-wide text-accent-200 uppercase">
             Inserir Imagem
           </h3>
           <button
@@ -128,7 +128,7 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
           {/* URL input */}
           {mode === 'url' && (
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-widest text-violet-300/70 mb-1.5">
+              <label className="block text-[11px] font-semibold uppercase tracking-widest text-accent-300/70 mb-1.5">
                 URL da imagem
               </label>
               <input
@@ -137,7 +137,7 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://exemplo.com/imagem.png"
                 autoFocus
-                className="w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-violet-100 placeholder:text-violet-100/20 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all"
+                className="w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-100/20 focus:outline-none focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/20 transition-all"
               />
             </div>
           )}
@@ -145,7 +145,7 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
           {/* File upload */}
           {mode === 'upload' && (
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-widest text-violet-300/70 mb-1.5">
+              <label className="block text-[11px] font-semibold uppercase tracking-widest text-accent-300/70 mb-1.5">
                 Arquivo
               </label>
               <div
@@ -155,15 +155,15 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
                 onClick={() => fileInputRef.current?.click()}
                 className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-6 cursor-pointer transition-all ${
                   dragging
-                    ? 'border-violet-400 bg-violet-500/10'
-                    : 'border-white/[0.1] hover:border-violet-500/30 hover:bg-white/[0.02]'
+                    ? 'border-accent-400 bg-accent-500/10'
+                    : 'border-white/[0.1] hover:border-accent-500/30 hover:bg-white/[0.02]'
                 }`}
               >
-                <Upload size={20} className="text-violet-400/50" />
+                <Upload size={20} className="text-accent-400/50" />
                 {fileName ? (
-                  <span className="text-sm text-violet-200 truncate max-w-full">{fileName}</span>
+                  <span className="text-sm text-accent-200 truncate max-w-full">{fileName}</span>
                 ) : (
-                  <span className="text-sm text-violet-300/40">
+                  <span className="text-sm text-accent-300/40">
                     Arraste uma imagem ou clique para selecionar
                   </span>
                 )}
@@ -180,23 +180,23 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
 
           {/* Alt text */}
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-widest text-violet-300/70 mb-1.5">
+            <label className="block text-[11px] font-semibold uppercase tracking-widest text-accent-300/70 mb-1.5">
               Texto alternativo
-              <span className="text-violet-400/30 ml-1 normal-case tracking-normal">(opcional)</span>
+              <span className="text-accent-400/30 ml-1 normal-case tracking-normal">(opcional)</span>
             </label>
             <input
               type="text"
               value={alt}
               onChange={(e) => setAlt(e.target.value)}
               placeholder="Descrição da imagem"
-              className="w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-violet-100 placeholder:text-violet-100/20 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all"
+              className="w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-100/20 focus:outline-none focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/20 transition-all"
             />
           </div>
 
           {/* Preview */}
           {previewSrc && (
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-widest text-violet-300/70 mb-1.5">
+              <label className="block text-[11px] font-semibold uppercase tracking-widest text-accent-300/70 mb-1.5">
                 Pré-visualização
               </label>
               <div className="rounded-xl border border-white/[0.06] bg-black/20 p-3 flex items-center justify-center min-h-[80px] max-h-[200px] overflow-hidden">
@@ -227,7 +227,7 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
           <button
             onClick={handleInsert}
             disabled={!canInsert}
-            className="px-5 py-1.5 text-[13px] font-semibold bg-violet-500 text-white rounded-lg hover:bg-violet-400 transition-colors shadow-lg shadow-violet-500/20 disabled:opacity-40 disabled:pointer-events-none"
+            className="px-5 py-1.5 text-[13px] font-semibold bg-accent-500 text-white rounded-lg hover:bg-accent-400 transition-colors shadow-lg shadow-accent-500/20 disabled:opacity-40 disabled:pointer-events-none"
           >
             Inserir
           </button>
@@ -253,8 +253,8 @@ function TabButton({
       onClick={onClick}
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
         active
-          ? 'bg-violet-500/20 text-violet-200 border border-violet-500/30'
-          : 'text-violet-300/40 hover:text-violet-300/70 hover:bg-white/[0.03] border border-transparent'
+          ? 'bg-accent-500/20 text-accent-200 border border-accent-500/30'
+          : 'text-accent-300/40 hover:text-accent-300/70 hover:bg-white/[0.03] border border-transparent'
       }`}
     >
       {icon}

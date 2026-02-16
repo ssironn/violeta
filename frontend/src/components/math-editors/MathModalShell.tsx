@@ -61,7 +61,7 @@ export function MathModalShell({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
-          <h3 className="text-[13px] font-semibold tracking-wide text-violet-200 uppercase">
+          <h3 className="text-[13px] font-semibold tracking-wide text-accent-200 uppercase">
             {title}
           </h3>
           <button
@@ -74,7 +74,7 @@ export function MathModalShell({
 
         {/* Preview */}
         <div className="mx-5 mt-4 rounded-xl border border-white/[0.06] bg-black/20 p-5 min-h-[56px] flex items-center justify-center">
-          <div ref={previewRef} className="text-violet-100 [&_.katex]:text-[1.4em]" />
+          <div ref={previewRef} className="text-accent-100 [&_.katex]:text-[1.4em]" />
         </div>
 
         {/* Editor fields */}
@@ -103,7 +103,7 @@ export function MathModalShell({
             </button>
             <button
               onClick={onSave}
-              className="px-5 py-1.5 text-[13px] font-semibold bg-violet-500 text-white rounded-lg hover:bg-violet-400 transition-colors shadow-lg shadow-violet-500/20"
+              className="px-5 py-1.5 text-[13px] font-semibold bg-accent-500 text-white rounded-lg hover:bg-accent-400 transition-colors shadow-lg shadow-accent-500/20"
             >
               {isInsert ? 'Inserir' : 'Salvar'}
             </button>
@@ -118,7 +118,7 @@ export function MathModalShell({
 
 export function FieldLabel({ children }: { children: ReactNode }) {
   return (
-    <label className="block text-[11px] font-semibold uppercase tracking-widest text-violet-300/70 mb-1.5">
+    <label className="block text-[11px] font-semibold uppercase tracking-widest text-accent-300/70 mb-1.5">
       {children}
     </label>
   )
@@ -218,7 +218,7 @@ export function FieldInput({
           onKeyDown={onKeyDown}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          className={`w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-violet-100 placeholder:text-violet-100/20 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all ${
+          className={`w-full bg-black/20 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-100/20 focus:outline-none focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/20 transition-all ${
             mono ? 'font-mono' : ''
           }`}
         />
@@ -228,8 +228,8 @@ export function FieldInput({
           title="Inserir componente"
           className={`flex-shrink-0 w-8 h-auto rounded-lg border text-[11px] font-bold transition-all ${
             pickerOpen
-              ? 'bg-violet-500/20 border-violet-500/40 text-violet-200'
-              : 'bg-black/20 border-white/[0.08] text-violet-400/60 hover:text-violet-300 hover:border-white/[0.14]'
+              ? 'bg-accent-500/20 border-accent-500/40 text-accent-200'
+              : 'bg-black/20 border-white/[0.08] text-accent-400/60 hover:text-accent-300 hover:border-white/[0.14]'
           }`}
         >
           f<sub className="text-[9px]">x</sub>
@@ -241,10 +241,10 @@ export function FieldInput({
         <button
           type="button"
           onClick={() => setNestedEditorOpen(true)}
-          className="mt-1.5 w-full flex items-center gap-2 px-3 py-1.5 rounded-lg bg-violet-500/10 border border-violet-500/20 hover:bg-violet-500/20 hover:border-violet-500/30 transition-all cursor-pointer group"
+          className="mt-1.5 w-full flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent-500/10 border border-accent-500/20 hover:bg-accent-500/20 hover:border-accent-500/30 transition-all cursor-pointer group"
         >
           <SnippetPreview latex={value} />
-          <span className="ml-auto flex items-center gap-1 text-[10px] text-violet-400/50 group-hover:text-violet-300 transition-colors font-medium">
+          <span className="ml-auto flex items-center gap-1 text-[10px] text-accent-400/50 group-hover:text-accent-300 transition-colors font-medium">
             <Pencil size={10} />
             Editar componente
           </span>
@@ -278,7 +278,7 @@ export function FieldInput({
           ref={pickerRef}
           className="absolute right-0 top-9 mt-1.5 z-50 bg-[#1e1334] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 py-1.5 w-56 max-h-64 overflow-auto"
         >
-          <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-violet-400/40">
+          <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-accent-400/40">
             Inserir componente
           </div>
           {NESTED_SNIPPETS.map((s) => (
@@ -287,7 +287,7 @@ export function FieldInput({
               onClick={() => insertSnippet(s.latex)}
               className="w-full text-left px-3 py-1.5 flex items-center justify-between gap-2 hover:bg-white/[0.05] transition-colors"
             >
-              <span className="text-[12px] text-violet-200/70">{s.label}</span>
+              <span className="text-[12px] text-accent-200/70">{s.label}</span>
               <SnippetPreview latex={s.latex} />
             </button>
           ))}

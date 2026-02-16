@@ -29,7 +29,7 @@ export function MathTemplateCard({ template, onClick }: MathTemplateCardProps) {
   return (
     <button
       onClick={() => onClick(template.latex)}
-      className="flex flex-col items-center gap-2 p-3 rounded-lg border border-surface-border bg-surface-panel hover:bg-surface-hover hover:border-violet-700 transition-colors cursor-pointer group"
+      className="flex flex-col items-center gap-2 p-3 rounded-lg border border-surface-border bg-surface-panel hover:bg-surface-hover hover:border-accent-700 transition-colors cursor-pointer group"
       title={template.label}
     >
       <div

@@ -1,4 +1,6 @@
 import type { JSONContent } from '@tiptap/core'
+import type { DocumentConfig } from '../types/documentConfig'
+import { DEFAULT_DOCUMENT_CONFIG } from '../types/documentConfig'
 
 /**
  * Map Unicode math symbols to their LaTeX command equivalents.
@@ -238,7 +240,8 @@ function processNode(node: JSONContent): string {
     }
 
     case 'rawLatex': {
-      return node.attrs?.content ?? ''
+      const rawContent = (node.attrs?.content ?? '') as string
+      return wrapAlignment(rawContent, getAlignment(node))
     }
 
     case 'latexSpacing': {
@@ -281,7 +284,12 @@ function processNode(node: JSONContent): string {
 
     case 'tikzFigure': {
       const tikzCode = (node.attrs?.tikzCode ?? '') as string
-      return tikzCode
+      return wrapAlignment(tikzCode, getAlignment(node))
+    }
+
+    case 'pgfplotBlock': {
+      const pgfCode = (node.attrs?.pgfCode ?? '') as string
+      return wrapAlignment(pgfCode, getAlignment(node))
     }
 
     case 'calloutBlock': {
@@ -399,10 +407,29 @@ function hasTikzFigure(nodes: JSONContent[]): boolean {
   return false
 }
 
-export function generateLatex(doc: JSONContent, customPreamble?: string): string {
+function hasPgfplot(nodes: JSONContent[]): boolean {
+  for (const node of nodes) {
+    if (node.type === 'pgfplotBlock') return true
+    if (node.content && hasPgfplot(node.content)) return true
+  }
+  return false
+}
+
+export function generateLatex(doc: JSONContent, configOrPreamble?: DocumentConfig | string): string {
   const body = processNodes(doc.content ?? [])
 
-  const extraBlock = customPreamble?.trim() ? `\n${customPreamble.trim()}\n` : ''
+  // Support legacy string preamble or new DocumentConfig
+  let config: DocumentConfig
+  let extraBlock: string
+  if (typeof configOrPreamble === 'string') {
+    config = DEFAULT_DOCUMENT_CONFIG
+    extraBlock = configOrPreamble.trim() ? `\n${configOrPreamble.trim()}\n` : ''
+  } else {
+    config = configOrPreamble ?? DEFAULT_DOCUMENT_CONFIG
+    extraBlock = ''
+  }
+
+  const bySection = config.theoremNumbering === 'by-section'
 
   // Auto-detect callout types and generate \newtheorem definitions
   const calloutTypes = collectCalloutTypes(doc.content ?? [])
@@ -415,14 +442,16 @@ export function generateLatex(doc: JSONContent, customPreamble?: string): string
     for (const t of calloutTypes) {
       if (t === 'proof') {
         if (!extraBlock.includes('\\qedsymbol')) {
-          defs.push('\\renewcommand{\\qedsymbol}{$\\blacksquare$}')
+          defs.push(`\\renewcommand{\\qedsymbol}{${config.qedSymbol}}`)
         }
         continue
       }
       // Only add if not already defined in custom preamble
       if (!extraBlock.includes(`\\newtheorem{${t}}`)) {
         const def = CALLOUT_THEOREM_DEFS[t]
-        if (def) defs.push(def)
+        if (def) {
+          defs.push(bySection ? def + '[section]' : def)
+        }
       }
     }
     if (defs.length > 0) theoremDefs = '\n' + defs.join('\n') + '\n'
@@ -442,24 +471,42 @@ export function generateLatex(doc: JSONContent, customPreamble?: string): string
     tikzDefs = '\n' + defs.join('\n') + '\n'
   }
 
+  // Auto-detect PGFPlots blocks and add required packages
+  const needsPgfplots = hasPgfplot(doc.content ?? []) || body.includes('\\begin{axis}')
+  let pgfplotsDefs = ''
+  if (needsPgfplots && !extraBlock.includes('\\usepackage{pgfplots}')) {
+    const defs: string[] = ['\\usepackage{pgfplots}', '\\pgfplotsset{compat=1.18}']
+    // pgfplots loads tikz automatically, but ensure tikz is present if also needed
+    if (!needsTikz && !extraBlock.includes('\\usepackage{tikz}')) {
+      // pgfplots loads tikz, no extra action needed
+    }
+    pgfplotsDefs = '\n' + defs.join('\n') + '\n'
+  }
+
+  // Extra packages from config
+  const extraPkgLines = config.extraPackages
+    .filter((pkg) => !extraBlock.includes(`{${pkg}}`))
+    .map((pkg) => `\\usepackage{${pkg}}`)
+  const extraPkgBlock = extraPkgLines.length > 0 ? '\n' + extraPkgLines.join('\n') + '\n' : ''
+
   // Auto-detect shorthand commands (\N, \R, etc.) and generate definitions
   const shorthandDefs = collectShorthandDefs(body, extraBlock)
   const shorthandBlock = shorthandDefs.length > 0
     ? '\n' + shorthandDefs.join('\n') + '\n'
     : ''
 
-  const preamble = `\\documentclass[12pt,a4paper]{article}
+  const preamble = `\\documentclass[${config.fontSize},${config.paperSize}]{${config.documentClass}}
 
 \\usepackage[utf8]{inputenc}
 \\usepackage[T1]{fontenc}
-\\usepackage[brazilian]{babel}
+\\usepackage[${config.language}]{babel}
 \\usepackage{amsmath,amssymb,amsfonts}
 \\usepackage{graphicx}
 \\usepackage{hyperref}
 \\usepackage{geometry}
 \\usepackage{xspace}
-\\geometry{margin=2.5cm}
-${extraBlock}${tikzDefs}${theoremDefs}${shorthandBlock}
+\\geometry{margin=${config.margin}}
+${extraBlock}${extraPkgBlock}${tikzDefs}${pgfplotsDefs}${theoremDefs}${shorthandBlock}
 \\begin{document}
 
 ${body}

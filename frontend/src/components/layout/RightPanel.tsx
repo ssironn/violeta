@@ -565,7 +565,7 @@ export function RightPanel({
           onClick={() => setTab('pdf')}
           className={`flex-1 px-3 py-2.5 text-xs font-medium uppercase tracking-[0.12em] transition-all ${
             tab === 'pdf'
-              ? 'text-violet-300 border-b-2 border-violet-500 bg-violet-500/5'
+              ? 'text-accent-300 border-b-2 border-accent-500 bg-accent-500/5'
               : 'text-text-muted hover:text-text-secondary'
           }`}
         >
@@ -578,7 +578,7 @@ export function RightPanel({
           onClick={() => setTab('code')}
           className={`flex-1 px-3 py-2.5 text-xs font-medium uppercase tracking-[0.12em] transition-all ${
             tab === 'code'
-              ? 'text-violet-300 border-b-2 border-violet-500 bg-violet-500/5'
+              ? 'text-accent-300 border-b-2 border-accent-500 bg-accent-500/5'
               : 'text-text-muted hover:text-text-secondary'
           }`}
         >
@@ -594,7 +594,7 @@ export function RightPanel({
             <button
               onClick={onCompile}
               disabled={compiling}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all bg-violet-600 hover:bg-violet-500 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-violet-600/20"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all bg-accent-600 hover:bg-accent-500 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-accent-600/20"
             >
               {compiling ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -609,7 +609,7 @@ export function RightPanel({
               <button
                 onClick={() => onSetAutoCompile(!autoCompile)}
                 className={`relative w-7 h-4 rounded-full transition-colors ${
-                  autoCompile ? 'bg-violet-500' : 'bg-surface-border'
+                  autoCompile ? 'bg-accent-500' : 'bg-surface-border'
                 }`}
               >
                 <span
@@ -623,7 +623,7 @@ export function RightPanel({
 
           {compiling && !pdfUrl && (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 text-text-muted">
-              <Loader2 size={24} className="animate-spin text-violet-400" />
+              <Loader2 size={24} className="animate-spin text-accent-400" />
               <span className="text-xs">Compilando via texlive.net...</span>
             </div>
           )}
@@ -639,7 +639,7 @@ export function RightPanel({
           {pdfUrl && (
             <div className="flex-1 relative min-h-0">
               {compiling && (
-                <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 px-2 py-1 rounded-full bg-surface-elevated/90 border border-surface-border text-[10px] text-violet-300">
+                <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 px-2 py-1 rounded-full bg-surface-elevated/90 border border-surface-border text-[10px] text-accent-300">
                   <RotateCw size={10} className="animate-spin" />
                   Recompilando...
                 </div>
@@ -655,7 +655,7 @@ export function RightPanel({
           {!compiling && !error && !pdfUrl && (
             <div className="flex-1 flex flex-col items-center justify-center gap-4 text-text-muted px-6 text-center">
               <div className="flex flex-col gap-2">
-                <span className="text-xs">Clique em <strong className="text-violet-300">Compilar</strong> para gerar o PDF.</span>
+                <span className="text-xs">Clique em <strong className="text-accent-300">Compilar</strong> para gerar o PDF.</span>
                 <span className="text-[11px] text-text-muted/70 leading-relaxed">
                   O preview mostrado aqui é o resultado final compilado pelo servidor texlive.net.
                 </span>
@@ -675,7 +675,7 @@ export function RightPanel({
                 onClick={onToggleEditing}
                 className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-all ${
                   editingLatex
-                    ? 'text-violet-300 bg-violet-500/15 border border-violet-500/30'
+                    ? 'text-accent-300 bg-accent-500/15 border border-accent-500/30'
                     : 'text-text-muted hover:text-text-primary hover:bg-surface-hover border border-transparent'
                 }`}
               >
@@ -702,7 +702,7 @@ export function RightPanel({
                 onClick={() => setShowSearch(!showSearch)}
                 className={`flex items-center gap-1 px-1.5 py-1 rounded-md text-xs transition-all ${
                   showSearch
-                    ? 'text-violet-300 bg-violet-500/15'
+                    ? 'text-accent-300 bg-accent-500/15'
                     : 'text-text-muted hover:text-text-primary hover:bg-surface-hover'
                 }`}
                 title="Buscar (Ctrl+F)"

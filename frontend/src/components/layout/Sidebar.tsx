@@ -90,7 +90,7 @@ export function Sidebar({
           {onGoHome && (
             <button
               onClick={onGoHome}
-              className="p-1 rounded hover:bg-surface-hover text-text-muted hover:text-violet-400 transition-colors"
+              className="p-1 rounded hover:bg-surface-hover text-text-muted hover:text-accent-400 transition-colors"
               title="Voltar ao início"
             >
               <Home size={14} />
@@ -117,7 +117,7 @@ export function Sidebar({
           </span>
           <button
             onClick={onCreateDocument}
-            className="p-1 rounded hover:bg-violet-600/20 text-text-muted hover:text-violet-400 transition-colors"
+            className="p-1 rounded hover:bg-accent-600/20 text-text-muted hover:text-accent-400 transition-colors"
             title="Novo documento"
           >
             <Plus size={14} />
@@ -137,7 +137,7 @@ export function Sidebar({
                     className={clsx(
                       'w-full text-left px-2.5 py-1.5 rounded-md text-sm truncate transition-all pr-14',
                       currentDocId === doc.id
-                        ? 'bg-violet-600/15 text-violet-300 border-l-2 border-violet-500'
+                        ? 'bg-accent-600/15 text-accent-300 border-l-2 border-accent-500'
                         : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary border-l-2 border-transparent'
                     )}
                     title={doc.title}
@@ -150,7 +150,7 @@ export function Sidebar({
                         e.stopPropagation()
                         onShareDocument(doc.id)
                       }}
-                      className="absolute right-7 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-surface-hover text-text-muted hover:text-violet-400 transition-all"
+                      className="absolute right-7 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-surface-hover text-text-muted hover:text-accent-400 transition-all"
                       title="Compartilhar documento"
                     >
                       <Share2 size={12} />
@@ -209,7 +209,7 @@ export function Sidebar({
       {/* User footer */}
       {user && (
         <div className="border-t border-surface-border px-3 py-2.5 flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-gold/80 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
+          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-accent-500 to-gold/80 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
             {user.name?.charAt(0).toUpperCase() || 'U'}
           </div>
           <span className="text-xs text-text-secondary truncate flex-1">{user.name}</span>

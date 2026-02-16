@@ -100,14 +100,14 @@ export function GoogleDriveModal({ currentDocId, onDocumentImported, onClose }: 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       <div
-        className="bg-surface-panel border border-surface-border/60 rounded-2xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col shadow-2xl shadow-violet-950/30 animate-scale-in"
+        className="bg-surface-panel border border-surface-border/60 rounded-2xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col shadow-2xl shadow-accent-950/30 animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-surface-border">
           <div className="flex items-center gap-2.5 text-text-primary">
-            <div className="p-1.5 rounded-lg bg-violet-600/15">
-              <HardDrive size={16} className="text-violet-400" />
+            <div className="p-1.5 rounded-lg bg-accent-600/15">
+              <HardDrive size={16} className="text-accent-400" />
             </div>
             <span className="font-medium text-sm">Google Drive</span>
           </div>
@@ -129,7 +129,7 @@ export function GoogleDriveModal({ currentDocId, onDocumentImported, onClose }: 
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 size={24} className="animate-spin text-violet-400" />
+              <Loader2 size={24} className="animate-spin text-accent-400" />
             </div>
           ) : connected === false ? (
             <div className="flex flex-col items-center gap-4 py-8">
@@ -140,7 +140,7 @@ export function GoogleDriveModal({ currentDocId, onDocumentImported, onClose }: 
               <button
                 onClick={handleConnect}
                 disabled={connectingAuth}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all disabled:opacity-50 shadow-sm shadow-violet-600/20"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-accent-600 hover:bg-accent-500 text-white text-sm font-medium transition-all disabled:opacity-50 shadow-sm shadow-accent-600/20"
               >
                 {connectingAuth ? (
                   <Loader2 size={14} className="animate-spin" />
@@ -158,7 +158,7 @@ export function GoogleDriveModal({ currentDocId, onDocumentImported, onClose }: 
                   <button
                     onClick={handleExport}
                     disabled={exporting}
-                    className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all disabled:opacity-50 shadow-sm shadow-violet-600/20"
+                    className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg bg-accent-600 hover:bg-accent-500 text-white text-sm font-medium transition-all disabled:opacity-50 shadow-sm shadow-accent-600/20"
                   >
                     {exporting ? (
                       <Loader2 size={14} className="animate-spin" />
@@ -192,7 +192,7 @@ export function GoogleDriveModal({ currentDocId, onDocumentImported, onClose }: 
                       <button
                         onClick={() => handleImport(file.id)}
                         disabled={importingId !== null}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-violet-600/15 hover:bg-violet-600/25 text-violet-300 text-xs font-medium transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-accent-600/15 hover:bg-accent-600/25 text-accent-300 text-xs font-medium transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
                       >
                         {importingId === file.id ? (
                           <Loader2 size={12} className="animate-spin" />

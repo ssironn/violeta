@@ -47,7 +47,7 @@ export function LoginPage() {
       />
 
       {/* Decorative gradient orb */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-violet-600/8 rounded-full blur-3xl" />
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-accent-600/8 rounded-full blur-3xl" />
       <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-gold/5 rounded-full blur-3xl" />
 
       <div className="w-full max-w-sm mx-4 relative z-10 animate-slide-up">
@@ -57,16 +57,16 @@ export function LoginPage() {
             Violeta
           </h1>
           <div className="flex items-center justify-center gap-3 mt-3">
-            <span className="h-px w-8 bg-gradient-to-r from-transparent to-violet-500/40" />
+            <span className="h-px w-8 bg-gradient-to-r from-transparent to-accent-500/40" />
             <p className="text-text-muted text-xs tracking-[0.2em] uppercase">
               Visual LaTeX Editor
             </p>
-            <span className="h-px w-8 bg-gradient-to-l from-transparent to-violet-500/40" />
+            <span className="h-px w-8 bg-gradient-to-l from-transparent to-accent-500/40" />
           </div>
         </div>
 
         {/* Card */}
-        <div className="bg-surface-panel/80 backdrop-blur-sm rounded-2xl border border-surface-border/60 shadow-2xl shadow-violet-950/20 p-7">
+        <div className="bg-surface-panel/80 backdrop-blur-sm rounded-2xl border border-surface-border/60 shadow-2xl shadow-accent-950/20 p-7">
           {/* Mode tabs */}
           <div className="flex mb-6 bg-surface-bg/60 rounded-lg p-0.5">
             <button
@@ -74,7 +74,7 @@ export function LoginPage() {
               onClick={() => switchMode('login')}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                 mode === 'login'
-                  ? 'bg-violet-600 text-white shadow-sm shadow-violet-600/25'
+                  ? 'bg-accent-600 text-white shadow-sm shadow-accent-600/25'
                   : 'text-text-muted hover:text-text-secondary'
               }`}
             >
@@ -85,7 +85,7 @@ export function LoginPage() {
               onClick={() => switchMode('register')}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                 mode === 'register'
-                  ? 'bg-violet-600 text-white shadow-sm shadow-violet-600/25'
+                  ? 'bg-accent-600 text-white shadow-sm shadow-accent-600/25'
                   : 'text-text-muted hover:text-text-secondary'
               }`}
             >
@@ -106,7 +106,7 @@ export function LoginPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-surface-bg/80 border border-surface-border text-text-primary placeholder-text-muted/50 text-sm focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/30 transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-surface-bg/80 border border-surface-border text-text-primary placeholder-text-muted/50 text-sm focus:outline-none focus:border-accent-500 focus:ring-1 focus:ring-accent-500/30 transition-all"
                   placeholder="Your name"
                 />
               </div>
@@ -122,7 +122,7 @@ export function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-3.5 py-2.5 rounded-lg bg-surface-bg/80 border border-surface-border text-text-primary placeholder-text-muted/50 text-sm focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/30 transition-all"
+                className="w-full px-3.5 py-2.5 rounded-lg bg-surface-bg/80 border border-surface-border text-text-primary placeholder-text-muted/50 text-sm focus:outline-none focus:border-accent-500 focus:ring-1 focus:ring-accent-500/30 transition-all"
                 placeholder="you@example.com"
               />
             </div>
@@ -137,7 +137,7 @@ export function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-3.5 py-2.5 rounded-lg bg-surface-bg/80 border border-surface-border text-text-primary placeholder-text-muted/50 text-sm focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/30 transition-all"
+                className="w-full px-3.5 py-2.5 rounded-lg bg-surface-bg/80 border border-surface-border text-text-primary placeholder-text-muted/50 text-sm focus:outline-none focus:border-accent-500 focus:ring-1 focus:ring-accent-500/30 transition-all"
                 placeholder="Enter your password"
               />
             </div>
@@ -153,7 +153,7 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 rounded-lg bg-gradient-to-r from-violet-600 to-violet-500 text-white font-medium text-sm hover:from-violet-500 hover:to-violet-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-violet-600/20 hover:shadow-violet-500/30 active:scale-[0.98]"
+              className="w-full py-2.5 rounded-lg bg-gradient-to-r from-accent-600 to-accent-500 text-white font-medium text-sm hover:from-accent-500 hover:to-accent-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-accent-600/20 hover:shadow-accent-500/30 active:scale-[0.98]"
             >
               {loading
                 ? 'Please wait...'

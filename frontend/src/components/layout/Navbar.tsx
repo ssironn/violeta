@@ -31,7 +31,7 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-surface-bg/80 backdrop-blur-md border-b border-surface-border">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-        <button onClick={() => navigate('/')} className="font-serif text-xl font-medium text-text-primary tracking-wide hover:text-violet-300 transition-colors">
+        <button onClick={() => navigate('/')} className="font-serif text-xl font-medium text-text-primary tracking-wide hover:text-accent-300 transition-colors">
           Violeta
         </button>
 
@@ -44,7 +44,7 @@ export function Navbar() {
                 onClick={() => navigate(path)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                   isActive
-                    ? 'bg-violet-500/15 text-violet-300 border border-violet-500/30'
+                    ? 'bg-accent-500/15 text-accent-300 border border-accent-500/30'
                     : 'text-text-muted hover:text-text-primary hover:bg-white/[0.04] border border-transparent'
                 }`}
               >
@@ -60,7 +60,7 @@ export function Navbar() {
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm text-text-secondary hover:text-text-primary hover:bg-white/[0.04] transition-colors"
           >
-            <div className="w-7 h-7 rounded-full bg-violet-500/20 flex items-center justify-center text-xs font-bold text-violet-300">
+            <div className="w-7 h-7 rounded-full bg-accent-500/20 flex items-center justify-center text-xs font-bold text-accent-300">
               {initial}
             </div>
             <ChevronDown size={14} className={`transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />

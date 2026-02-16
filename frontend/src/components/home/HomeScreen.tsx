@@ -279,7 +279,7 @@ function NewDocumentCard({ onCreate, index }: { onCreate: () => void; index: num
     >
       <div className="new-doc-card-inner">
         {creating ? (
-          <Loader2 size={28} className="animate-spin text-violet-400" />
+          <Loader2 size={28} className="animate-spin text-accent-400" />
         ) : (
           <>
             <div className="new-doc-card-icon">
@@ -334,7 +334,7 @@ export function HomeScreen() {
 
       {loading ? (
         <div className="home-loading">
-          <Loader2 size={28} className="animate-spin text-violet-400" />
+          <Loader2 size={28} className="animate-spin text-accent-400" />
         </div>
       ) : (
         <div className="home-grid">

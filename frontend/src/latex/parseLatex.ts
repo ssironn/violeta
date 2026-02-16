@@ -617,10 +617,14 @@ function parseBlock(block: string): JSONContent[] {
       return [{ type: 'blockMath', attrs: { latex: inner, environment: envName } }]
     }
 
-    // TikZ figures → tikzFigure node
+    // TikZ figures → tikzFigure or pgfplotBlock node
     if (envName === 'tikzpicture') {
       const endTag = `\\end{tikzpicture}`
       const fullEnv = `\\begin{tikzpicture}\n${inner}\n${endTag}`
+      // Detect pgfplots: if inner contains \begin{axis}, treat as pgfplotBlock
+      if (inner.includes('\\begin{axis}')) {
+        return [{ type: 'pgfplotBlock', attrs: { pgfCode: fullEnv, plotConfig: null } }]
+      }
       return [{ type: 'tikzFigure', attrs: { tikzCode: fullEnv, shapes: [] } }]
     }
 

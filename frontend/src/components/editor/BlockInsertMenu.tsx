@@ -10,6 +10,7 @@ interface Props {
   onOpenMathEditor: (latex: string) => void
   onOpenImageModal: () => void
   onOpenTikzEditor?: () => void
+  onOpenPlotEditor?: () => void
 }
 
 function MiniPreview({ latex }: { latex: string }) {
@@ -25,7 +26,7 @@ function MiniPreview({ latex }: { latex: string }) {
   return <span ref={ref} className="[&_.katex]:text-[0.75em] text-gray-500" />
 }
 
-export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, onOpenTikzEditor }: Props) {
+export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, onOpenTikzEditor, onOpenPlotEditor }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [buttonPos, setButtonPos] = useState<{ top: number } | null>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -106,8 +107,8 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
         onClick={() => setMenuOpen(!menuOpen)}
         className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${
           menuOpen
-            ? 'text-violet-600 bg-violet-100 rotate-45'
-            : 'text-gray-300 hover:text-violet-500 hover:bg-violet-50'
+            ? 'text-accent-600 bg-accent-100 rotate-45'
+            : 'text-gray-300 hover:text-accent-500 hover:bg-accent-50'
         }`}
         title="Inserir componente"
       >
@@ -117,7 +118,7 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
       {menuOpen && (
         <div
           ref={menuRef}
-          className="absolute left-0 top-8 z-50 bg-white border border-gray-200 rounded-xl shadow-xl shadow-violet-900/10 py-1.5 w-72 max-h-96 overflow-auto"
+          className="absolute left-0 top-8 z-50 bg-white border border-gray-200 rounded-xl shadow-xl shadow-accent-900/10 py-1.5 w-72 max-h-96 overflow-auto"
         >
           {/* Math templates by category */}
           {categories.map((cat) => {
@@ -135,7 +136,7 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
                       onOpenMathEditor(t.latex)
                       setMenuOpen(false)
                     }}
-                    className="w-full text-left px-3 py-2 flex items-center justify-between gap-2 hover:bg-violet-50 transition-colors"
+                    className="w-full text-left px-3 py-2 flex items-center justify-between gap-2 hover:bg-accent-50 transition-colors"
                   >
                     <span className="text-[13px] text-gray-700">{t.label}</span>
                     <MiniPreview latex={t.latex} />
@@ -157,7 +158,7 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
               onOpenImageModal()
               setMenuOpen(false)
             }}
-            className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-violet-50 transition-colors"
+            className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-accent-50 transition-colors"
           >
             <span className="text-[13px] text-gray-700">Imagem</span>
           </button>
@@ -167,9 +168,20 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
                 onOpenTikzEditor()
                 setMenuOpen(false)
               }}
-              className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-violet-50 transition-colors"
+              className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-accent-50 transition-colors"
             >
-              <span className="text-[13px] text-gray-700">Figura TikZ</span>
+              <span className="text-[13px] text-gray-700">Figuras Geométricas</span>
+            </button>
+          )}
+          {onOpenPlotEditor && (
+            <button
+              onClick={() => {
+                onOpenPlotEditor()
+                setMenuOpen(false)
+              }}
+              className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-accent-50 transition-colors"
+            >
+              <span className="text-[13px] text-gray-700">Gráfico de Funções</span>
             </button>
           )}
           <button
@@ -177,7 +189,7 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
               editor.chain().focus().setHorizontalRule().run()
               setMenuOpen(false)
             }}
-            className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-violet-50 transition-colors"
+            className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-accent-50 transition-colors"
           >
             <span className="text-[13px] text-gray-700">Linha Horizontal</span>
           </button>
@@ -186,7 +198,7 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
               editor.chain().focus().toggleCodeBlock().run()
               setMenuOpen(false)
             }}
-            className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-violet-50 transition-colors"
+            className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-accent-50 transition-colors"
           >
             <span className="text-[13px] text-gray-700">Bloco de Código</span>
           </button>

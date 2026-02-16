@@ -1,10 +1,27 @@
 import type { TikzShape } from './types'
 
+/** Convert hex color to TikZ-compatible inline xcolor spec */
+function colorToTikz(hex: string): string {
+  if (!hex || hex === 'none') return ''
+  if (!hex.startsWith('#')) return hex
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `{rgb,255:red,${r};green,${g};blue,${b}}`
+}
+
 function buildOptions(shape: TikzShape): string {
   const opts: string[] = []
-  if (shape.fill) opts.push(`fill=${shape.fill}`)
-  if (shape.stroke && shape.stroke !== 'black') opts.push(`draw=${shape.stroke}`)
-  else opts.push('draw')
+  if (shape.fill) {
+    const c = colorToTikz(shape.fill)
+    opts.push(c ? `fill=${c}` : `fill=${shape.fill}`)
+  }
+  if (shape.stroke) {
+    const c = colorToTikz(shape.stroke)
+    opts.push(c ? `draw=${c}` : `draw=${shape.stroke}`)
+  } else {
+    opts.push('draw')
+  }
   if (shape.lineWidth && shape.lineWidth !== 0.4) opts.push(`line width=${shape.lineWidth}pt`)
   if (shape.lineStyle === 'dashed') opts.push('dashed')
   if (shape.lineStyle === 'dotted') opts.push('dotted')

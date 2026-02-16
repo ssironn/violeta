@@ -19,6 +19,7 @@ import { LatexSpacing } from '../extensions/LatexSpacing'
 import { BlockInsertButton } from '../extensions/BlockInsertButton'
 import { SearchHighlight } from '../extensions/SearchHighlight'
 import { TikzFigureBlock } from '../extensions/TikzFigureBlock'
+import { PgfplotBlock } from '../extensions/PgfplotBlock'
 
 export interface MathEditState {
   latex: string
@@ -51,7 +52,7 @@ export function useVioletaEditor({ onMathClick }: UseVioletaEditorOptions) {
       }),
       Underline,
       TextAlign.configure({
-        types: ['heading', 'paragraph'],
+        types: ['heading', 'paragraph', 'tikzFigure', 'pgfplotBlock', 'rawLatex'],
       }),
       TextStyle,
       Color,
@@ -95,6 +96,7 @@ export function useVioletaEditor({ onMathClick }: UseVioletaEditorOptions) {
       BlockInsertButton,
       SearchHighlight,
       TikzFigureBlock,
+      PgfplotBlock,
     ],
     content: '',
     editorProps: {

@@ -55,14 +55,14 @@ export function ShareModal({ docId, onClose }: ShareModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       <div
-        className="bg-surface-panel border border-surface-border/60 rounded-2xl shadow-2xl shadow-violet-950/30 w-full max-w-md mx-4 p-6 animate-scale-in"
+        className="bg-surface-panel border border-surface-border/60 rounded-2xl shadow-2xl shadow-accent-950/30 w-full max-w-md mx-4 p-6 animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-violet-600/15">
-              <LinkIcon size={16} className="text-violet-400" />
+            <div className="p-1.5 rounded-lg bg-accent-600/15">
+              <LinkIcon size={16} className="text-accent-400" />
             </div>
             <h2 className="text-base font-medium text-text-primary">Share Document</h2>
           </div>
@@ -95,7 +95,7 @@ export function ShareModal({ docId, onClose }: ShareModalProps) {
               />
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all shadow-sm shadow-violet-600/20"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-accent-600 hover:bg-accent-500 text-white text-sm font-medium transition-all shadow-sm shadow-accent-600/20"
               >
                 {copied ? <Check size={14} /> : <Copy size={14} />}
                 {copied ? 'Copied!' : 'Copy'}

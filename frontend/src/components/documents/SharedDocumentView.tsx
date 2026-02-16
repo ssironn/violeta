@@ -63,7 +63,7 @@ export function SharedDocumentView({ shareToken, user }: SharedDocumentViewProps
           <div className="text-error text-sm">{error}</div>
           <a
             href="/"
-            className="inline-flex items-center gap-1.5 text-accent hover:text-violet-400 text-sm transition-colors"
+            className="inline-flex items-center gap-1.5 text-accent hover:text-accent-400 text-sm transition-colors"
           >
             <ArrowLeft size={14} />
             Back to Violeta
@@ -114,7 +114,7 @@ export function SharedDocumentView({ shareToken, user }: SharedDocumentViewProps
               </div>
               <a
                 href="/"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent hover:bg-violet-400 text-white text-sm font-medium transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent hover:bg-accent-400 text-white text-sm font-medium transition-colors"
               >
                 Open in Violeta
               </a>
@@ -125,7 +125,7 @@ export function SharedDocumentView({ shareToken, user }: SharedDocumentViewProps
                 <button
                   onClick={handleCopy}
                   disabled={copying}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-accent hover:bg-violet-400 text-white text-sm font-medium transition-colors disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-accent hover:bg-accent-400 text-white text-sm font-medium transition-colors disabled:opacity-50"
                 >
                   <Copy size={16} />
                   {copying ? 'Copying...' : 'Make a copy'}
@@ -137,7 +137,7 @@ export function SharedDocumentView({ shareToken, user }: SharedDocumentViewProps
                   </p>
                   <a
                     href="/"
-                    className="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg bg-accent hover:bg-violet-400 text-white text-sm font-medium transition-colors"
+                    className="inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg bg-accent hover:bg-accent-400 text-white text-sm font-medium transition-colors"
                   >
                     Sign in
                   </a>

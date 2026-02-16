@@ -24,8 +24,11 @@ import {
   FlaskConical,
   PenLine,
   Shapes,
+  Link2,
+  TrendingUp,
 } from 'lucide-react'
 import { mathTemplates } from './mathTemplates'
+import { insertLink } from '../utils/insertHelpers'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -35,6 +38,7 @@ interface SlashCommandCallbacks {
   onOpenMathEditor?: (latex: string) => void
   onOpenImageModal?: () => void
   onOpenTikzEditor?: () => void
+  onOpenPlotEditor?: () => void
 }
 
 interface SlashCommandItem {
@@ -356,6 +360,16 @@ const slashCommandItems: SlashCommandItem[] = [
     },
   },
   {
+    id: 'link',
+    label: 'Link',
+    category: 'Midia',
+    icon: Link2,
+    aliases: ['link', 'url', 'href', 'hiperlink'],
+    action: (editor) => {
+      insertLink(editor)
+    },
+  },
+  {
     id: 'codeBlock',
     label: 'Bloco de codigo',
     category: 'Midia',
@@ -378,12 +392,22 @@ const slashCommandItems: SlashCommandItem[] = [
 
   {
     id: 'tikzFigure',
-    label: 'Figura TikZ',
+    label: 'Figuras Geométricas',
     category: 'Midia',
     icon: Shapes,
     aliases: ['tikz', 'figura', 'geometria', 'desenho', 'forma', 'tikzpicture'],
     action: (_editor, { onOpenTikzEditor }) => {
       onOpenTikzEditor?.()
+    },
+  },
+  {
+    id: 'pgfplot',
+    label: 'Gráfico de Funções',
+    category: 'Midia',
+    icon: TrendingUp,
+    aliases: ['grafico', 'plot', 'funcao', 'pgfplots', 'chart', 'graph'],
+    action: (_editor, { onOpenPlotEditor }) => {
+      onOpenPlotEditor?.()
     },
   },
 
@@ -493,6 +517,7 @@ interface SlashCommandsOptions {
   onOpenMathEditor?: (latex: string) => void
   onOpenImageModal?: () => void
   onOpenTikzEditor?: () => void
+  onOpenPlotEditor?: () => void
 }
 
 export const SlashCommands = Extension.create<SlashCommandsOptions>({
@@ -503,6 +528,7 @@ export const SlashCommands = Extension.create<SlashCommandsOptions>({
       onOpenMathEditor: undefined,
       onOpenImageModal: undefined,
       onOpenTikzEditor: undefined,
+      onOpenPlotEditor: undefined,
     }
   },
 
@@ -553,9 +579,10 @@ interface SlashCommandMenuProps {
   onOpenMathEditor?: (latex: string) => void
   onOpenImageModal?: () => void
   onOpenTikzEditor?: () => void
+  onOpenPlotEditor?: () => void
 }
 
-export function SlashCommandMenu({ editor, onOpenMathEditor, onOpenImageModal, onOpenTikzEditor }: SlashCommandMenuProps) {
+export function SlashCommandMenu({ editor, onOpenMathEditor, onOpenImageModal, onOpenTikzEditor, onOpenPlotEditor }: SlashCommandMenuProps) {
   const [active, setActive] = useState(false)
   const [query, setQuery] = useState('')
   const [range, setRange] = useState<{ from: number; to: number } | null>(null)
@@ -617,7 +644,7 @@ export function SlashCommandMenu({ editor, onOpenMathEditor, onOpenImageModal, o
     editor.chain().focus().deleteRange({ from: range.from, to: range.to }).run()
 
     // Execute the action
-    item.action(editor, { onOpenMathEditor, onOpenImageModal, onOpenTikzEditor })
+    item.action(editor, { onOpenMathEditor, onOpenImageModal, onOpenTikzEditor, onOpenPlotEditor })
   }
 
   // Keyboard handler: intercept keys when menu is active
@@ -710,7 +737,7 @@ export function SlashCommandMenu({ editor, onOpenMathEditor, onOpenImageModal, o
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 bg-white rounded-xl shadow-xl shadow-violet-900/10 border border-gray-200 w-72 max-h-80 overflow-auto py-1"
+      className="fixed z-50 bg-white rounded-xl shadow-xl shadow-accent-900/10 border border-gray-200 w-72 max-h-80 overflow-auto py-1"
       style={{ top: finalTop, bottom: finalBottom, left: finalLeft }}
       onMouseDown={preventBlur}
     >
@@ -730,7 +757,7 @@ export function SlashCommandMenu({ editor, onOpenMathEditor, onOpenImageModal, o
                   else itemRefs.current.delete(globalIndex)
                 }}
                 className={`w-full text-left px-3 py-2 flex items-center gap-2 cursor-pointer transition-colors ${
-                  isSelected ? 'bg-violet-50' : 'hover:bg-violet-50'
+                  isSelected ? 'bg-accent-50' : 'hover:bg-accent-50'
                 }`}
                 onClick={() => executeCommand(item)}
               >

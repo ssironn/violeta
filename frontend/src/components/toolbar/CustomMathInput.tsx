@@ -52,7 +52,7 @@ export function CustomMathInput({ onInsert }: CustomMathInputProps) {
         <button
           onClick={handleInsert}
           disabled={!value.trim()}
-          className="px-3 py-1.5 bg-accent text-white text-sm rounded-md hover:bg-violet-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="px-3 py-1.5 bg-accent text-white text-sm rounded-md hover:bg-accent-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Inserir
         </button>

@@ -27,7 +27,7 @@ export function ProfilePage() {
     setProfile({ ...profile, is_following: result.following, follower_count: profile.follower_count + (result.following ? 1 : -1) })
   }
 
-  if (loading || !profile) return <div className="flex items-center justify-center h-screen bg-surface-bg"><div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" /></div>
+  if (loading || !profile) return <div className="flex items-center justify-center h-screen bg-surface-bg"><div className="w-5 h-5 border-2 border-accent-500 border-t-transparent rounded-full animate-spin" /></div>
 
   const isMe = user?.id === id
   const initial = profile.name.charAt(0).toUpperCase()
@@ -37,7 +37,7 @@ export function ProfilePage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors mb-6"><ArrowLeft size={16} /> Voltar</button>
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-16 h-16 rounded-full bg-violet-500/20 flex items-center justify-center text-2xl font-bold text-violet-300">{initial}</div>
+          <div className="w-16 h-16 rounded-full bg-accent-500/20 flex items-center justify-center text-2xl font-bold text-accent-300">{initial}</div>
           <div className="flex-1">
             <h1 className="text-xl font-semibold text-text-primary">{profile.name}</h1>
             <div className="flex items-center gap-4 mt-1 text-sm text-text-secondary">
@@ -47,7 +47,7 @@ export function ProfilePage() {
             </div>
           </div>
           {!isMe && (
-            <button onClick={handleFollow} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${profile.is_following ? 'bg-surface-card text-text-primary border-surface-border hover:border-red-500/30 hover:text-red-400' : 'bg-violet-500 text-white border-violet-500 hover:bg-violet-400'}`}>
+            <button onClick={handleFollow} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${profile.is_following ? 'bg-surface-card text-text-primary border-surface-border hover:border-red-500/30 hover:text-red-400' : 'bg-accent-500 text-white border-accent-500 hover:bg-accent-400'}`}>
               {profile.is_following ? <><UserMinus size={14} /> Seguindo</> : <><UserPlus size={14} /> Seguir</>}
             </button>
           )}

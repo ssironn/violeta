@@ -107,7 +107,7 @@ export function MathEditModal({
               <button
                 onClick={handleSave}
                 disabled={!value.trim()}
-                className="px-4 py-1.5 text-sm bg-accent text-white rounded-lg hover:bg-violet-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-4 py-1.5 text-sm bg-accent text-white rounded-lg hover:bg-accent-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Salvar
               </button>

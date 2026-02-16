@@ -21,14 +21,14 @@ export function ExplorePage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {loading ? (
-        <div className="flex justify-center py-12"><div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" /></div>
+        <div className="flex justify-center py-12"><div className="w-5 h-5 border-2 border-accent-500 border-t-transparent rounded-full animate-spin" /></div>
       ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {publications.map((pub) => (<FeedCard key={pub.id} publication={pub} onClick={() => navigate(`/publication/${pub.id}`)} />))}
           </div>
           {publications.length >= 20 && (
-            <div className="flex justify-center mt-8"><button onClick={loadMore} className="px-4 py-2 text-sm text-violet-300 hover:text-violet-200 transition-colors">Carregar mais</button></div>
+            <div className="flex justify-center mt-8"><button onClick={loadMore} className="px-4 py-2 text-sm text-accent-300 hover:text-accent-200 transition-colors">Carregar mais</button></div>
           )}
         </>
       )}

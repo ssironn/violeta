@@ -129,14 +129,14 @@ export function MatrixEditor({ initialLatex, onSave, onDelete, onClose, isInsert
       {/* Dimension controls */}
       <div className="flex items-center justify-center gap-6 mb-2">
         <DimControl label="Linhas" value={rows} onInc={addRow} onDec={removeRow} />
-        <div className="text-violet-500/40 text-lg font-light">&times;</div>
+        <div className="text-accent-500/40 text-lg font-light">&times;</div>
         <DimControl label="Colunas" value={cols} onInc={addCol} onDec={removeCol} />
       </div>
 
       {/* Matrix grid */}
       <div className="flex items-center justify-center py-2">
         {/* Left bracket */}
-        <div className="text-violet-400/50 text-4xl font-extralight mr-2 self-stretch flex items-center">(</div>
+        <div className="text-accent-400/50 text-4xl font-extralight mr-2 self-stretch flex items-center">(</div>
 
         <div
           ref={gridRef}
@@ -155,8 +155,8 @@ export function MatrixEditor({ initialLatex, onSave, onDelete, onClose, isInsert
                 onKeyDown={(e) => handleCellKeyDown(e, r, c)}
                 className={`w-16 h-9 text-center text-sm font-mono rounded-lg border transition-all focus:outline-none ${
                   focusedCell?.[0] === r && focusedCell?.[1] === c
-                    ? 'border-violet-500/60 bg-violet-500/10 text-violet-100 ring-1 ring-violet-500/20'
-                    : 'border-white/[0.06] bg-black/20 text-violet-200 hover:border-white/[0.12]'
+                    ? 'border-accent-500/60 bg-accent-500/10 text-accent-100 ring-1 ring-accent-500/20'
+                    : 'border-white/[0.06] bg-black/20 text-accent-200 hover:border-white/[0.12]'
                 }`}
                 placeholder={String.fromCharCode(97 + (r * cols + c) % 26)}
               />
@@ -165,10 +165,10 @@ export function MatrixEditor({ initialLatex, onSave, onDelete, onClose, isInsert
         </div>
 
         {/* Right bracket */}
-        <div className="text-violet-400/50 text-4xl font-extralight ml-2 self-stretch flex items-center">)</div>
+        <div className="text-accent-400/50 text-4xl font-extralight ml-2 self-stretch flex items-center">)</div>
       </div>
 
-      <p className="text-[11px] text-violet-300/30 text-center">
+      <p className="text-[11px] text-accent-300/30 text-center">
         Use Tab para navegar entre células · Setas para mover
       </p>
     </MathModalShell>
@@ -190,20 +190,20 @@ function DimControl({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-[11px] font-semibold uppercase tracking-widest text-violet-300/50 mr-1">
+      <span className="text-[11px] font-semibold uppercase tracking-widest text-accent-300/50 mr-1">
         {label}
       </span>
       <button
         onClick={onDec}
         disabled={value <= 1}
-        className="w-6 h-6 rounded-md flex items-center justify-center border border-white/[0.08] bg-black/20 text-violet-300 hover:bg-violet-500/20 hover:border-violet-500/30 transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+        className="w-6 h-6 rounded-md flex items-center justify-center border border-white/[0.08] bg-black/20 text-accent-300 hover:bg-accent-500/20 hover:border-accent-500/30 transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
       >
         <Minus size={12} />
       </button>
-      <span className="text-sm font-mono text-violet-200 w-5 text-center tabular-nums">{value}</span>
+      <span className="text-sm font-mono text-accent-200 w-5 text-center tabular-nums">{value}</span>
       <button
         onClick={onInc}
-        className="w-6 h-6 rounded-md flex items-center justify-center border border-white/[0.08] bg-black/20 text-violet-300 hover:bg-violet-500/20 hover:border-violet-500/30 transition-colors"
+        className="w-6 h-6 rounded-md flex items-center justify-center border border-white/[0.08] bg-black/20 text-accent-300 hover:bg-accent-500/20 hover:border-accent-500/30 transition-colors"
       >
         <Plus size={12} />
       </button>

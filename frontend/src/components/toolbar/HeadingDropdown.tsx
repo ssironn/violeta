@@ -47,9 +47,9 @@ export function HeadingDropdown({ editor }: HeadingDropdownProps) {
       <button
         onClick={() => setOpen(!open)}
         className={clsx(
-          'flex items-center gap-1 px-2 py-1 rounded-md text-sm transition-colors',
+          'flex items-center gap-1 px-1.5 py-0.5 rounded text-xs transition-colors',
           'text-text-secondary hover:text-text-primary hover:bg-surface-hover',
-          'min-w-[110px] justify-between'
+          'min-w-[90px] justify-between'
         )}
       >
         <span>{current.label}</span>

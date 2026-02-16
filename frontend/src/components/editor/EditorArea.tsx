@@ -15,10 +15,11 @@ interface EditorAreaProps {
   onOpenMathEditor: (latex: string) => void
   onOpenImageModal: () => void
   onOpenTikzEditor?: () => void
+  onOpenPlotEditor?: () => void
   onHoverMath: (latex: string | null) => void
 }
 
-export function EditorArea({ editor, onOpenMathEditor, onOpenImageModal, onOpenTikzEditor, onHoverMath }: EditorAreaProps) {
+export function EditorArea({ editor, onOpenMathEditor, onOpenImageModal, onOpenTikzEditor, onOpenPlotEditor, onHoverMath }: EditorAreaProps) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [pageBreaks, setPageBreaks] = useState<number[]>([])
   const { searchState, setQuery, next, prev, close } = useEditorSearch(editor)
@@ -119,10 +120,10 @@ export function EditorArea({ editor, onOpenMathEditor, onOpenImageModal, onOpenT
           <BlockHandle editor={editor} />
 
           {/* Slash command floating menu */}
-          <SlashCommandMenu editor={editor} onOpenMathEditor={onOpenMathEditor} onOpenImageModal={onOpenImageModal} onOpenTikzEditor={onOpenTikzEditor} />
+          <SlashCommandMenu editor={editor} onOpenMathEditor={onOpenMathEditor} onOpenImageModal={onOpenImageModal} onOpenTikzEditor={onOpenTikzEditor} onOpenPlotEditor={onOpenPlotEditor} />
 
           {/* Notion-like + button */}
-          <BlockInsertMenu editor={editor} onOpenMathEditor={onOpenMathEditor} onOpenImageModal={onOpenImageModal} onOpenTikzEditor={onOpenTikzEditor} />
+          <BlockInsertMenu editor={editor} onOpenMathEditor={onOpenMathEditor} onOpenImageModal={onOpenImageModal} onOpenTikzEditor={onOpenTikzEditor} onOpenPlotEditor={onOpenPlotEditor} />
         </div>
 
         {/* Page break indicators */}
@@ -134,13 +135,13 @@ export function EditorArea({ editor, onOpenMathEditor, onOpenImageModal, onOpenT
           >
             <div className="relative flex items-center h-10 -translate-y-1/2">
               {/* Left line */}
-              <div className="flex-1 border-t border-dashed border-violet-300/40" />
+              <div className="flex-1 border-t border-dashed border-accent-300/40" />
               {/* Page label */}
-              <span className="mx-3 px-3 py-0.5 text-[10px] text-violet-400/50 bg-white rounded-full font-medium tracking-wide whitespace-nowrap shadow-sm border border-violet-200/30">
+              <span className="mx-3 px-3 py-0.5 text-[10px] text-accent-400/50 bg-white rounded-full font-medium tracking-wide whitespace-nowrap shadow-sm border border-accent-200/30">
                 Página {i + 2}
               </span>
               {/* Right line */}
-              <div className="flex-1 border-t border-dashed border-violet-300/40" />
+              <div className="flex-1 border-t border-dashed border-accent-300/40" />
             </div>
           </div>
         ))}

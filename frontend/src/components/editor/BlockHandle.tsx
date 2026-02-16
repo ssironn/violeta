@@ -519,8 +519,8 @@ export function BlockHandle({ editor }: Props) {
                     }
                     className={`w-full text-left px-3 py-1.5 flex items-center gap-2 text-[13px] transition-colors cursor-pointer ${
                       isActive
-                        ? 'text-violet-600 bg-violet-50 font-medium'
-                        : 'text-gray-700 hover:bg-violet-50'
+                        ? 'text-accent-600 bg-accent-50 font-medium'
+                        : 'text-gray-700 hover:bg-accent-50'
                     }`}
                   >
                     <Icon size={14} className="shrink-0" />
@@ -552,7 +552,7 @@ export function BlockHandle({ editor }: Props) {
                       onClick={() => handleAlignment(align)}
                       className={`p-1.5 rounded transition-colors ${
                         isActive
-                          ? 'text-violet-600 bg-violet-100'
+                          ? 'text-accent-600 bg-accent-100'
                           : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
                       }`}
                       title={
@@ -577,7 +577,7 @@ export function BlockHandle({ editor }: Props) {
           {/* Duplicate */}
           <button
             onClick={handleDuplicate}
-            className="w-full text-left px-3 py-1.5 flex items-center gap-2 text-[13px] text-gray-700 hover:bg-violet-50 transition-colors cursor-pointer"
+            className="w-full text-left px-3 py-1.5 flex items-center gap-2 text-[13px] text-gray-700 hover:bg-accent-50 transition-colors cursor-pointer"
           >
             <Copy size={14} className="shrink-0" />
             Duplicar
@@ -601,7 +601,7 @@ export function BlockHandle({ editor }: Props) {
             disabled={!canMoveUp}
             className={`w-full text-left px-3 py-1.5 flex items-center gap-2 text-[13px] transition-colors cursor-pointer ${
               canMoveUp
-                ? 'text-gray-700 hover:bg-violet-50'
+                ? 'text-gray-700 hover:bg-accent-50'
                 : 'text-gray-300 cursor-not-allowed'
             }`}
           >
@@ -615,7 +615,7 @@ export function BlockHandle({ editor }: Props) {
             disabled={!canMoveDown}
             className={`w-full text-left px-3 py-1.5 flex items-center gap-2 text-[13px] transition-colors cursor-pointer ${
               canMoveDown
-                ? 'text-gray-700 hover:bg-violet-50'
+                ? 'text-gray-700 hover:bg-accent-50'
                 : 'text-gray-300 cursor-not-allowed'
             }`}
           >

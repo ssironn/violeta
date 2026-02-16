@@ -4,12 +4,14 @@ interface AppLayoutProps {
   toolbar: ReactNode
   editor: ReactNode
   rightPanel: ReactNode
+  showRightPanel?: boolean
 }
 
 export function AppLayout({
   toolbar,
   editor,
   rightPanel,
+  showRightPanel = true,
 }: AppLayoutProps) {
   const [splitPercent, setSplitPercent] = useState(50)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -52,20 +54,27 @@ export function AppLayout({
       {toolbar}
       <div ref={containerRef} className="flex flex-1 overflow-hidden">
         {/* Editor */}
-        <div className="flex overflow-hidden min-w-0" style={{ width: `${splitPercent}%` }}>
+        <div
+          className="flex overflow-hidden min-w-0"
+          style={{ width: showRightPanel ? `${splitPercent}%` : '100%' }}
+        >
           {editor}
         </div>
-        {/* Resize handle */}
-        <div
-          className="split-handle"
-          onMouseDown={onMouseDown}
-        >
-          <div className="split-handle-line" />
-        </div>
-        {/* Preview */}
-        <div className="flex overflow-hidden min-w-0" style={{ width: `${100 - splitPercent}%` }}>
-          {rightPanel}
-        </div>
+        {showRightPanel && (
+          <>
+            {/* Resize handle */}
+            <div
+              className="split-handle"
+              onMouseDown={onMouseDown}
+            >
+              <div className="split-handle-line" />
+            </div>
+            {/* Preview */}
+            <div className="flex overflow-hidden min-w-0" style={{ width: `${100 - splitPercent}%` }}>
+              {rightPanel}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

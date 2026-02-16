@@ -12,14 +12,17 @@ import { useLatexSync } from './hooks/useLatexSync'
 import { parseLatex, extractCustomPreamble } from './latex/parseLatex'
 import { generateLatex } from './latex/generateLatex'
 import { updateKatexMacros } from './latex/katexMacros'
+import type { DocumentConfig } from './types/documentConfig'
+import { DEFAULT_DOCUMENT_CONFIG } from './types/documentConfig'
 import { beautifyLatex } from './latex/beautifyLatex'
 import { uploadTexFile } from './utils/uploadTex'
 import { useDocumentAssets } from './hooks/useDocumentAssets'
 import { AppLayout } from './components/layout/AppLayout'
 import { AppShell } from './components/layout/AppShell'
-import { RightPanel } from './components/layout/RightPanel'
+import { PdfPanel } from './components/layout/PdfPanel'
+import { LatexCodePanel } from './components/layout/LatexCodePanel'
 import { EditorArea } from './components/editor/EditorArea'
-import { Toolbar } from './components/toolbar/Toolbar'
+import { Toolbar, type ViewMode } from './components/toolbar/Toolbar'
 import { MathEditRouter } from './components/math-editors/MathEditRouter'
 import { ImageInsertModal } from './components/editor/ImageInsertModal'
 import { GoogleDriveModal } from './components/google/GoogleDriveModal'
@@ -32,6 +35,9 @@ import { ProfilePage } from './components/publications/ProfilePage'
 import { PublishModal } from './components/publications/PublishModal'
 import { TikzShapeEditor } from './tikz/TikzShapeEditor'
 import type { TikzShape } from './tikz/types'
+import { PlotEditor } from './pgfplots/PlotEditor'
+import type { PgfplotConfig } from './pgfplots/types'
+import { createDefaultPgfplotConfig } from './pgfplots/types'
 
 /** Requires auth — redirects to /signin if not logged in */
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -42,7 +48,7 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
       <div className="flex items-center justify-center h-screen bg-surface-bg">
         <div className="flex flex-col items-center gap-3 animate-fade-in">
           <h1 className="font-serif text-2xl font-medium text-text-primary tracking-wide">Violeta</h1>
-          <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-accent-500 border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     )
@@ -61,7 +67,7 @@ function GuestOnly({ children }: { children: React.ReactNode }) {
       <div className="flex items-center justify-center h-screen bg-surface-bg">
         <div className="flex flex-col items-center gap-3 animate-fade-in">
           <h1 className="font-serif text-2xl font-medium text-text-primary tracking-wide">Violeta</h1>
-          <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-accent-500 border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     )
@@ -86,6 +92,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
   const [imageModalOpen, setImageModalOpen] = useState(false)
   const [publishModalOpen, setPublishModalOpen] = useState(false)
   const [tikzEdit, setTikzEdit] = useState<{ shapes: TikzShape[]; pos: number; mode: 'insert' | 'edit' } | null>(null)
+  const [plotEdit, setPlotEdit] = useState<{ config: PgfplotConfig; pos: number; mode: 'insert' | 'edit' } | null>(null)
 
   const [currentDocId] = useState<string | null>(initialDocId)
   const [shareModalOpen, setShareModalOpen] = useState(false)
@@ -101,25 +108,30 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
   const editor = useVioletaEditor({ onMathClick })
   const { registerAsset, registerUploadedFile, clearAssets, getCompileAssets } = useDocumentAssets()
   const [customPreamble, setCustomPreamble] = useState('')
-  const generatedLatex = useLatexGenerator(editor, customPreamble)
+  const [documentConfig, setDocumentConfig] = useState<DocumentConfig>(DEFAULT_DOCUMENT_CONFIG)
+  const generatedLatex = useLatexGenerator(editor, documentConfig)
 
-  // Manual LaTeX editing state
-  const [editingLatex, setEditingLatex] = useState(false)
+  // View mode + PDF panel visibility
+  const [viewMode, setViewMode] = useState<ViewMode>('document')
+  const [showPdf, setShowPdf] = useState(true)
   const [manualLatex, setManualLatex] = useState<string | null>(null)
 
   // Hover-to-highlight
   const [hoveredMath, setHoveredMath] = useState<string | null>(null)
 
+  const editingLatex = viewMode === 'code'
   useLatexSync(editor, manualLatex, editingLatex)
 
-  const effectiveLatex = editingLatex && manualLatex !== null ? manualLatex : generatedLatex
+  const effectiveLatex = viewMode === 'code' && manualLatex !== null ? manualLatex : generatedLatex
 
   const { pdfUrl, pdfBlob, compiling: pdfCompiling, error: pdfError, autoCompile, setAutoCompile, compile } = usePdfCompiler(effectiveLatex, getCompileAssets)
 
-  function handleToggleEditing() {
-    if (!editingLatex) {
+  function handleViewModeChange(mode: ViewMode) {
+    if (mode === viewMode) return
+    if (mode === 'code') {
       setManualLatex(beautifyLatex(generatedLatex))
     } else {
+      // Switching back to document — parse manual LaTeX back into editor
       if (manualLatex !== null && editor) {
         const preamble = extractCustomPreamble(manualLatex)
         setCustomPreamble(preamble)
@@ -129,7 +141,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
       }
       setManualLatex(null)
     }
-    setEditingLatex(!editingLatex)
+    setViewMode(mode)
   }
 
   function handleLatexChange(latex: string) {
@@ -150,7 +162,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
       updateKatexMacros(preamble)
       const doc = parseLatex(content)
       editor.commands.setContent(doc)
-      if (editingLatex) {
+      if (viewMode === 'code') {
         setManualLatex(beautifyLatex(content))
       }
     })
@@ -175,6 +187,15 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
     })
   }, [editor])
 
+  const openPlotEditor = useCallback(() => {
+    if (!editor) return
+    setPlotEdit({
+      config: createDefaultPgfplotConfig(),
+      pos: editor.state.selection.from,
+      mode: 'insert',
+    })
+  }, [editor])
+
   useEffect(() => {
     function handleTikzClick(e: Event) {
       const detail = (e as CustomEvent).detail
@@ -186,6 +207,17 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
     return () => document.removeEventListener('tikz-figure-click', handleTikzClick)
   }, [])
 
+  useEffect(() => {
+    function handlePlotClick(e: Event) {
+      const detail = (e as CustomEvent).detail
+      if (detail) {
+        setPlotEdit({ config: detail.plotConfig || createDefaultPgfplotConfig(), pos: detail.pos, mode: 'edit' })
+      }
+    }
+    document.addEventListener('pgfplot-block-click', handlePlotClick)
+    return () => document.removeEventListener('pgfplot-block-click', handlePlotClick)
+  }, [])
+
   // Load initial document
   useEffect(() => {
     if (initialDocId && editor) {
@@ -194,12 +226,22 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
           setDocumentTitle(doc.title || '')
           const content = doc.content as Record<string, any>
           if (content?.type === 'latex' && typeof content.source === 'string') {
-            // New format: raw LaTeX source — parse into visual editor
+            // Restore document config if saved, otherwise use defaults
+            if (content.documentConfig) {
+              setDocumentConfig({ ...DEFAULT_DOCUMENT_CONFIG, ...content.documentConfig })
+            }
+            // Extract custom preamble/macros from the LaTeX source
             const preamble = extractCustomPreamble(content.source)
             setCustomPreamble(preamble)
             updateKatexMacros(preamble)
-            const parsed = parseLatex(content.source)
-            editor.commands.setContent(parsed)
+            if (content.editorJSON) {
+              // Prefer saved editor state for perfect round-trip (preserves shapes, plotConfig, etc.)
+              editor.commands.setContent(content.editorJSON)
+            } else {
+              // Fallback: parse LaTeX source (e.g. imported .tex files)
+              const parsed = parseLatex(content.source)
+              editor.commands.setContent(parsed)
+            }
           } else if (content?.type === 'doc') {
             // Legacy format: TipTap JSON — load directly
             editor.commands.setContent(content)
@@ -218,17 +260,20 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
     const handler = () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
       saveTimerRef.current = setTimeout(() => {
-        const latexSource = generateLatex(editor.getJSON(), customPreamble)
-        const content = { type: 'latex', source: latexSource }
+        const editorJSON = editor.getJSON()
+        const latexSource = generateLatex(editorJSON, documentConfig)
+        const content = { type: 'latex', source: latexSource, documentConfig, editorJSON }
         updateDocument(docId, { content }).catch(console.error)
       }, 2000)
     }
     editor.on('update', handler)
+    // Also trigger save when documentConfig changes
+    handler()
     return () => {
       editor.off('update', handler)
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     }
-  }, [editor, currentDocId, customPreamble])
+  }, [editor, currentDocId, documentConfig])
 
   function handleTitleChange(title: string) {
     setDocumentTitle(title)
@@ -245,7 +290,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
       <div className="flex items-center justify-center h-screen bg-surface-bg">
         <div className="flex flex-col items-center gap-3 animate-fade-in">
           <h1 className="font-serif text-2xl font-medium text-text-primary tracking-wide">Violeta</h1>
-          <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-accent-500 border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     )
@@ -299,9 +344,33 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
     editor.commands.focus()
   }
 
+  function handlePlotSave(pgfCode: string, plotConfig: PgfplotConfig) {
+    if (!plotEdit || !editor) return
+    if (plotEdit.mode === 'insert') {
+      editor.chain().focus().insertContent({
+        type: 'pgfplotBlock',
+        attrs: { pgfCode, plotConfig },
+      }).run()
+    } else {
+      ;(editor.commands as any).updatePgfplot({ pgfCode, plotConfig, pos: plotEdit.pos })
+    }
+    setPlotEdit(null)
+    editor.commands.focus()
+  }
+
+  function handlePlotDelete() {
+    if (!plotEdit || !editor) return
+    if (plotEdit.mode === 'edit') {
+      ;(editor.commands as any).deletePgfplot({ pos: plotEdit.pos })
+    }
+    setPlotEdit(null)
+    editor.commands.focus()
+  }
+
   return (
     <>
       <AppLayout
+        showRightPanel={showPdf}
         toolbar={
           <Toolbar
             editor={editor}
@@ -309,6 +378,8 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
             pdfBlob={pdfBlob}
             onOpenMathEditor={openMathEditor}
             onOpenImageModal={() => setImageModalOpen(true)}
+            onOpenTikzEditor={openTikzEditor}
+            onOpenPlotEditor={openPlotEditor}
             onUploadTex={handleUploadTex}
             onOpenGoogleDrive={() => setGoogleDriveModalOpen(true)}
             onGoHome={onGoHome}
@@ -317,16 +388,21 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
             documentTitle={documentTitle}
             onTitleChange={handleTitleChange}
             onPublish={() => setPublishModalOpen(true)}
+            documentConfig={documentConfig}
+            onDocumentConfigChange={setDocumentConfig}
+            viewMode={viewMode}
+            onViewModeChange={handleViewModeChange}
+            showPdf={showPdf}
+            onTogglePdf={() => setShowPdf(v => !v)}
           />
         }
-        editor={<EditorArea editor={editor} onOpenMathEditor={openMathEditor} onOpenImageModal={() => setImageModalOpen(true)} onOpenTikzEditor={openTikzEditor} onHoverMath={setHoveredMath} />}
+        editor={
+          viewMode === 'document'
+            ? <EditorArea editor={editor} onOpenMathEditor={openMathEditor} onOpenImageModal={() => setImageModalOpen(true)} onOpenTikzEditor={openTikzEditor} onOpenPlotEditor={openPlotEditor} onHoverMath={setHoveredMath} />
+            : <LatexCodePanel latex={effectiveLatex} onLatexChange={handleLatexChange} />
+        }
         rightPanel={
-          <RightPanel
-            latex={effectiveLatex}
-            editingLatex={editingLatex}
-            onToggleEditing={handleToggleEditing}
-            onLatexChange={handleLatexChange}
-            highlightedMath={hoveredMath}
+          <PdfPanel
             pdfUrl={pdfUrl}
             pdfCompiling={pdfCompiling}
             pdfError={pdfError}
@@ -352,6 +428,15 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
           onDelete={handleTikzDelete}
           onClose={() => setTikzEdit(null)}
           isInsert={tikzEdit.mode === 'insert'}
+        />
+      )}
+      {plotEdit && (
+        <PlotEditor
+          initialConfig={plotEdit.config}
+          onSave={handlePlotSave}
+          onDelete={handlePlotDelete}
+          onClose={() => setPlotEdit(null)}
+          isInsert={plotEdit.mode === 'insert'}
         />
       )}
       {imageModalOpen && (
