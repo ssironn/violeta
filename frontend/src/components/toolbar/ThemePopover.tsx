@@ -32,7 +32,7 @@ export function ThemePopover() {
         title={mode === 'dark' ? 'Tema escuro' : 'Tema claro'}
         className={`p-1.5 rounded transition-all duration-150 flex items-center justify-center
           ${open
-            ? 'bg-accent-600/20 text-accent-300'
+            ? 'bg-accent-600/20 text-accent-500'
             : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
           }`}
       >

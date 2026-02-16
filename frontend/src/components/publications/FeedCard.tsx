@@ -9,10 +9,10 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  article: 'bg-blue-500/20 text-blue-300',
-  exercise_list: 'bg-emerald-500/20 text-emerald-300',
-  study_material: 'bg-amber-500/20 text-amber-300',
-  proof: 'bg-purple-500/20 text-purple-300',
+  article: 'bg-blue-500/20 text-blue-600 dark:text-blue-300',
+  exercise_list: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300',
+  study_material: 'bg-amber-500/20 text-amber-600 dark:text-amber-300',
+  proof: 'bg-purple-500/20 text-purple-600 dark:text-purple-300',
 }
 
 interface FeedCardProps {
@@ -32,7 +32,7 @@ export function FeedCard({ publication, onClick }: FeedCardProps) {
       </div>
       <div className="p-3 space-y-2">
         <div className="flex items-center gap-2">
-          <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${TYPE_COLORS[publication.type] || 'bg-gray-500/20 text-gray-300'}`}>
+          <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${TYPE_COLORS[publication.type] || 'bg-gray-500/20 text-gray-600 dark:text-gray-300'}`}>
             {TYPE_LABELS[publication.type] || publication.type}
           </span>
         </div>
@@ -40,7 +40,7 @@ export function FeedCard({ publication, onClick }: FeedCardProps) {
         {publication.abstract && <p className="text-[12px] text-text-secondary line-clamp-2">{publication.abstract}</p>}
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 rounded-full bg-accent-500/20 flex items-center justify-center text-[10px] font-bold text-accent-300">{initial}</div>
+            <div className="w-5 h-5 rounded-full bg-accent-500/20 flex items-center justify-center text-[10px] font-bold text-accent-500">{initial}</div>
             <span className="text-[11px] text-text-secondary">{publication.author_name}</span>
           </div>
           <div className="flex items-center gap-3 text-[11px] text-text-muted">

@@ -1,5 +1,6 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
+import { NodeSelection } from '@tiptap/pm/state'
 import katex from 'katex'
 import { katexMacros } from '../latex/katexMacros'
 
@@ -141,6 +142,17 @@ export const RawLatexBlock = Node.create({
         autoResize()
       })
 
+      // Clicking on the preview selects the node for editing
+      preview.addEventListener('mousedown', (e) => {
+        e.preventDefault()
+        const pos = getPos()
+        if (pos != null) {
+          const tr = editor.view.state.tr
+          const selection = NodeSelection.create(editor.view.state.doc, pos)
+          editor.view.dispatch(tr.setSelection(selection))
+        }
+      })
+
       // Prevent editor blur when clicking in the textarea
       textarea.addEventListener('mousedown', (e) => {
         e.stopPropagation()
@@ -181,6 +193,7 @@ export const RawLatexBlock = Node.create({
         selectNode() {
           dom.classList.add('selected')
           textarea.focus()
+          requestAnimationFrame(() => autoResize())
         },
 
         deselectNode() {
@@ -188,6 +201,11 @@ export const RawLatexBlock = Node.create({
         },
 
         stopEvent(event: Event) {
+          // Only intercept events when in edit mode (selected),
+          // otherwise let ProseMirror handle clicks to create NodeSelection
+          if (!dom.classList.contains('selected')) {
+            return false
+          }
           return dom.contains(event.target as HTMLElement)
         },
 

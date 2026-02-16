@@ -21,7 +21,7 @@ export function PublicPublicationPage() {
   if (error || !pub) return (
     <div className="flex flex-col items-center justify-center h-screen bg-surface-bg gap-4">
       <p className="text-text-secondary">Publicacao nao encontrada.</p>
-      <button onClick={() => navigate('/')} className="text-sm text-accent-400 hover:text-accent-300">Ir para Violeta</button>
+      <button onClick={() => navigate('/')} className="text-sm text-accent-400 hover:text-accent-500">Ir para Violeta</button>
     </div>
   )
 
@@ -29,7 +29,7 @@ export function PublicPublicationPage() {
     <div className="min-h-screen bg-surface-bg">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-4">
-          <button onClick={() => navigate('/')} className="text-sm text-accent-400 hover:text-accent-300 transition-colors font-serif tracking-wide">Violeta</button>
+          <button onClick={() => navigate('/')} className="text-sm text-accent-400 hover:text-accent-500 transition-colors font-serif tracking-wide">Violeta</button>
           <button onClick={() => navigate('/signin')} className="px-4 py-1.5 text-[13px] font-semibold bg-accent-500 text-white rounded-lg hover:bg-accent-400 transition-colors">Entrar</button>
         </div>
         <div className="mb-4">

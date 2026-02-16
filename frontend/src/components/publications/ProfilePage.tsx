@@ -37,7 +37,7 @@ export function ProfilePage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors mb-6"><ArrowLeft size={16} /> Voltar</button>
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-16 h-16 rounded-full bg-accent-500/20 flex items-center justify-center text-2xl font-bold text-accent-300">{initial}</div>
+          <div className="w-16 h-16 rounded-full bg-accent-500/20 flex items-center justify-center text-2xl font-bold text-accent-500">{initial}</div>
           <div className="flex-1">
             <h1 className="text-xl font-semibold text-text-primary">{profile.name}</h1>
             <div className="flex items-center gap-4 mt-1 text-sm text-text-secondary">

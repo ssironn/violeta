@@ -70,7 +70,7 @@ export function PdfPanel({
         {pdfUrl && (
           <div className="flex-1 relative min-h-0">
             {compiling && (
-              <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 px-2 py-1 rounded-full bg-surface-elevated/90 border border-surface-border text-[10px] text-accent-300">
+              <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 px-2 py-1 rounded-full bg-surface-elevated/90 border border-surface-border text-[10px] text-accent-500">
                 <RotateCw size={10} className="animate-spin" />
                 Recompilando...
               </div>
@@ -86,7 +86,7 @@ export function PdfPanel({
         {!compiling && !error && !pdfUrl && (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 text-text-muted px-6 text-center">
             <div className="flex flex-col gap-2">
-              <span className="text-xs">Clique em <strong className="text-accent-300">Compilar</strong> para gerar o PDF.</span>
+              <span className="text-xs">Clique em <strong className="text-accent-500">Compilar</strong> para gerar o PDF.</span>
               <span className="text-[11px] text-text-muted/70 leading-relaxed">
                 O preview mostrado aqui é o resultado final compilado pelo servidor texlive.net.
               </span>

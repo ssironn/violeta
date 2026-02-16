@@ -472,7 +472,7 @@ export function BlockHandle({ editor }: Props) {
       {/* Drag handle button */}
       <button
         onClick={() => setPopoverOpen(!popoverOpen)}
-        className="flex items-center justify-center w-5 h-7 rounded text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors cursor-grab"
+        className="flex items-center justify-center w-5 h-7 rounded text-text-muted hover:text-text-secondary hover:bg-surface-hover transition-colors cursor-grab"
         title="Opções do bloco"
       >
         <GripVertical size={16} />
@@ -482,22 +482,22 @@ export function BlockHandle({ editor }: Props) {
       {popoverOpen && (
         <div
           ref={popoverRef}
-          className="absolute left-0 top-8 bg-white rounded-xl shadow-xl border border-gray-200 w-52 py-1.5 select-none"
+          className="absolute left-0 top-8 bg-surface-elevated rounded-xl shadow-xl border border-surface-border w-52 py-1.5 select-none"
           style={{ zIndex: 50 }}
           onMouseDown={preventBlur}
         >
           {/* Block type label */}
-          <div className="px-3 py-1 text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
+          <div className="px-3 py-1 text-[10px] uppercase tracking-widest text-text-muted font-semibold">
             {getBlockLabel(activeBlock.node)}
           </div>
 
           {/* Separator */}
-          <div className="border-t border-gray-100 my-1" />
+          <div className="border-t border-surface-border my-1" />
 
           {/* Transform section */}
           {showTransforms && (
             <>
-              <div className="px-3 py-1 text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
+              <div className="px-3 py-1 text-[10px] uppercase tracking-widest text-text-muted font-semibold">
                 Transformar
               </div>
               {transformOptions.map((opt) => {
@@ -519,8 +519,8 @@ export function BlockHandle({ editor }: Props) {
                     }
                     className={`w-full text-left px-3 py-1.5 flex items-center gap-2 text-[13px] transition-colors cursor-pointer ${
                       isActive
-                        ? 'text-accent-600 bg-accent-50 font-medium'
-                        : 'text-gray-700 hover:bg-accent-50'
+                        ? 'text-accent-600 bg-accent-500/15 font-medium'
+                        : 'text-text-primary hover:bg-surface-hover'
                     }`}
                   >
                     <Icon size={14} className="shrink-0" />
@@ -530,10 +530,10 @@ export function BlockHandle({ editor }: Props) {
               })}
 
               {/* Separator */}
-              <div className="border-t border-gray-100 my-1" />
+              <div className="border-t border-surface-border my-1" />
 
               {/* Alignment row */}
-              <div className="px-3 py-1 text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
+              <div className="px-3 py-1 text-[10px] uppercase tracking-widest text-text-muted font-semibold">
                 Alinhamento
               </div>
               <div className="flex items-center gap-0.5 px-2 py-1">
@@ -552,8 +552,8 @@ export function BlockHandle({ editor }: Props) {
                       onClick={() => handleAlignment(align)}
                       className={`p-1.5 rounded transition-colors ${
                         isActive
-                          ? 'text-accent-600 bg-accent-100'
-                          : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+                          ? 'text-accent-600 bg-accent-500/15'
+                          : 'text-text-muted hover:bg-surface-hover hover:text-text-primary'
                       }`}
                       title={
                         align === 'left'
@@ -570,14 +570,14 @@ export function BlockHandle({ editor }: Props) {
               </div>
 
               {/* Separator */}
-              <div className="border-t border-gray-100 my-1" />
+              <div className="border-t border-surface-border my-1" />
             </>
           )}
 
           {/* Duplicate */}
           <button
             onClick={handleDuplicate}
-            className="w-full text-left px-3 py-1.5 flex items-center gap-2 text-[13px] text-gray-700 hover:bg-accent-50 transition-colors cursor-pointer"
+            className="w-full text-left px-3 py-1.5 flex items-center gap-2 text-[13px] text-text-primary hover:bg-surface-hover transition-colors cursor-pointer"
           >
             <Copy size={14} className="shrink-0" />
             Duplicar
@@ -586,14 +586,14 @@ export function BlockHandle({ editor }: Props) {
           {/* Delete */}
           <button
             onClick={handleDelete}
-            className="w-full text-left px-3 py-1.5 flex items-center gap-2 text-[13px] text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+            className="w-full text-left px-3 py-1.5 flex items-center gap-2 text-[13px] text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
           >
             <Trash2 size={14} className="shrink-0" />
             Excluir
           </button>
 
           {/* Separator */}
-          <div className="border-t border-gray-100 my-1" />
+          <div className="border-t border-surface-border my-1" />
 
           {/* Move up */}
           <button
@@ -601,8 +601,8 @@ export function BlockHandle({ editor }: Props) {
             disabled={!canMoveUp}
             className={`w-full text-left px-3 py-1.5 flex items-center gap-2 text-[13px] transition-colors cursor-pointer ${
               canMoveUp
-                ? 'text-gray-700 hover:bg-accent-50'
-                : 'text-gray-300 cursor-not-allowed'
+                ? 'text-text-primary hover:bg-surface-hover'
+                : 'text-text-muted/40 cursor-not-allowed'
             }`}
           >
             <ArrowUp size={14} className="shrink-0" />
@@ -615,8 +615,8 @@ export function BlockHandle({ editor }: Props) {
             disabled={!canMoveDown}
             className={`w-full text-left px-3 py-1.5 flex items-center gap-2 text-[13px] transition-colors cursor-pointer ${
               canMoveDown
-                ? 'text-gray-700 hover:bg-accent-50'
-                : 'text-gray-300 cursor-not-allowed'
+                ? 'text-text-primary hover:bg-surface-hover'
+                : 'text-text-muted/40 cursor-not-allowed'
             }`}
           >
             <ArrowDown size={14} className="shrink-0" />

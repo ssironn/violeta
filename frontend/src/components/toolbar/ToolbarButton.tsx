@@ -21,7 +21,7 @@ export function ToolbarButton({
         'p-1 rounded transition-all duration-150 flex items-center justify-center',
         'hover:bg-surface-hover',
         active
-          ? 'bg-accent-600/20 text-accent-300 shadow-sm shadow-accent-600/10'
+          ? 'bg-accent-600/20 text-accent-500 shadow-sm shadow-accent-600/10'
           : 'text-text-secondary hover:text-text-primary',
         props.disabled && 'opacity-40 cursor-not-allowed',
         className

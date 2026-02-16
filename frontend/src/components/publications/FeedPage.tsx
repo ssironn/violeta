@@ -35,7 +35,7 @@ export function FeedPage() {
             {publications.map((pub) => (<FeedCard key={pub.id} publication={pub} onClick={() => navigate(`/publication/${pub.id}`)} />))}
           </div>
           {publications.length >= 20 && (
-            <div className="flex justify-center mt-8"><button onClick={loadMore} className="px-4 py-2 text-sm text-accent-300 hover:text-accent-200 transition-colors">Carregar mais</button></div>
+            <div className="flex justify-center mt-8"><button onClick={loadMore} className="px-4 py-2 text-sm text-accent-500 hover:text-accent-400 transition-colors">Carregar mais</button></div>
           )}
         </>
       )}

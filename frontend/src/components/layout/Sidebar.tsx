@@ -137,7 +137,7 @@ export function Sidebar({
                     className={clsx(
                       'w-full text-left px-2.5 py-1.5 rounded-md text-sm truncate transition-all pr-14',
                       currentDocId === doc.id
-                        ? 'bg-accent-600/15 text-accent-300 border-l-2 border-accent-500'
+                        ? 'bg-accent-600/15 text-accent-500 border-l-2 border-accent-500'
                         : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary border-l-2 border-transparent'
                     )}
                     title={doc.title}

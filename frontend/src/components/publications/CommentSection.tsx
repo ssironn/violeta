@@ -63,7 +63,7 @@ export function CommentSection({ publicationId }: CommentSectionProps) {
       </div>
       <div className="border-t border-surface-border pt-3">
         {replyTo && (
-          <div className="flex items-center gap-2 text-[11px] text-accent-300/70 mb-2">
+          <div className="flex items-center gap-2 text-[11px] text-accent-500/70 mb-2">
             <Reply size={12} /> Respondendo a {replyTo.name}
             <button onClick={() => setReplyTo(null)} className="text-text-muted hover:text-text-primary ml-auto">cancelar</button>
           </div>
@@ -86,7 +86,7 @@ function CommentBubble({ comment, isOwn, onReply, onDelete }: { comment: Comment
 
   return (
     <div className="group flex gap-2">
-      <div className="w-7 h-7 rounded-full bg-accent-500/20 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-accent-300">{initial}</div>
+      <div className="w-7 h-7 rounded-full bg-accent-500/20 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-accent-500">{initial}</div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-[12px] font-medium text-text-primary">{comment.author_name}</span>
@@ -94,7 +94,7 @@ function CommentBubble({ comment, isOwn, onReply, onDelete }: { comment: Comment
         </div>
         <p className="text-[13px] text-text-secondary mt-0.5">{comment.content}</p>
         <div className="flex items-center gap-3 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {onReply && <button onClick={onReply} className="text-[10px] text-text-muted hover:text-accent-300 flex items-center gap-1"><Reply size={10} /> Responder</button>}
+          {onReply && <button onClick={onReply} className="text-[10px] text-text-muted hover:text-accent-500 flex items-center gap-1"><Reply size={10} /> Responder</button>}
           {isOwn && <button onClick={onDelete} className="text-[10px] text-text-muted hover:text-red-400 flex items-center gap-1"><Trash2 size={10} /> Excluir</button>}
         </div>
       </div>

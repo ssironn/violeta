@@ -32,7 +32,7 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-surface-bg/80 backdrop-blur-md border-b border-surface-border">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-        <button onClick={() => navigate('/')} className="font-serif text-xl font-medium text-text-primary tracking-wide hover:text-accent-300 transition-colors">
+        <button onClick={() => navigate('/')} className="font-serif text-xl font-medium text-text-primary tracking-wide hover:text-accent-500 transition-colors">
           Violeta
         </button>
 

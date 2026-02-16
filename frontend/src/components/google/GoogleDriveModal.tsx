@@ -192,7 +192,7 @@ export function GoogleDriveModal({ currentDocId, onDocumentImported, onClose }: 
                       <button
                         onClick={() => handleImport(file.id)}
                         disabled={importingId !== null}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-accent-600/15 hover:bg-accent-600/25 text-accent-300 text-xs font-medium transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-accent-600/15 hover:bg-accent-600/25 text-accent-500 text-xs font-medium transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
                       >
                         {importingId === file.id ? (
                           <Loader2 size={12} className="animate-spin" />

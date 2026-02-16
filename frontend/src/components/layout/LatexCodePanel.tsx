@@ -372,7 +372,7 @@ export function LatexCodePanel({ latex, onLatexChange }: LatexCodePanelProps) {
             onClick={() => setShowSearch(!showSearch)}
             className={`flex items-center gap-1 px-1.5 py-1 rounded-md text-xs transition-all ${
               showSearch
-                ? 'text-accent-300 bg-accent-500/15'
+                ? 'text-accent-500 bg-accent-500/15'
                 : 'text-text-muted hover:text-text-primary hover:bg-surface-hover'
             }`}
             title="Buscar (Ctrl+F)"

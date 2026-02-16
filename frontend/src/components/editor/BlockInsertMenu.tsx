@@ -107,8 +107,8 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
         onClick={() => setMenuOpen(!menuOpen)}
         className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${
           menuOpen
-            ? 'text-accent-600 bg-accent-100 rotate-45'
-            : 'text-gray-300 hover:text-accent-500 hover:bg-accent-50'
+            ? 'text-accent-600 bg-accent-500/15 rotate-45'
+            : 'text-text-muted hover:text-accent-500 hover:bg-surface-hover'
         }`}
         title="Inserir componente"
       >
@@ -118,7 +118,7 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
       {menuOpen && (
         <div
           ref={menuRef}
-          className="absolute left-0 top-8 z-50 bg-white border border-gray-200 rounded-xl shadow-xl shadow-accent-900/10 py-1.5 w-72 max-h-96 overflow-auto"
+          className="absolute left-0 top-8 z-50 bg-surface-elevated border border-surface-border rounded-xl shadow-xl shadow-accent-900/10 py-1.5 w-72 max-h-96 overflow-auto"
         >
           {/* Math templates by category */}
           {categories.map((cat) => {
@@ -126,7 +126,7 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
             if (templates.length === 0) return null
             return (
               <div key={cat.key}>
-                <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+                <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-text-muted">
                   {cat.label}
                 </div>
                 {templates.map((t) => (
@@ -136,9 +136,9 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
                       onOpenMathEditor(t.latex)
                       setMenuOpen(false)
                     }}
-                    className="w-full text-left px-3 py-2 flex items-center justify-between gap-2 hover:bg-accent-50 transition-colors"
+                    className="w-full text-left px-3 py-2 flex items-center justify-between gap-2 hover:bg-surface-hover transition-colors"
                   >
-                    <span className="text-[13px] text-gray-700">{t.label}</span>
+                    <span className="text-[13px] text-text-primary">{t.label}</span>
                     <MiniPreview latex={t.latex} />
                   </button>
                 ))}
@@ -147,10 +147,10 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
           })}
 
           {/* Separator */}
-          <div className="border-t border-gray-100 my-1" />
+          <div className="border-t border-surface-border my-1" />
 
           {/* Other insertable elements */}
-          <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+          <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-text-muted">
             Outros
           </div>
           <button
@@ -158,9 +158,9 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
               onOpenImageModal()
               setMenuOpen(false)
             }}
-            className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-accent-50 transition-colors"
+            className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-surface-hover transition-colors"
           >
-            <span className="text-[13px] text-gray-700">Imagem</span>
+            <span className="text-[13px] text-text-primary">Imagem</span>
           </button>
           {onOpenTikzEditor && (
             <button
@@ -168,9 +168,9 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
                 onOpenTikzEditor()
                 setMenuOpen(false)
               }}
-              className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-accent-50 transition-colors"
+              className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-surface-hover transition-colors"
             >
-              <span className="text-[13px] text-gray-700">Figuras Geométricas</span>
+              <span className="text-[13px] text-text-primary">Figuras Geométricas</span>
             </button>
           )}
           {onOpenPlotEditor && (
@@ -179,9 +179,9 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
                 onOpenPlotEditor()
                 setMenuOpen(false)
               }}
-              className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-accent-50 transition-colors"
+              className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-surface-hover transition-colors"
             >
-              <span className="text-[13px] text-gray-700">Gráfico de Funções</span>
+              <span className="text-[13px] text-text-primary">Gráfico de Funções</span>
             </button>
           )}
           <button
@@ -189,18 +189,18 @@ export function BlockInsertMenu({ editor, onOpenMathEditor, onOpenImageModal, on
               editor.chain().focus().setHorizontalRule().run()
               setMenuOpen(false)
             }}
-            className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-accent-50 transition-colors"
+            className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-surface-hover transition-colors"
           >
-            <span className="text-[13px] text-gray-700">Linha Horizontal</span>
+            <span className="text-[13px] text-text-primary">Linha Horizontal</span>
           </button>
           <button
             onClick={() => {
               editor.chain().focus().toggleCodeBlock().run()
               setMenuOpen(false)
             }}
-            className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-accent-50 transition-colors"
+            className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-surface-hover transition-colors"
           >
-            <span className="text-[13px] text-gray-700">Bloco de Código</span>
+            <span className="text-[13px] text-text-primary">Bloco de Código</span>
           </button>
         </div>
       )}

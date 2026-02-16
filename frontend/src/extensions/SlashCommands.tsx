@@ -567,7 +567,7 @@ function KatexPreview({ latex }: { latex: string }) {
     }
   }, [latex])
 
-  return <span ref={ref} className="[&_.katex]:text-[0.7em] text-gray-400 ml-auto shrink-0" />
+  return <span ref={ref} className="[&_.katex]:text-[0.7em] text-text-muted ml-auto shrink-0" />
 }
 
 // ---------------------------------------------------------------------------
@@ -737,13 +737,13 @@ export function SlashCommandMenu({ editor, onOpenMathEditor, onOpenImageModal, o
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 bg-white rounded-xl shadow-xl shadow-accent-900/10 border border-gray-200 w-72 max-h-80 overflow-auto py-1"
+      className="fixed z-50 bg-surface-elevated rounded-xl shadow-xl shadow-accent-900/10 border border-surface-border w-72 max-h-80 overflow-auto py-1"
       style={{ top: finalTop, bottom: finalBottom, left: finalLeft }}
       onMouseDown={preventBlur}
     >
       {categories.map((cat) => (
         <div key={cat.label}>
-          <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-400 select-none">
+          <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-text-muted select-none">
             {cat.label}
           </div>
           {cat.items.map(({ item, globalIndex }) => {
@@ -757,12 +757,12 @@ export function SlashCommandMenu({ editor, onOpenMathEditor, onOpenImageModal, o
                   else itemRefs.current.delete(globalIndex)
                 }}
                 className={`w-full text-left px-3 py-2 flex items-center gap-2 cursor-pointer transition-colors ${
-                  isSelected ? 'bg-accent-50' : 'hover:bg-accent-50'
+                  isSelected ? 'bg-surface-hover' : 'hover:bg-surface-hover'
                 }`}
                 onClick={() => executeCommand(item)}
               >
-                <Icon size={16} className="text-gray-400 shrink-0" />
-                <span className="text-[13px] text-gray-700 truncate">{item.label}</span>
+                <Icon size={16} className="text-text-muted shrink-0" />
+                <span className="text-[13px] text-text-primary truncate">{item.label}</span>
                 {item.latex && <KatexPreview latex={item.latex} />}
               </button>
             )
