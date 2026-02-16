@@ -1,6 +1,7 @@
 import type { JSONContent } from '@tiptap/core'
 import type { DocumentConfig } from '../types/documentConfig'
 import { DEFAULT_DOCUMENT_CONFIG } from '../types/documentConfig'
+import type { TheoremDef } from './parseLatex'
 
 /**
  * Map Unicode math symbols to their LaTeX command equivalents.
@@ -419,7 +420,7 @@ function hasPgfplot(nodes: JSONContent[]): boolean {
   return false
 }
 
-export function generateLatex(doc: JSONContent, configOrPreamble?: DocumentConfig | string): string {
+export function generateLatex(doc: JSONContent, configOrPreamble?: DocumentConfig | string, dynamicTheorems?: TheoremDef[]): string {
   const body = processNodes(doc.content ?? [])
 
   // Support legacy string preamble or new DocumentConfig
@@ -443,6 +444,8 @@ export function generateLatex(doc: JSONContent, configOrPreamble?: DocumentConfi
     const defs: string[] = []
     if (needsAmsthm) defs.push('\\usepackage{amsthm}')
     // proof is built-in with amsthm, no \newtheorem needed
+    // Track current theoremstyle to avoid redundant \theoremstyle commands
+    let lastStyle: string | undefined
     for (const t of calloutTypes) {
       if (t === 'proof') {
         if (!extraBlock.includes('\\qedsymbol')) {
@@ -455,6 +458,28 @@ export function generateLatex(doc: JSONContent, configOrPreamble?: DocumentConfi
         const def = CALLOUT_THEOREM_DEFS[t]
         if (def) {
           defs.push(bySection ? def + '[section]' : def)
+        } else {
+          // Dynamic theorem — look up in dynamicTheorems or generate default
+          const dynDef = dynamicTheorems?.find(d => d.envName === t)
+          if (dynDef) {
+            // Emit \theoremstyle if needed
+            const style = dynDef.style || 'plain'
+            if (style !== 'plain' && style !== lastStyle) {
+              defs.push(`\\theoremstyle{${style}}`)
+            }
+            lastStyle = style
+            // Build \newtheorem{name}[shared]{Label}[within]
+            let ntLine = `\\newtheorem{${dynDef.envName}}`
+            if (dynDef.sharedCounter) ntLine += `[${dynDef.sharedCounter}]`
+            ntLine += `{${dynDef.label}}`
+            if (dynDef.numberWithin) ntLine += `[${dynDef.numberWithin}]`
+            else if (bySection) ntLine += '[section]'
+            defs.push(ntLine)
+          } else {
+            // Unknown dynamic type — generate with capitalized name
+            const label = t.charAt(0).toUpperCase() + t.slice(1)
+            defs.push(bySection ? `\\newtheorem{${t}}{${label}}[section]` : `\\newtheorem{${t}}{${label}}`)
+          }
         }
       }
     }

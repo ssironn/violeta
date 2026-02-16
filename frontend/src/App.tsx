@@ -9,7 +9,8 @@ import { useVioletaEditor, type MathEditState } from './hooks/useVioletaEditor'
 import { useLatexGenerator } from './hooks/useLatexGenerator'
 import { usePdfCompiler } from './hooks/usePdfCompiler'
 import { useLatexSync } from './hooks/useLatexSync'
-import { parseLatex, extractCustomPreamble, mergeWithSnapshot } from './latex/parseLatex'
+import { parseLatex, extractCustomPreamble, mergeWithSnapshot, type TheoremDef } from './latex/parseLatex'
+import { setDynamicCalloutTypes } from './extensions/CalloutBlock'
 import { generateLatex } from './latex/generateLatex'
 import { updateKatexMacros } from './latex/katexMacros'
 import type { DocumentConfig } from './types/documentConfig'
@@ -114,7 +115,8 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
   const { registerAsset, registerUploadedFile, clearAssets, getCompileAssets } = useDocumentAssets()
   const [customPreamble, setCustomPreamble] = useState('')
   const [documentConfig, setDocumentConfig] = useState<DocumentConfig>(DEFAULT_DOCUMENT_CONFIG)
-  const generatedLatex = useLatexGenerator(editor, documentConfig)
+  const [dynamicTheorems, setDynamicTheorems] = useState<TheoremDef[]>([])
+  const generatedLatex = useLatexGenerator(editor, documentConfig, dynamicTheorems)
 
   // View mode + PDF panel visibility
   const [viewMode, setViewMode] = useState<ViewMode>('document')
@@ -171,8 +173,10 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
         if (manualLatexChangedRef.current) {
           // User changed the LaTeX — parse it back and merge with snapshot
           // to preserve rich attributes (shapes, plotConfig, assetFilename, etc.)
-          const preamble = extractCustomPreamble(manualLatex)
+          const { customPreamble: preamble, theoremDefs } = extractCustomPreamble(manualLatex)
           setCustomPreamble(preamble)
+          setDynamicTheorems(theoremDefs)
+          setDynamicCalloutTypes(theoremDefs)
           updateKatexMacros(preamble)
           let doc = parseLatex(manualLatex)
           if (editorSnapshotRef.current) {
@@ -204,8 +208,10 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
         registerAsset(asset)
       }
       const content = result.tex
-      const preamble = extractCustomPreamble(content)
+      const { customPreamble: preamble, theoremDefs } = extractCustomPreamble(content)
       setCustomPreamble(preamble)
+      setDynamicTheorems(theoremDefs)
+      setDynamicCalloutTypes(theoremDefs)
       updateKatexMacros(preamble)
       const doc = parseLatex(content)
       editor.commands.setContent(doc)
@@ -300,8 +306,10 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
             setDocumentConfig({ ...DEFAULT_DOCUMENT_CONFIG, ...content.documentConfig })
           }
           // Extract custom preamble/macros from the LaTeX source
-          const preamble = extractCustomPreamble(content.source)
+          const { customPreamble: preamble, theoremDefs } = extractCustomPreamble(content.source)
           setCustomPreamble(preamble)
+          setDynamicTheorems(theoremDefs)
+          setDynamicCalloutTypes(theoremDefs)
           updateKatexMacros(preamble)
           if (content.editorJSON) {
             // Prefer saved editor state for perfect round-trip (preserves shapes, plotConfig, etc.)
@@ -337,7 +345,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
       saveTimerRef.current = setTimeout(() => {
         if (!documentLoadedRef.current) return
         const editorJSON = editor.getJSON()
-        const latexSource = generateLatex(editorJSON, documentConfig)
+        const latexSource = generateLatex(editorJSON, documentConfig, dynamicTheorems)
         const content = { type: 'latex', source: latexSource, documentConfig, editorJSON }
         updateDocument(docId, { content }).catch(console.error)
       }, 2000)
@@ -349,7 +357,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
       editor.off('update', handler)
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     }
-  }, [editor, currentDocId, documentConfig])
+  }, [editor, currentDocId, documentConfig, dynamicTheorems])
 
   function handleTitleChange(title: string) {
     setDocumentTitle(title)

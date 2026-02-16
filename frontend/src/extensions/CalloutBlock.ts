@@ -1,7 +1,14 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
+import type { TheoremDef } from '../latex/parseLatex'
 
-export const CALLOUT_TYPES = [
+export interface CalloutTypeInfo {
+  value: string
+  label: string
+  color: string
+}
+
+export const CALLOUT_TYPES: readonly CalloutTypeInfo[] = [
   { value: 'theorem', label: 'Teorema', color: '#3b82f6' },
   { value: 'definition', label: 'Definição', color: '#10b981' },
   { value: 'lemma', label: 'Lema', color: '#6366f1' },
@@ -14,12 +21,43 @@ export const CALLOUT_TYPES = [
   { value: 'conjecture', label: 'Conjectura', color: '#f97316' },
   { value: 'note', label: 'Nota', color: '#64748b' },
   { value: 'questao', label: 'Questão', color: '#6b7280' },
-] as const
+]
 
 export type CalloutType = (typeof CALLOUT_TYPES)[number]['value']
 
-function getCalloutInfo(type: string) {
-  return CALLOUT_TYPES.find((t) => t.value === type) ?? CALLOUT_TYPES[0]
+// ─── Dynamic callout type registry ───────────────────────────────
+
+const DYNAMIC_COLORS = [
+  '#0d9488', '#dc2626', '#7c3aed', '#ea580c', '#0284c7',
+  '#4f46e5', '#be185d', '#059669', '#d97706', '#9333ea',
+]
+
+let dynamicTypes: CalloutTypeInfo[] = []
+
+const builtinValues = new Set(CALLOUT_TYPES.map(t => t.value))
+
+/**
+ * Register dynamic callout types from parsed \newtheorem definitions.
+ * Filters out builtins and assigns rotative colors.
+ */
+export function setDynamicCalloutTypes(defs: TheoremDef[]): void {
+  dynamicTypes = defs
+    .filter(d => !builtinValues.has(d.envName))
+    .map((d, i) => ({
+      value: d.envName,
+      label: d.label,
+      color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
+    }))
+}
+
+/** Returns all callout types: builtins + dynamic */
+export function getAllCalloutTypes(): CalloutTypeInfo[] {
+  return [...CALLOUT_TYPES, ...dynamicTypes]
+}
+
+function getCalloutInfo(type: string): CalloutTypeInfo {
+  return getAllCalloutTypes().find((t) => t.value === type)
+    ?? { value: type, label: type.charAt(0).toUpperCase() + type.slice(1), color: '#6b7280' }
 }
 
 declare module '@tiptap/core' {
@@ -91,12 +129,21 @@ export const CalloutBlock = Node.create({
       // Type selector
       const select = document.createElement('select')
       select.classList.add('callout-type-select')
-      for (const t of CALLOUT_TYPES) {
-        const option = document.createElement('option')
-        option.value = t.value
-        option.textContent = t.label
-        select.appendChild(option)
+      let lastOptionCount = 0
+
+      function rebuildOptions() {
+        const allTypes = getAllCalloutTypes()
+        if (allTypes.length === lastOptionCount) return
+        select.innerHTML = ''
+        for (const t of allTypes) {
+          const option = document.createElement('option')
+          option.value = t.value
+          option.textContent = t.label
+          select.appendChild(option)
+        }
+        lastOptionCount = allTypes.length
       }
+      rebuildOptions()
       headerBar.appendChild(select)
 
       // Title input
@@ -160,6 +207,7 @@ export const CalloutBlock = Node.create({
 
         update(updatedNode: ProseMirrorNode) {
           if (updatedNode.type.name !== 'calloutBlock') return false
+          rebuildOptions()
           applyAlignment(updatedNode)
           const newType = updatedNode.attrs.calloutType as string
           const newTitle = updatedNode.attrs.title as string

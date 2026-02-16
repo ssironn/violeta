@@ -19,6 +19,7 @@ import {
   Quote,
   Code2,
 } from 'lucide-react'
+import { getAllCalloutTypes } from '../../extensions/CalloutBlock'
 
 interface Props {
   editor: Editor
@@ -65,13 +66,9 @@ function getBlockLabel(node: ProseMirrorNode): string {
     case 'latexTable':
       return 'Tabela'
     case 'calloutBlock': {
-      const labels: Record<string, string> = {
-        theorem: 'Teorema', definition: 'Definição', lemma: 'Lema',
-        proof: 'Demonstração', corollary: 'Corolário', remark: 'Observação',
-        example: 'Exemplo', exercise: 'Exercício', proposition: 'Proposição',
-        conjecture: 'Conjectura', note: 'Nota', questao: 'Questão',
-      }
-      return labels[node.attrs.calloutType as string] ?? 'Ambiente'
+      const calloutType = node.attrs.calloutType as string
+      const info = getAllCalloutTypes().find(t => t.value === calloutType)
+      return info?.label ?? calloutType.charAt(0).toUpperCase() + calloutType.slice(1)
     }
     case 'rawLatex':
       return 'LaTeX bruto'

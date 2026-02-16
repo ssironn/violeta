@@ -506,13 +506,73 @@ const QUOTE_ENVIRONMENTS = new Set(['quote', 'quotation', 'abstract'])
 const CODE_ENVIRONMENTS = new Set(['verbatim', 'lstlisting', 'minted'])
 const ALIGN_ENVIRONMENTS = new Set(['center', 'flushleft', 'flushright'])
 
-/** Theorem-like environments → calloutBlock node */
+/** Theorem-like environments → calloutBlock node (builtins) */
 const CALLOUT_ENVIRONMENTS = new Set([
   'theorem', 'definition', 'lemma', 'proof',
   'corollary', 'remark', 'example', 'exercise',
   'proposition', 'conjecture', 'note',
   'ques', 'questao',
 ])
+
+// ─── Dynamic Theorem Definitions ─────────────────────────────────
+
+export interface TheoremDef {
+  envName: string
+  label: string
+  style?: string          // "plain" | "definition" | "remark" | ...
+  sharedCounter?: string  // \newtheorem{cor}[theorem]{...}
+  numberWithin?: string   // \newtheorem{theorem}{...}[section]
+}
+
+/**
+ * Parse `\theoremstyle{...}` and `\newtheorem{...}{...}` declarations from a preamble string.
+ * Returns structured TheoremDef[] for all user-defined theorem environments.
+ */
+export function parseTheoremDefs(preamble: string): TheoremDef[] {
+  const defs: TheoremDef[] = []
+  let currentStyle: string | undefined
+
+  const lines = preamble.split('\n')
+  for (const rawLine of lines) {
+    const line = rawLine.trim()
+
+    // Track \theoremstyle{X}
+    const styleMatch = line.match(/\\theoremstyle\{([^}]+)\}/)
+    if (styleMatch) {
+      currentStyle = styleMatch[1]
+      // A theoremstyle line may also contain a \newtheorem on the same line,
+      // so don't `continue` here — fall through to the newtheorem check.
+    }
+
+    // Match \newtheorem{name}[shared]{Label}[within]
+    // or    \newtheorem{name}{Label}[within]
+    const ntMatch = line.match(
+      /\\newtheorem\{([^}]+)\}(?:\[([^\]]+)\])?\{([^}]+)\}(?:\[([^\]]+)\])?/
+    )
+    if (ntMatch) {
+      const envName = ntMatch[1]
+      const sharedCounter = ntMatch[2] || undefined
+      const label = ntMatch[3]
+      const numberWithin = ntMatch[4] || undefined
+
+      // Skip environments that are already builtin
+      if (!CALLOUT_ENVIRONMENTS.has(envName)) {
+        defs.push({
+          envName,
+          label,
+          style: currentStyle,
+          sharedCounter,
+          numberWithin,
+        })
+      }
+    }
+  }
+
+  return defs
+}
+
+/** Runtime-mutable set: builtins + dynamic \newtheorem names from current parse */
+let dynamicCalloutEnvs: Set<string> = CALLOUT_ENVIRONMENTS
 
 // ─── Table Parsing ──────────────────────────────────────────────
 
@@ -749,7 +809,7 @@ function parseBlock(block: string): JSONContent[] {
     }
 
     // Callout / theorem-like environments → calloutBlock
-    if (CALLOUT_ENVIRONMENTS.has(envName)) {
+    if (dynamicCalloutEnvs.has(envName)) {
       // Extract optional title: \begin{theorem}[Title] or strip \label{}
       let title = ''
       let cleanInner = inner
@@ -933,7 +993,26 @@ function extractBody(latex: string): string {
   return normalized.trim()
 }
 
-export function parseLatex(latex: string): JSONContent {
+export function parseLatex(latex: string, extraCalloutNames?: Set<string>): JSONContent {
+  // Build dynamic callout set: builtins + any extra names from preamble \newtheorem
+  if (extraCalloutNames && extraCalloutNames.size > 0) {
+    dynamicCalloutEnvs = new Set([...CALLOUT_ENVIRONMENTS, ...extraCalloutNames])
+  } else {
+    // Auto-detect from preamble if present
+    const beginDoc = latex.indexOf('\\begin{document}')
+    if (beginDoc !== -1) {
+      const preamble = latex.slice(0, beginDoc)
+      const defs = parseTheoremDefs(preamble)
+      if (defs.length > 0) {
+        dynamicCalloutEnvs = new Set([...CALLOUT_ENVIRONMENTS, ...defs.map(d => d.envName)])
+      } else {
+        dynamicCalloutEnvs = CALLOUT_ENVIRONMENTS
+      }
+    } else {
+      dynamicCalloutEnvs = CALLOUT_ENVIRONMENTS
+    }
+  }
+
   const body = extractBody(latex)
   const content = flatParseBlocks(body)
 
@@ -950,17 +1029,26 @@ const BASE_PACKAGES = new Set([
   'graphicx', 'hyperref', 'geometry',
 ])
 
-const CUSTOM_LINE_RE = /^\\(newcommand|renewcommand|providecommand|def|newtheorem|theoremstyle|DeclareMathOperator)\b/
+const CUSTOM_LINE_RE = /^\\(newcommand|renewcommand|providecommand|def|DeclareMathOperator)\b/
+
+/** Lines that are theorem/style declarations — managed by the generator, not custom preamble */
+const THEOREM_LINE_RE = /^\\(newtheorem|theoremstyle)\b/
 
 /**
- * Extract custom preamble definitions (\newcommand, \def, \newtheorem, extra \usepackage)
+ * Extract custom preamble definitions (\newcommand, \def, extra \usepackage)
  * from a LaTeX source so they can be preserved across the import round-trip.
+ *
+ * Also parses `\newtheorem` / `\theoremstyle` declarations and returns them as
+ * structured `TheoremDef[]` — these lines are NOT included in `customPreamble`
+ * because the generator manages them.
  */
-export function extractCustomPreamble(latex: string): string {
+export function extractCustomPreamble(latex: string): { customPreamble: string; theoremDefs: TheoremDef[] } {
   const beginDoc = latex.indexOf('\\begin{document}')
-  if (beginDoc === -1) return ''
+  if (beginDoc === -1) return { customPreamble: '', theoremDefs: [] }
 
   const preamble = latex.slice(0, beginDoc)
+  const theoremDefs = parseTheoremDefs(preamble)
+
   const lines = preamble.split('\n')
   const customLines: string[] = []
 
@@ -978,6 +1066,24 @@ export function extractCustomPreamble(latex: string): string {
         const extra = pkgs.filter((p) => !BASE_PACKAGES.has(p))
         if (extra.length > 0) {
           customLines.push(`\\usepackage${opts}{${extra.join(',')}}`)
+        }
+      }
+      continue
+    }
+
+    // Skip theorem/style declarations (managed by generator)
+    if (THEOREM_LINE_RE.test(line)) {
+      // Still need to consume multi-line definitions
+      let depth = 0
+      for (const ch of lines[i]) {
+        if (ch === '{') depth++
+        if (ch === '}') depth--
+      }
+      while (depth > 0 && i + 1 < lines.length) {
+        i++
+        for (const ch of lines[i]) {
+          if (ch === '{') depth++
+          if (ch === '}') depth--
         }
       }
       continue
@@ -1003,7 +1109,7 @@ export function extractCustomPreamble(latex: string): string {
     }
   }
 
-  return customLines.join('\n')
+  return { customPreamble: customLines.join('\n'), theoremDefs }
 }
 
 // ─── Snapshot Merge ──────────────────────────────────────────────

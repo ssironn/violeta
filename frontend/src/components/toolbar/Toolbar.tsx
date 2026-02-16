@@ -30,10 +30,6 @@ import {
   Settings,
   FileCode2,
   BookOpen,
-  Lightbulb,
-  GraduationCap,
-  FlaskConical,
-  PenLine,
   FunctionSquare,
   TrendingUp,
   PanelRightClose,
@@ -43,6 +39,7 @@ import katex from 'katex'
 import { katexMacros } from '../../latex/katexMacros'
 import { symbolGroups } from '../../data/symbolMap'
 import { SPACING_OPTIONS } from '../../extensions/LatexSpacing'
+import { getAllCalloutTypes } from '../../extensions/CalloutBlock'
 import { ToolbarButton } from './ToolbarButton'
 import { ToolbarDivider } from './ToolbarDivider'
 import { HeadingDropdown } from './HeadingDropdown'
@@ -279,16 +276,14 @@ export function Toolbar({
                 <MenuItem icon={<Quote size={14} />} label="Citação" onClick={() => editor.chain().focus().toggleBlockquote().run()} />
                 <MenuItem icon={<FileCode2 size={14} />} label="LaTeX bruto" onClick={() => editor.chain().focus().insertRawLatex().run()} />
                 <MenuSeparator />
-                <MenuItem icon={<BookOpen size={14} />} label="Teorema" onClick={() => (editor.commands as any).insertCallout({ calloutType: 'theorem' })} />
-                <MenuItem icon={<Lightbulb size={14} />} label="Definição" onClick={() => (editor.commands as any).insertCallout({ calloutType: 'definition' })} />
-                <MenuItem icon={<BookOpen size={14} />} label="Lema" onClick={() => (editor.commands as any).insertCallout({ calloutType: 'lemma' })} />
-                <MenuItem icon={<PenLine size={14} />} label="Demonstração" onClick={() => (editor.commands as any).insertCallout({ calloutType: 'proof' })} />
-                <MenuItem icon={<BookOpen size={14} />} label="Corolário" onClick={() => (editor.commands as any).insertCallout({ calloutType: 'corollary' })} />
-                <MenuItem icon={<FlaskConical size={14} />} label="Exemplo" onClick={() => (editor.commands as any).insertCallout({ calloutType: 'example' })} />
-                <MenuItem icon={<GraduationCap size={14} />} label="Exercício" onClick={() => (editor.commands as any).insertCallout({ calloutType: 'exercise' })} />
-                <MenuItem icon={<Lightbulb size={14} />} label="Observação" onClick={() => (editor.commands as any).insertCallout({ calloutType: 'remark' })} />
-                <MenuItem icon={<BookOpen size={14} />} label="Proposição" onClick={() => (editor.commands as any).insertCallout({ calloutType: 'proposition' })} />
-                <MenuItem icon={<GraduationCap size={14} />} label="Questão" onClick={() => (editor.commands as any).insertCallout({ calloutType: 'questao' })} />
+                {getAllCalloutTypes().map((ct) => (
+                  <MenuItem
+                    key={ct.value}
+                    icon={<BookOpen size={14} />}
+                    label={ct.label}
+                    onClick={() => (editor.commands as any).insertCallout({ calloutType: ct.value })}
+                  />
+                ))}
               </MenuDropdown>
 
               <MenuDropdown label="Formatar">
