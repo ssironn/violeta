@@ -21,7 +21,26 @@ export function MatrixEditor({ initialLatex, onSave, onDelete, onClose, isInsert
   const [cols, setCols] = useState(parsed.cols)
   const [cells, setCells] = useState<string[][]>(parsed.cells)
   const [focusedCell, setFocusedCell] = useState<[number, number] | null>(null)
+  const [enumerate, setEnumerate] = useState(false)
+  const cellsBeforeEnumerate = useRef<string[][] | null>(null)
   const gridRef = useRef<HTMLDivElement>(null)
+
+  function enumerateCells(r: number, c: number): string {
+    return `a_{${r + 1}${c + 1}}`
+  }
+
+  function toggleEnumerate(checked: boolean) {
+    setEnumerate(checked)
+    if (checked) {
+      cellsBeforeEnumerate.current = cells.map(row => [...row])
+      setCells(prev => prev.map((row, r) => row.map((_, c) => enumerateCells(r, c))))
+    } else {
+      if (cellsBeforeEnumerate.current) {
+        setCells(cellsBeforeEnumerate.current)
+        cellsBeforeEnumerate.current = null
+      }
+    }
+  }
 
   // Sync cells when dimensions change — new cells get default letters
   function resizeCells(newRows: number, newCols: number) {
@@ -30,7 +49,11 @@ export function MatrixEditor({ initialLatex, onSave, onDelete, onClose, isInsert
       for (let r = 0; r < newRows; r++) {
         const row: string[] = []
         for (let c = 0; c < newCols; c++) {
-          row.push(prev[r]?.[c] ?? cellLetter(r, c, newCols))
+          if (enumerate) {
+            row.push(enumerateCells(r, c))
+          } else {
+            row.push(prev[r]?.[c] ?? cellLetter(r, c, newCols))
+          }
         }
         next.push(row)
       }
@@ -132,6 +155,19 @@ export function MatrixEditor({ initialLatex, onSave, onDelete, onClose, isInsert
         <div className="text-accent-500/40 text-lg font-light">&times;</div>
         <DimControl label="Colunas" value={cols} onInc={addCol} onDec={removeCol} />
       </div>
+
+      {/* Enumerate checkbox */}
+      <label className="flex items-center justify-center gap-2 mb-1 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={enumerate}
+          onChange={(e) => toggleEnumerate(e.target.checked)}
+          className="w-3.5 h-3.5 rounded border border-white/[0.12] bg-black/20 accent-accent-500 cursor-pointer"
+        />
+        <span className="text-[11px] text-accent-300/50">
+          Enumerar elementos (a&#8203;<sub>ij</sub>)
+        </span>
+      </label>
 
       {/* Matrix grid */}
       <div className="flex items-center justify-center py-2">
