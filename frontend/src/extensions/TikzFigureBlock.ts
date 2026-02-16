@@ -101,10 +101,12 @@ export const TikzFigureBlock = Node.create({
   addNodeView() {
     return ({ node, getPos }) => {
       const dom = document.createElement('div')
-      dom.classList.add(
+      dom.classList.add('block-card-wrapper')
+
+      const card = document.createElement('div')
+      card.classList.add(
         'tikz-figure-block',
         'relative',
-        'my-4',
         'border',
         'border-gray-300',
         'rounded-lg',
@@ -113,16 +115,17 @@ export const TikzFigureBlock = Node.create({
         'hover:border-purple-400',
         'transition-colors',
       )
+      dom.appendChild(card)
 
       const label = document.createElement('div')
-      label.classList.add('text-xs', 'font-semibold', 'text-purple-600', 'mb-2')
+      label.classList.add('block-card-label', 'text-xs', 'font-semibold', 'text-purple-600', 'mb-2')
       label.textContent = 'Figuras Geom\u00e9tricas'
-      dom.appendChild(label)
+      card.appendChild(label)
 
       const previewContainer = document.createElement('div')
       previewContainer.style.display = 'flex'
       previewContainer.style.justifyContent = 'center'
-      dom.appendChild(previewContainer)
+      card.appendChild(previewContainer)
 
       const hoverHint = document.createElement('div')
       hoverHint.classList.add(
@@ -140,7 +143,7 @@ export const TikzFigureBlock = Node.create({
         'rounded-lg',
       )
       hoverHint.textContent = 'Clique para editar'
-      dom.appendChild(hoverHint)
+      card.appendChild(hoverHint)
 
       function applyAlignment(n: ProseMirrorNode) {
         const align = (n.attrs.textAlign as string) || 'left'
@@ -168,7 +171,7 @@ export const TikzFigureBlock = Node.create({
 
       renderPreview(node)
 
-      dom.addEventListener('click', () => {
+      card.addEventListener('click', () => {
         const pos = getPos()
         if (pos == null) return
         window.dispatchEvent(
@@ -195,11 +198,11 @@ export const TikzFigureBlock = Node.create({
         },
 
         selectNode() {
-          dom.classList.add('ring-2', 'ring-purple-400')
+          card.classList.add('ring-2', 'ring-purple-400')
         },
 
         deselectNode() {
-          dom.classList.remove('ring-2', 'ring-purple-400')
+          card.classList.remove('ring-2', 'ring-purple-400')
         },
 
         stopEvent() {

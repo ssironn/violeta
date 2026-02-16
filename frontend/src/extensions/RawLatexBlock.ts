@@ -60,26 +60,30 @@ export const RawLatexBlock = Node.create({
 
   addNodeView() {
     return ({ node, editor, getPos }) => {
-      // Wrapper
+      // Wrapper for alignment
       const dom = document.createElement('div')
-      dom.classList.add('raw-latex-block')
+      dom.classList.add('block-card-wrapper')
+
+      const card = document.createElement('div')
+      card.classList.add('raw-latex-block')
+      dom.appendChild(card)
 
       // Label
       const label = document.createElement('div')
       label.classList.add('raw-latex-label')
       label.textContent = 'LaTeX'
-      dom.appendChild(label)
+      card.appendChild(label)
 
       // KaTeX preview
       const preview = document.createElement('div')
       preview.classList.add('raw-latex-preview')
-      dom.appendChild(preview)
+      card.appendChild(preview)
 
       // Textarea
       const textarea = document.createElement('textarea')
       textarea.classList.add('raw-latex-textarea')
       textarea.value = node.attrs.content as string
-      dom.appendChild(textarea)
+      card.appendChild(textarea)
 
       function stripMathDelimiters(latex: string): { math: string; displayMode: boolean } {
         const trimmed = latex.trim()
@@ -191,19 +195,19 @@ export const RawLatexBlock = Node.create({
         },
 
         selectNode() {
-          dom.classList.add('selected')
+          card.classList.add('selected')
           textarea.focus()
           requestAnimationFrame(() => autoResize())
         },
 
         deselectNode() {
-          dom.classList.remove('selected')
+          card.classList.remove('selected')
         },
 
         stopEvent(event: Event) {
           // Only intercept events when in edit mode (selected),
           // otherwise let ProseMirror handle clicks to create NodeSelection
-          if (!dom.classList.contains('selected')) {
+          if (!card.classList.contains('selected')) {
             return false
           }
           return dom.contains(event.target as HTMLElement)

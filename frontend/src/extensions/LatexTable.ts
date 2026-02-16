@@ -25,6 +25,12 @@ export const LatexTable = Node.create({
       headers: { default: ['', '', ''] },
       rows: { default: [['', '', '']] },
       caption: { default: '' },
+      textAlign: {
+        default: 'left',
+        renderHTML: (attributes: Record<string, unknown>) => {
+          return { style: `text-align: ${attributes.textAlign}` }
+        },
+      },
     }
   },
 
@@ -64,23 +70,27 @@ export const LatexTable = Node.create({
       }
 
       const dom = document.createElement('div')
-      dom.classList.add('latex-table-block')
+      dom.classList.add('block-card-wrapper')
+
+      const card = document.createElement('div')
+      card.classList.add('latex-table-block')
+      dom.appendChild(card)
 
       // Header
       const header = document.createElement('div')
       header.classList.add('latex-table-header')
       header.textContent = 'Tabela'
-      dom.appendChild(header)
+      card.appendChild(header)
 
       // Table container
       const tableContainer = document.createElement('div')
       tableContainer.classList.add('latex-table-container')
-      dom.appendChild(tableContainer)
+      card.appendChild(tableContainer)
 
       // Actions bar
       const actions = document.createElement('div')
       actions.classList.add('latex-table-actions')
-      dom.appendChild(actions)
+      card.appendChild(actions)
 
       // Caption input
       const captionWrap = document.createElement('div')
@@ -95,16 +105,23 @@ export const LatexTable = Node.create({
       captionInput.placeholder = 'Legenda da tabela (opcional)'
       captionInput.value = currentAttrs.caption
       captionWrap.appendChild(captionInput)
-      dom.appendChild(captionWrap)
+      card.appendChild(captionWrap)
+
+      function applyAlignment(n: ProseMirrorNode) {
+        const align = (n.attrs.textAlign as string) || 'left'
+        dom.style.textAlign = align
+      }
 
       function dispatchUpdate() {
         const pos = getPos()
         if (pos != null) {
+          const currentNode = editor.view.state.doc.nodeAt(pos)
           editor.view.dispatch(
             editor.view.state.tr.setNodeMarkup(pos, undefined, {
               headers: currentAttrs.headers.map((h) => h),
               rows: currentAttrs.rows.map((r) => r.map((c) => c)),
               caption: currentAttrs.caption,
+              textAlign: currentNode?.attrs.textAlign ?? 'left',
             }),
           )
         }
@@ -226,12 +243,14 @@ export const LatexTable = Node.create({
       })
 
       renderTable()
+      applyAlignment(node)
 
       return {
         dom,
 
         update(updatedNode: ProseMirrorNode) {
           if (updatedNode.type.name !== 'latexTable') return false
+          applyAlignment(updatedNode)
           currentAttrs = {
             headers: [...(updatedNode.attrs.headers as string[])],
             rows: (updatedNode.attrs.rows as string[][]).map((r) => [...r]),
@@ -248,15 +267,15 @@ export const LatexTable = Node.create({
         },
 
         selectNode() {
-          dom.classList.add('selected')
+          card.classList.add('selected')
         },
 
         deselectNode() {
-          dom.classList.remove('selected')
+          card.classList.remove('selected')
         },
 
         stopEvent(event: Event) {
-          return dom.contains(event.target as HTMLElement)
+          return card.contains(event.target as HTMLElement)
         },
 
         ignoreMutation() {

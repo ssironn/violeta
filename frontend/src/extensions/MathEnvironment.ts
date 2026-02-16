@@ -34,6 +34,12 @@ export const MathEnvironment = Node.create({
     return {
       environment: { default: 'equation' },
       latex: { default: '' },
+      textAlign: {
+        default: 'left',
+        renderHTML: (attributes: Record<string, unknown>) => {
+          return { style: `text-align: ${attributes.textAlign}` }
+        },
+      },
     }
   },
 
@@ -61,7 +67,11 @@ export const MathEnvironment = Node.create({
   addNodeView() {
     return ({ node, editor, getPos }) => {
       const dom = document.createElement('div')
-      dom.classList.add('math-env-block')
+      dom.classList.add('block-card-wrapper')
+
+      const card = document.createElement('div')
+      card.classList.add('math-env-block')
+      dom.appendChild(card)
 
       // Header with label + environment selector
       const header = document.createElement('div')
@@ -82,19 +92,24 @@ export const MathEnvironment = Node.create({
         select.appendChild(option)
       }
       header.appendChild(select)
-      dom.appendChild(header)
+      card.appendChild(header)
 
       // KaTeX preview
       const preview = document.createElement('div')
       preview.classList.add('math-env-preview')
-      dom.appendChild(preview)
+      card.appendChild(preview)
 
       // Textarea
       const textarea = document.createElement('textarea')
       textarea.classList.add('math-env-textarea')
       textarea.value = node.attrs.latex as string
       textarea.placeholder = 'Digite sua equação...'
-      dom.appendChild(textarea)
+      card.appendChild(textarea)
+
+      function applyAlignment(n: ProseMirrorNode) {
+        const align = (n.attrs.textAlign as string) || 'left'
+        dom.style.textAlign = align
+      }
 
       function updateAttrs(attrs: Record<string, unknown>) {
         const pos = getPos()
@@ -133,6 +148,7 @@ export const MathEnvironment = Node.create({
       }
 
       renderPreview(node.attrs.latex as string)
+      applyAlignment(node)
       requestAnimationFrame(() => autoResize())
 
       textarea.addEventListener('mousedown', (e) => e.stopPropagation())
@@ -154,6 +170,7 @@ export const MathEnvironment = Node.create({
 
         update(updatedNode: ProseMirrorNode) {
           if (updatedNode.type.name !== 'mathEnvironment') return false
+          applyAlignment(updatedNode)
           const newLatex = updatedNode.attrs.latex as string
           const newEnv = updatedNode.attrs.environment as string
           if (textarea.value !== newLatex) {
@@ -170,16 +187,16 @@ export const MathEnvironment = Node.create({
         },
 
         selectNode() {
-          dom.classList.add('selected')
+          card.classList.add('selected')
           textarea.focus()
         },
 
         deselectNode() {
-          dom.classList.remove('selected')
+          card.classList.remove('selected')
         },
 
         stopEvent(event: Event) {
-          return dom.contains(event.target as HTMLElement)
+          return card.contains(event.target as HTMLElement)
         },
 
         ignoreMutation() {

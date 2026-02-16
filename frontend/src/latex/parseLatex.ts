@@ -665,6 +665,7 @@ function parseBlock(block: string): JSONContent[] {
       if (inner.includes('\\begin{tikzpicture}')) {
         // Strip figure-level commands, keep only the tikzpicture environment
         const cleaned = inner
+          .replace(/^\s*\[[^\]]*\]/, '')   // strip position parameter [h], [ht!], etc.
           .replace(/\\centering\b/g, '')
           .replace(/\\caption\{[^}]*\}/g, '')
           .replace(/\\label\{[^}]*\}/g, '')

@@ -17,6 +17,7 @@ import { DEFAULT_DOCUMENT_CONFIG } from './types/documentConfig'
 import { beautifyLatex } from './latex/beautifyLatex'
 import { uploadTexFile } from './utils/uploadTex'
 import { useDocumentAssets } from './hooks/useDocumentAssets'
+import { useIsMobile } from './hooks/useIsMobile'
 import { AppLayout } from './components/layout/AppLayout'
 import { AppShell } from './components/layout/AppShell'
 import { PdfPanel } from './components/layout/PdfPanel'
@@ -94,6 +95,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
   const [tikzEdit, setTikzEdit] = useState<{ shapes: TikzShape[]; pos: number; mode: 'insert' | 'edit' } | null>(null)
   const [plotEdit, setPlotEdit] = useState<{ config: PgfplotConfig; pos: number; mode: 'insert' | 'edit' } | null>(null)
 
+  const isMobile = useIsMobile()
   const [currentDocId] = useState<string | null>(initialDocId)
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [googleDriveModalOpen, setGoogleDriveModalOpen] = useState(false)
@@ -130,8 +132,8 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
     if (mode === viewMode) return
     if (mode === 'code') {
       setManualLatex(beautifyLatex(generatedLatex))
-    } else {
-      // Switching back to document — parse manual LaTeX back into editor
+    } else if (viewMode === 'code' && mode !== 'code') {
+      // Switching away from code — parse manual LaTeX back into editor
       if (manualLatex !== null && editor) {
         const preamble = extractCustomPreamble(manualLatex)
         setCustomPreamble(preamble)
@@ -370,7 +372,9 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
   return (
     <>
       <AppLayout
-        showRightPanel={showPdf}
+        showRightPanel={isMobile ? false : showPdf}
+        isMobile={isMobile}
+        viewMode={viewMode}
         toolbar={
           <Toolbar
             editor={editor}
@@ -394,6 +398,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
             onViewModeChange={handleViewModeChange}
             showPdf={showPdf}
             onTogglePdf={() => setShowPdf(v => !v)}
+            isMobile={isMobile}
           />
         }
         editor={

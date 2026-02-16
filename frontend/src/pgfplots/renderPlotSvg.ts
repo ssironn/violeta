@@ -160,28 +160,38 @@ export function renderPlotSvg(container: HTMLElement, config: PgfplotConfig, wid
 
   let bounds = parseBounds(config.axis, config.plots)
 
-  // Auto-adjust Y bounds
-  if (!config.axis.ymin && !config.axis.ymax) {
-    let autoYmin = Infinity
-    let autoYmax = -Infinity
+  // Auto-adjust Y bounds to fit all evaluated points within the visible X range
+  {
+    const hasExplicitYmin = !!config.axis.ymin
+    const hasExplicitYmax = !!config.axis.ymax
+    let autoYmin = hasExplicitYmin ? bounds.ymin : Infinity
+    let autoYmax = hasExplicitYmax ? bounds.ymax : -Infinity
     for (const p of config.plots) {
       if (p.type === 'function2d') {
-        const pts = evaluateFunction2D(p.expression, p.domain[0], p.domain[1], p.samples)
+        const evalXmin = Math.max(p.domain[0], bounds.xmin)
+        const evalXmax = Math.min(p.domain[1], bounds.xmax)
+        if (evalXmin >= evalXmax) continue
+        const pts = evaluateFunction2D(p.expression, evalXmin, evalXmax, p.samples)
         for (const pt of pts) {
-          if (pt.y < autoYmin) autoYmin = pt.y
-          if (pt.y > autoYmax) autoYmax = pt.y
+          if (!hasExplicitYmin && pt.y < autoYmin) autoYmin = pt.y
+          if (!hasExplicitYmax && pt.y > autoYmax) autoYmax = pt.y
         }
       } else if (p.type === 'data') {
         const pts = parseCSVData(p)
         for (const pt of pts) {
-          if (pt.y < autoYmin) autoYmin = pt.y
-          if (pt.y > autoYmax) autoYmax = pt.y
+          if (pt.x < bounds.xmin || pt.x > bounds.xmax) continue
+          if (!hasExplicitYmin && pt.y < autoYmin) autoYmin = pt.y
+          if (!hasExplicitYmax && pt.y > autoYmax) autoYmax = pt.y
         }
       }
     }
     if (isFinite(autoYmin) && isFinite(autoYmax)) {
       const yPad = (autoYmax - autoYmin) * 0.15 || 1
-      bounds = { ...bounds, ymin: autoYmin - yPad, ymax: autoYmax + yPad }
+      bounds = {
+        ...bounds,
+        ymin: hasExplicitYmin ? bounds.ymin : autoYmin - yPad,
+        ymax: hasExplicitYmax ? bounds.ymax : autoYmax + yPad,
+      }
     }
   }
 
@@ -189,10 +199,10 @@ export function renderPlotSvg(container: HTMLElement, config: PgfplotConfig, wid
   const toY = (y: number) => padding + ((bounds.ymax - y) / (bounds.ymax - bounds.ymin)) * plotH
 
   const svg = document.createElementNS(SVG_NS, 'svg')
-  svg.setAttribute('width', String(width))
-  svg.setAttribute('height', String(height))
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
   svg.style.display = 'block'
+  svg.style.width = '100%'
+  svg.style.height = 'auto'
 
   const showAxis = config.axis.showAxis !== false
 
@@ -320,6 +330,7 @@ export function renderPlotSvg(container: HTMLElement, config: PgfplotConfig, wid
   wrapper.style.background = 'rgba(0,0,0,0.08)'
   wrapper.style.borderRadius = '0.75rem'
   wrapper.style.border = '1px solid rgba(0,0,0,0.04)'
+  wrapper.style.overflow = 'hidden'
   wrapper.appendChild(svg)
   container.appendChild(wrapper)
 }
@@ -335,7 +346,6 @@ function render2D(
   if (points.length === 0) return
 
   const pointsStr = points
-    .filter(p => p.y >= bounds.ymin && p.y <= bounds.ymax)
     .map(p => `${toX(p.x)},${toY(p.y)}`)
     .join(' ')
 

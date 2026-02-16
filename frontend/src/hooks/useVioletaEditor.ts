@@ -52,7 +52,7 @@ export function useVioletaEditor({ onMathClick }: UseVioletaEditorOptions) {
       }),
       Underline,
       TextAlign.configure({
-        types: ['heading', 'paragraph', 'tikzFigure', 'pgfplotBlock', 'rawLatex'],
+        types: ['heading', 'paragraph', 'tikzFigure', 'pgfplotBlock', 'rawLatex', 'latexTable', 'mathEnvironment', 'calloutBlock'],
       }),
       TextStyle,
       Color,

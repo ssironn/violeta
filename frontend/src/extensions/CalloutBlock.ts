@@ -42,6 +42,12 @@ export const CalloutBlock = Node.create({
     return {
       calloutType: { default: 'theorem' },
       title: { default: '' },
+      textAlign: {
+        default: 'left',
+        renderHTML: (attributes: Record<string, unknown>) => {
+          return { style: `text-align: ${attributes.textAlign}` }
+        },
+      },
     }
   },
 
@@ -70,12 +76,16 @@ export const CalloutBlock = Node.create({
   addNodeView() {
     return ({ node, editor, getPos }) => {
       const dom = document.createElement('div')
-      dom.classList.add('callout-block')
+      dom.classList.add('block-card-wrapper')
+
+      const card = document.createElement('div')
+      card.classList.add('callout-block')
+      dom.appendChild(card)
 
       // Header bar
       const headerBar = document.createElement('div')
       headerBar.classList.add('callout-header')
-      dom.appendChild(headerBar)
+      card.appendChild(headerBar)
 
       // Type selector
       const select = document.createElement('select')
@@ -98,13 +108,18 @@ export const CalloutBlock = Node.create({
       // Content area (managed by ProseMirror)
       const contentDOM = document.createElement('div')
       contentDOM.classList.add('callout-content')
-      dom.appendChild(contentDOM)
+      card.appendChild(contentDOM)
 
       function applyStyle(type: string) {
         const info = getCalloutInfo(type)
-        dom.style.borderLeftColor = info.color
+        card.style.borderLeftColor = info.color
         headerBar.style.borderBottomColor = info.color + '30'
         select.style.color = info.color
+      }
+
+      function applyAlignment(n: ProseMirrorNode) {
+        const align = (n.attrs.textAlign as string) || 'left'
+        dom.style.textAlign = align
       }
 
       function updateAttrs(attrs: Record<string, unknown>) {
@@ -123,6 +138,7 @@ export const CalloutBlock = Node.create({
       select.value = node.attrs.calloutType as string
       titleInput.value = node.attrs.title as string
       applyStyle(node.attrs.calloutType as string)
+      applyAlignment(node)
 
       // Events
       select.addEventListener('mousedown', (e) => e.stopPropagation())
@@ -143,6 +159,7 @@ export const CalloutBlock = Node.create({
 
         update(updatedNode: ProseMirrorNode) {
           if (updatedNode.type.name !== 'calloutBlock') return false
+          applyAlignment(updatedNode)
           const newType = updatedNode.attrs.calloutType as string
           const newTitle = updatedNode.attrs.title as string
           if (select.value !== newType) {
@@ -157,11 +174,11 @@ export const CalloutBlock = Node.create({
         },
 
         selectNode() {
-          dom.classList.add('selected')
+          card.classList.add('selected')
         },
 
         deselectNode() {
-          dom.classList.remove('selected')
+          card.classList.remove('selected')
         },
 
         // Only stop events from header controls, let content area events pass through

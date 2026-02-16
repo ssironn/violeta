@@ -722,9 +722,36 @@ body {
   line-height: 1.2;
 }
 
+/* ── Block Card Wrapper (alignment + sizing) ── */
+
+.block-card-wrapper {
+  margin: 1rem 0;
+}
+
+.block-card-wrapper > .pgfplot-block,
+.block-card-wrapper > .tikz-figure-block,
+.block-card-wrapper > .latex-table-block,
+.block-card-wrapper > .math-env-block,
+.block-card-wrapper > .callout-block,
+.block-card-wrapper > .raw-latex-block {
+  display: inline-block;
+  max-width: 85%;
+  min-width: 280px;
+  margin: 0;
+  vertical-align: top;
+  text-align: left;
+}
+
+/* Keep block labels/titles always centered */
+.block-card-label,
+.block-card-wrapper .latex-table-header,
+.block-card-wrapper .math-env-header,
+.block-card-wrapper .callout-header {
+  text-align: center;
+}
+
 /* Raw LaTeX Block */
 .raw-latex-block {
-  margin: 1rem 0;
   border-radius: 0.5rem;
   overflow: hidden;
   transition: border-color 0.15s;
@@ -806,7 +833,6 @@ body {
 /* ── Math Environment Block ── */
 
 .math-env-block {
-  margin: 1rem 0;
   border: 1px solid var(--color-surface-border);
   border-radius: 0.5rem;
   overflow: hidden;
@@ -889,7 +915,6 @@ body {
 /* ── LaTeX Table Block ── */
 
 .latex-table-block {
-  margin: 1rem 0;
   border: 1px solid var(--color-surface-border);
   border-radius: 0.5rem;
   overflow: hidden;
@@ -1039,7 +1064,6 @@ body {
 /* ── Callout Block ── */
 
 .callout-block {
-  margin: 1rem 0;
   border: 1px solid var(--color-surface-border);
   border-left: 4px solid #3b82f6;
   border-radius: 0.5rem;
@@ -2597,15 +2621,15 @@ body {
   background-color: rgba(249, 115, 22, 0.08);
 }
 
-.math-env-block.search-match,
-.raw-latex-block.search-match {
+.block-card-wrapper.search-match > .math-env-block,
+.block-card-wrapper.search-match > .raw-latex-block {
   outline: 2px solid rgba(250, 204, 21, 0.6);
   outline-offset: 2px;
   border-radius: 6px;
 }
 
-.math-env-block.search-match-active,
-.raw-latex-block.search-match-active {
+.block-card-wrapper.search-match-active > .math-env-block,
+.block-card-wrapper.search-match-active > .raw-latex-block {
   outline: 2px solid rgba(249, 115, 22, 0.8);
   outline-offset: 2px;
   box-shadow: 0 0 8px rgba(249, 115, 22, 0.3);
@@ -2891,4 +2915,55 @@ body {
   font-weight: 600;
   color: #c4b5d4;
   letter-spacing: 0.1em;
+}
+
+/* ══════════════════════════════════════════
+   Mobile Responsive — Editor
+   ══════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* Menu bar: stack and compact */
+  .gdocs-menubar {
+    flex-wrap: wrap;
+    padding: 4px 8px;
+    gap: 4px;
+  }
+
+  .gdocs-menubar-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .gdocs-menubar-right {
+    flex-shrink: 0;
+  }
+
+  .gdocs-doc-title {
+    font-size: 0.85rem;
+    max-width: 140px;
+  }
+
+  /* Hide text menus on mobile, keep doc icon */
+  .gdocs-menus {
+    display: none;
+  }
+
+  /* Compact compile button */
+  .gdocs-compile-btn span {
+    display: none;
+  }
+
+  /* Formatting toolbar: scroll horizontally */
+  .gdocs-toolbar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 2px;
+    padding: 4px 8px;
+  }
+
+  /* Editor area: full width, no fixed A4 width */
+  .editor-area-mobile-full {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
 }

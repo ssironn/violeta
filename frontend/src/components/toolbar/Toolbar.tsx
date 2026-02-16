@@ -54,7 +54,7 @@ import { insertLink } from '../../utils/insertHelpers'
 import { exportTex } from '../../utils/exportTex'
 import { downloadPdfBlob, compileAndDownload } from '../../utils/compilePdf'
 
-export type ViewMode = 'document' | 'code'
+export type ViewMode = 'document' | 'compilation' | 'code'
 
 interface ToolbarProps {
   editor: Editor
@@ -78,6 +78,7 @@ interface ToolbarProps {
   onViewModeChange?: (mode: ViewMode) => void
   showPdf?: boolean
   onTogglePdf?: () => void
+  isMobile?: boolean
 }
 
 function SymbolCell({ display, onClick }: { display: string; onClick: () => void }) {
@@ -181,6 +182,7 @@ export function Toolbar({
   onViewModeChange,
   showPdf = true,
   onTogglePdf,
+  isMobile = false,
 }: ToolbarProps) {
   const [showSymbols, setShowSymbols] = useState(false)
   const [showDocConfig, setShowDocConfig] = useState(false)
@@ -300,6 +302,31 @@ export function Toolbar({
             </nav>
           </div>
         </div>
+
+        {/* Mobile: 3-state view switch in menubar for visibility */}
+        {onViewModeChange && isMobile && (
+          <div className="flex items-center rounded-md border border-surface-border overflow-hidden">
+            {([
+              { mode: 'document' as ViewMode, label: 'Documento' },
+              { mode: 'compilation' as ViewMode, label: 'Compilação' },
+              { mode: 'code' as ViewMode, label: 'LaTeX' },
+            ]).map(({ mode, label }, i) => (
+              <button
+                key={mode}
+                onClick={() => onViewModeChange(mode)}
+                className={`px-2.5 py-1 text-[11px] font-medium transition-all ${
+                  i > 0 ? 'border-l border-surface-border' : ''
+                } ${
+                  viewMode === mode
+                    ? 'bg-accent-600 text-white'
+                    : 'text-text-muted hover:text-text-primary hover:bg-surface-hover'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="gdocs-menubar-right">
           <ThemePopover />
@@ -454,8 +481,8 @@ export function Toolbar({
         {/* Spacer to push right-side controls */}
         <div className="flex-1" />
 
-        {/* View mode segmented control */}
-        {onViewModeChange && (
+        {/* View mode segmented control — desktop only (mobile switch is in menubar) */}
+        {onViewModeChange && !isMobile && (
           <div className="flex items-center rounded-md border border-surface-border overflow-hidden">
             <button
               onClick={() => onViewModeChange('document')}
@@ -480,8 +507,8 @@ export function Toolbar({
           </div>
         )}
 
-        {/* PDF panel toggle */}
-        {onTogglePdf && (
+        {/* PDF panel toggle — desktop only */}
+        {onTogglePdf && !isMobile && (
           <ToolbarButton
             icon={showPdf ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />}
             tooltip={showPdf ? 'Ocultar painel PDF' : 'Mostrar painel PDF'}

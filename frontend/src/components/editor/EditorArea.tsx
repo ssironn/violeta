@@ -92,11 +92,11 @@ export function EditorArea({ editor, onOpenMathEditor, onOpenImageModal, onOpenT
   }, [editor, onHoverMath])
 
   return (
-    <div className="flex-1 overflow-auto bg-surface-bg py-8 flex justify-center">
+    <div className="flex-1 overflow-auto bg-surface-bg py-8 max-md:py-2 flex justify-center">
       <div
         ref={wrapperRef}
-        className="relative"
-        style={{ width: A4_WIDTH }}
+        className="relative w-full max-md:px-0"
+        style={{ maxWidth: A4_WIDTH }}
       >
         {/* White paper */}
         <div

@@ -1,10 +1,13 @@
 import { type ReactNode, useState, useCallback, useRef, useEffect } from 'react'
+import type { ViewMode } from '../toolbar/Toolbar'
 
 interface AppLayoutProps {
   toolbar: ReactNode
   editor: ReactNode
   rightPanel: ReactNode
   showRightPanel?: boolean
+  isMobile?: boolean
+  viewMode?: ViewMode
 }
 
 export function AppLayout({
@@ -12,6 +15,8 @@ export function AppLayout({
   editor,
   rightPanel,
   showRightPanel = true,
+  isMobile = false,
+  viewMode = 'document',
 }: AppLayoutProps) {
   const [splitPercent, setSplitPercent] = useState(() => {
     const saved = localStorage.getItem('violeta-split')
@@ -62,6 +67,27 @@ export function AppLayout({
     }
   }, [])
 
+  // Mobile: show only the active panel
+  if (isMobile) {
+    return (
+      <div className="flex flex-col h-screen overflow-hidden">
+        {toolbar}
+        <div className="flex flex-1 overflow-hidden">
+          {viewMode === 'compilation' ? (
+            <div className="flex overflow-hidden min-w-0 w-full">
+              {rightPanel}
+            </div>
+          ) : (
+            <div className="flex overflow-hidden min-w-0 w-full">
+              {editor}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Desktop: split view
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {toolbar}
