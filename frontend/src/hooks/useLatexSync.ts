@@ -1,44 +1,23 @@
 import { useEffect, useRef } from 'react'
 import type { Editor } from '@tiptap/core'
-import { parseLatex } from '../latex/parseLatex'
 
+/**
+ * Previously this hook synced manual LaTeX edits back into the TipTap editor
+ * in real-time while the user was in code mode. However, this caused a bug:
+ * parseLatex() is lossy — it cannot preserve rich editor attributes like
+ * TikZ shapes, pgfplotConfig, etc. Since the editor isn't visible in code mode,
+ * the real-time sync was destructive and unnecessary.
+ *
+ * Sync is now handled by handleViewModeChange in App.tsx, which:
+ * - Restores the original editor snapshot if the LaTeX wasn't changed
+ * - Parses the LaTeX only when the user actually modified it
+ *
+ * This hook is kept as a no-op for API compatibility.
+ */
 export function useLatexSync(
-  editor: Editor | null,
-  manualLatex: string | null,
-  editingLatex: boolean,
+  _editor: Editor | null,
+  _manualLatex: string | null,
+  _editingLatex: boolean,
 ): void {
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const lastAppliedRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    if (!editor || !editingLatex || manualLatex === null) return
-    if (manualLatex === lastAppliedRef.current) return
-
-    if (timerRef.current) {
-      clearTimeout(timerRef.current)
-    }
-
-    timerRef.current = setTimeout(() => {
-      try {
-        const doc = parseLatex(manualLatex)
-        editor.commands.setContent(doc)
-        lastAppliedRef.current = manualLatex
-      } catch (err) {
-        console.error('[useLatexSync] Failed to parse LaTeX:', err)
-      }
-    }, 1500)
-
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current)
-      }
-    }
-  }, [editor, manualLatex, editingLatex])
-
-  // Reset lastApplied when leaving edit mode
-  useEffect(() => {
-    if (!editingLatex) {
-      lastAppliedRef.current = null
-    }
-  }, [editingLatex])
+  // No-op — sync is handled by handleViewModeChange
 }

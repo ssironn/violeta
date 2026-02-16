@@ -9,7 +9,7 @@ import { useVioletaEditor, type MathEditState } from './hooks/useVioletaEditor'
 import { useLatexGenerator } from './hooks/useLatexGenerator'
 import { usePdfCompiler } from './hooks/usePdfCompiler'
 import { useLatexSync } from './hooks/useLatexSync'
-import { parseLatex, extractCustomPreamble } from './latex/parseLatex'
+import { parseLatex, extractCustomPreamble, mergeWithSnapshot } from './latex/parseLatex'
 import { generateLatex } from './latex/generateLatex'
 import { updateKatexMacros } from './latex/katexMacros'
 import type { DocumentConfig } from './types/documentConfig'
@@ -102,6 +102,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
   const [documentTitle, setDocumentTitle] = useState('')
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const titleSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const documentLoadedRef = useRef(false)
 
   const onMathClick = useCallback((state: MathEditState) => {
     setMathEdit(state)
@@ -117,6 +118,8 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
   const [viewMode, setViewMode] = useState<ViewMode>('document')
   const [showPdf, setShowPdf] = useState(true)
   const [manualLatex, setManualLatex] = useState<string | null>(null)
+  const editorSnapshotRef = useRef<Record<string, any> | null>(null)
+  const manualLatexChangedRef = useRef(false)
 
   // Hover-to-highlight
   const [hoveredMath, setHoveredMath] = useState<string | null>(null)
@@ -131,22 +134,39 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
   function handleViewModeChange(mode: ViewMode) {
     if (mode === viewMode) return
     if (mode === 'code') {
+      // Save editor state before entering code mode
+      if (editor) {
+        editorSnapshotRef.current = editor.getJSON()
+      }
+      manualLatexChangedRef.current = false
       setManualLatex(beautifyLatex(generatedLatex))
     } else if (viewMode === 'code' && mode !== 'code') {
-      // Switching away from code — parse manual LaTeX back into editor
+      // Switching away from code
       if (manualLatex !== null && editor) {
-        const preamble = extractCustomPreamble(manualLatex)
-        setCustomPreamble(preamble)
-        updateKatexMacros(preamble)
-        const doc = parseLatex(manualLatex)
-        editor.commands.setContent(doc)
+        if (manualLatexChangedRef.current) {
+          // User changed the LaTeX — parse it back and merge with snapshot
+          // to preserve rich attributes (shapes, plotConfig, assetFilename, etc.)
+          const preamble = extractCustomPreamble(manualLatex)
+          setCustomPreamble(preamble)
+          updateKatexMacros(preamble)
+          let doc = parseLatex(manualLatex)
+          if (editorSnapshotRef.current) {
+            doc = mergeWithSnapshot(doc, { type: 'doc', content: editorSnapshotRef.current.content })
+          }
+          editor.commands.setContent(doc)
+        } else if (editorSnapshotRef.current) {
+          // No changes — restore the original editor state (preserves shapes, plotConfig, etc.)
+          editor.commands.setContent(editorSnapshotRef.current)
+        }
       }
+      editorSnapshotRef.current = null
       setManualLatex(null)
     }
     setViewMode(mode)
   }
 
   function handleLatexChange(latex: string) {
+    manualLatexChangedRef.current = true
     setManualLatex(latex)
   }
 
@@ -222,36 +242,44 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
 
   // Load initial document
   useEffect(() => {
-    if (initialDocId && editor) {
-      getDocument(initialDocId)
-        .then(doc => {
-          setDocumentTitle(doc.title || '')
-          const content = doc.content as Record<string, any>
-          if (content?.type === 'latex' && typeof content.source === 'string') {
-            // Restore document config if saved, otherwise use defaults
-            if (content.documentConfig) {
-              setDocumentConfig({ ...DEFAULT_DOCUMENT_CONFIG, ...content.documentConfig })
-            }
-            // Extract custom preamble/macros from the LaTeX source
-            const preamble = extractCustomPreamble(content.source)
-            setCustomPreamble(preamble)
-            updateKatexMacros(preamble)
-            if (content.editorJSON) {
-              // Prefer saved editor state for perfect round-trip (preserves shapes, plotConfig, etc.)
-              editor.commands.setContent(content.editorJSON)
-            } else {
-              // Fallback: parse LaTeX source (e.g. imported .tex files)
-              const parsed = parseLatex(content.source)
-              editor.commands.setContent(parsed)
-            }
-          } else if (content?.type === 'doc') {
-            // Legacy format: TipTap JSON — load directly
-            editor.commands.setContent(content)
-          } else {
-            editor.commands.setContent({ type: 'doc', content: [{ type: 'paragraph' }] })
+    if (!initialDocId || !editor) return
+    let cancelled = false
+    documentLoadedRef.current = false
+
+    getDocument(initialDocId)
+      .then(doc => {
+        if (cancelled) return
+        setDocumentTitle(doc.title || '')
+        const content = doc.content as Record<string, any>
+        if (content?.type === 'latex' && typeof content.source === 'string') {
+          // Restore document config if saved, otherwise use defaults
+          if (content.documentConfig) {
+            setDocumentConfig({ ...DEFAULT_DOCUMENT_CONFIG, ...content.documentConfig })
           }
-        })
-        .catch(console.error)
+          // Extract custom preamble/macros from the LaTeX source
+          const preamble = extractCustomPreamble(content.source)
+          setCustomPreamble(preamble)
+          updateKatexMacros(preamble)
+          if (content.editorJSON) {
+            // Prefer saved editor state for perfect round-trip (preserves shapes, plotConfig, etc.)
+            editor.commands.setContent(content.editorJSON)
+          } else {
+            // Fallback: parse LaTeX source (e.g. imported .tex files)
+            const parsed = parseLatex(content.source)
+            editor.commands.setContent(parsed)
+          }
+        } else if (content?.type === 'doc') {
+          // Legacy format: TipTap JSON — load directly
+          editor.commands.setContent(content)
+        } else {
+          editor.commands.setContent({ type: 'doc', content: [{ type: 'paragraph' }] })
+        }
+        documentLoadedRef.current = true
+      })
+      .catch(console.error)
+
+    return () => {
+      cancelled = true
     }
   }, [initialDocId, editor])
 
@@ -260,8 +288,11 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
     if (!editor || !currentDocId) return
     const docId = currentDocId
     const handler = () => {
+      // Don't save until the document has been loaded from the API
+      if (!documentLoadedRef.current) return
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
       saveTimerRef.current = setTimeout(() => {
+        if (!documentLoadedRef.current) return
         const editorJSON = editor.getJSON()
         const latexSource = generateLatex(editorJSON, documentConfig)
         const content = { type: 'latex', source: latexSource, documentConfig, editorJSON }
@@ -402,9 +433,11 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
           />
         }
         editor={
-          viewMode === 'document'
+          viewMode === 'document' && editor
             ? <EditorArea editor={editor} onOpenMathEditor={openMathEditor} onOpenImageModal={() => setImageModalOpen(true)} onOpenTikzEditor={openTikzEditor} onOpenPlotEditor={openPlotEditor} onHoverMath={setHoveredMath} />
-            : <LatexCodePanel latex={effectiveLatex} onLatexChange={handleLatexChange} />
+            : viewMode !== 'document'
+              ? <LatexCodePanel latex={effectiveLatex} onLatexChange={handleLatexChange} />
+              : null
         }
         rightPanel={
           <PdfPanel

@@ -99,6 +99,7 @@ export function useVioletaEditor({ onMathClick }: UseVioletaEditorOptions) {
       PgfplotBlock,
     ],
     content: '',
+    immediatelyRender: true,
     editorProps: {
       attributes: {
         class: 'tiptap',

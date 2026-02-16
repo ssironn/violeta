@@ -303,31 +303,6 @@ export function Toolbar({
           </div>
         </div>
 
-        {/* Mobile: 3-state view switch in menubar for visibility */}
-        {onViewModeChange && isMobile && (
-          <div className="flex items-center rounded-md border border-surface-border overflow-hidden">
-            {([
-              { mode: 'document' as ViewMode, label: 'Documento' },
-              { mode: 'compilation' as ViewMode, label: 'Compilação' },
-              { mode: 'code' as ViewMode, label: 'LaTeX' },
-            ]).map(({ mode, label }, i) => (
-              <button
-                key={mode}
-                onClick={() => onViewModeChange(mode)}
-                className={`px-2.5 py-1 text-[11px] font-medium transition-all ${
-                  i > 0 ? 'border-l border-surface-border' : ''
-                } ${
-                  viewMode === mode
-                    ? 'bg-accent-600 text-white'
-                    : 'text-text-muted hover:text-text-primary hover:bg-surface-hover'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
-
         <div className="gdocs-menubar-right">
           <ThemePopover />
           <button
@@ -577,6 +552,33 @@ export function Toolbar({
             onOpenMathEditor(latex)
           }}
         />
+      )}
+
+      {/* Mobile: view mode switch between toolbar and document */}
+      {onViewModeChange && isMobile && (
+        <div className="flex justify-center py-2 border-b border-surface-border bg-surface-primary">
+          <div className="flex items-center rounded-md border border-surface-border overflow-hidden">
+            {([
+              { mode: 'document' as ViewMode, label: 'Documento' },
+              { mode: 'compilation' as ViewMode, label: 'Compilação' },
+              { mode: 'code' as ViewMode, label: 'LaTeX' },
+            ]).map(({ mode, label }, i) => (
+              <button
+                key={mode}
+                onClick={() => onViewModeChange(mode)}
+                className={`px-3 py-1.5 text-[12px] font-medium transition-all ${
+                  i > 0 ? 'border-l border-surface-border' : ''
+                } ${
+                  viewMode === mode
+                    ? 'bg-accent-600 text-white'
+                    : 'text-text-muted hover:text-text-primary hover:bg-surface-hover'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   )

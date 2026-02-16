@@ -170,6 +170,13 @@ function parseInline(text: string): JSONContent[] {
       continue
     }
 
+    // Check for escaped special characters: \$, \#, \%, \&, \_, \{, \}
+    if (text[i] === '\\' && i + 1 < text.length && '#$%&_{}'.includes(text[i + 1])) {
+      nodes.push({ type: 'text', text: text[i + 1] })
+      i += 2
+      continue
+    }
+
     // Check for inline math $...$
     if (text[i] === '$') {
       const end = text.indexOf('$', i + 1)
@@ -331,6 +338,8 @@ function parseInline(text: string): JSONContent[] {
       if (text[end] === '\\' && end + 1 < text.length) {
         if (text[end + 1] === '\\') break
         if (/[a-zA-Z'`~^"c]/.test(text[end + 1])) break
+        // Break on escaped special characters (\$, \#, etc.)
+        if ('#$%&_{}'.includes(text[end + 1])) break
       }
       end++
     }
@@ -514,7 +523,8 @@ function parseTabular(inner: string, _beginTag: string): JSONContent[] {
     // Skip \hline, \cline, \toprule, \midrule, \bottomrule
     const cleaned = rowStr.replace(/\\(hline|cline\{[^}]*\}|toprule|midrule|bottomrule)\s*/g, '').trim()
     if (!cleaned) continue
-    const cells = cleaned.split('&').map((c) => c.trim())
+    // Unescape LaTeX special chars so cells don't accumulate escaping on round-trips
+    const cells = cleaned.split('&').map((c) => unescapeLatex(c.trim()))
     allRows.push(cells)
   }
 
@@ -537,10 +547,13 @@ function parseTabular(inner: string, _beginTag: string): JSONContent[] {
 }
 
 function parseTableEnv(inner: string): JSONContent[] {
-  // Extract caption
+  // Extract caption (using brace-aware extraction for nested braces)
   let caption = ''
-  const captionMatch = inner.match(/\\caption\{([^}]*)\}/)
-  if (captionMatch) caption = unescapeLatex(captionMatch[1])
+  const captionIdx = inner.indexOf('\\caption{')
+  if (captionIdx !== -1) {
+    const group = extractBraceGroup(inner, captionIdx + '\\caption'.length)
+    caption = unescapeLatex(group.content)
+  }
 
   // Extract tabular content
   const tabularMatch = inner.match(/\\begin\{tabular\}(?:\{[^}]*\})?([\s\S]*?)\\end\{tabular\}/)
@@ -651,30 +664,50 @@ function parseBlock(block: string): JSONContent[] {
       return [{ type: 'codeBlock', attrs: { environment: envName }, content: [{ type: 'text', text: inner }] }]
     }
 
-    // Alignment environments
+    // Alignment environments — parse as blocks and propagate alignment attribute
     if (ALIGN_ENVIRONMENTS.has(envName)) {
-      const content = parseInline(inner)
       const align = envName === 'flushright' ? 'right' : envName === 'center' ? 'center' : undefined
-      if (content.length === 0) return []
-      return [{ type: 'paragraph', ...(align ? { attrs: { textAlign: align } } : {}), content }]
+      const blocks = flatParseBlocks(inner)
+      if (blocks.length === 0) return []
+      if (align) {
+        for (const block of blocks) {
+          if (!block.attrs) block.attrs = {}
+          block.attrs.textAlign = align
+        }
+      }
+      return blocks
     }
 
     // Figure — may contain an image, tikzpicture, or pgfplot
     if (envName === 'figure' || envName === 'figure*') {
+      // Helper: extract caption using brace-aware parsing
+      function extractCaptionFromInner(text: string): string {
+        const idx = text.indexOf('\\caption{')
+        if (idx === -1) return ''
+        const group = extractBraceGroup(text, idx + '\\caption'.length)
+        return unescapeLatex(group.content)
+      }
+
+      // Helper: strip caption command (brace-aware) from text
+      function stripCaption(text: string): string {
+        const idx = text.indexOf('\\caption{')
+        if (idx === -1) return text
+        const group = extractBraceGroup(text, idx + '\\caption'.length)
+        return text.slice(0, idx) + text.slice(group.end)
+      }
+
       // Check if figure wraps a tikzpicture (with or without pgfplots axis)
       if (inner.includes('\\begin{tikzpicture}')) {
         // Strip figure-level commands, keep only the tikzpicture environment
-        const cleaned = inner
+        const cleaned = stripCaption(inner)
           .replace(/^\s*\[[^\]]*\]/, '')   // strip position parameter [h], [ht!], etc.
           .replace(/\\centering\b/g, '')
-          .replace(/\\caption\{[^}]*\}/g, '')
           .replace(/\\label\{[^}]*\}/g, '')
           .trim()
         const results: JSONContent[] = flatParseBlocks(cleaned)
         // Add caption as a styled paragraph if present
-        const captionMatch = inner.match(/\\caption\{([^}]*)\}/)
-        if (captionMatch) {
-          const captionText = unescapeLatex(captionMatch[1])
+        const captionText = extractCaptionFromInner(inner)
+        if (captionText) {
           results.push({
             type: 'paragraph',
             attrs: { textAlign: 'center' },
@@ -695,8 +728,7 @@ function parseBlock(block: string): JSONContent[] {
         if (imgMatch[1]) imgOptions = imgMatch[1]
         src = imgMatch[2]
       }
-      const captionMatch = inner.match(/\\caption\{([^}]*)\}/)
-      if (captionMatch) alt = unescapeLatex(captionMatch[1])
+      alt = extractCaptionFromInner(inner)
       return [{ type: 'image', attrs: { src, alt, position, options: imgOptions } }]
     }
 
@@ -966,4 +998,106 @@ export function extractCustomPreamble(latex: string): string {
   }
 
   return customLines.join('\n')
+}
+
+// ─── Snapshot Merge ──────────────────────────────────────────────
+// After parsing edited LaTeX, merge with the original editor snapshot
+// to preserve rich attributes that can't be derived from LaTeX alone.
+
+/** Build a pool of nodes from a doc tree, indexed by type */
+function collectNodesByType(doc: JSONContent): Map<string, JSONContent[]> {
+  const pools = new Map<string, JSONContent[]>()
+
+  function walk(node: JSONContent) {
+    const type = node.type
+    if (type) {
+      if (!pools.has(type)) pools.set(type, [])
+      pools.get(type)!.push(node)
+    }
+    if (node.content) {
+      for (const child of node.content) {
+        walk(child)
+      }
+    }
+  }
+
+  walk(doc)
+  return pools
+}
+
+/**
+ * Merge a freshly-parsed doc with the original editor snapshot to restore
+ * rich attributes that are lost during the LaTeX round-trip:
+ * - tikzFigure: shapes (visual editor representation, not derivable from tikzCode)
+ * - image: src (base64 data), assetFilename (internal asset reference)
+ * - pgfplotBlock: plotConfig is re-derived by the parser, but if parsing failed
+ *   we fall back to the snapshot's plotConfig
+ */
+export function mergeWithSnapshot(newDoc: JSONContent, snapshot: JSONContent): JSONContent {
+  const pools = collectNodesByType(snapshot)
+
+  function mergeNode(node: JSONContent): JSONContent {
+    let merged = node
+
+    if (node.type === 'tikzFigure') {
+      const pool = pools.get('tikzFigure')
+      if (pool && pool.length > 0) {
+        // Match by tikzCode similarity (positional: take first available)
+        const match = pool.shift()!
+        if (match.attrs?.shapes && match.attrs.shapes.length > 0) {
+          merged = { ...node, attrs: { ...node.attrs, shapes: match.attrs.shapes } }
+        }
+      }
+    }
+
+    if (node.type === 'pgfplotBlock') {
+      const pool = pools.get('pgfplotBlock')
+      if (pool && pool.length > 0) {
+        const match = pool.shift()!
+        // If the parser couldn't derive a plotConfig, use the snapshot's
+        if (!node.attrs?.plotConfig && match.attrs?.plotConfig) {
+          merged = { ...node, attrs: { ...node.attrs, plotConfig: match.attrs.plotConfig } }
+        }
+      }
+    }
+
+    if (node.type === 'image') {
+      const pool = pools.get('image')
+      if (pool && pool.length > 0) {
+        // Match: the parsed src might be the assetFilename from the snapshot
+        // (generateLatex uses assetFilename in \includegraphics when src is base64)
+        const matchIdx = pool.findIndex((n) => {
+          const snapAsset = n.attrs?.assetFilename
+          const snapSrc = n.attrs?.src
+          const newSrc = node.attrs?.src
+          // Exact src match
+          if (snapSrc === newSrc) return true
+          // Parser extracted assetFilename as src
+          if (snapAsset && snapAsset === newSrc) return true
+          return false
+        })
+        const idx = matchIdx >= 0 ? matchIdx : 0
+        if (idx < pool.length) {
+          const match = pool.splice(idx, 1)[0]
+          merged = {
+            ...node,
+            attrs: {
+              ...node.attrs,
+              src: match.attrs?.src ?? node.attrs?.src,
+              assetFilename: match.attrs?.assetFilename ?? node.attrs?.assetFilename,
+            },
+          }
+        }
+      }
+    }
+
+    // Recurse into children
+    if (node.content) {
+      merged = { ...merged, content: node.content.map(mergeNode) }
+    }
+
+    return merged
+  }
+
+  return mergeNode(newDoc)
 }
