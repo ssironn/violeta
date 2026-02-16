@@ -81,10 +81,10 @@
   --v-accent-200: #ddd6fe;
   --v-accent-300: #c4b5fd;
   --v-accent-400: #a78bfa;
-  --v-accent-500: var(--color-accent-500);
-  --v-accent-600: var(--color-accent-600);
+  --v-accent-500: #8b5cf6;
+  --v-accent-600: #7c3aed;
   --v-accent-700: #6d28d9;
-  --v-accent-800: var(--color-accent-800);
+  --v-accent-800: #5b21b6;
   --v-accent-900: #4c1d95;
   --v-accent-950: #2e1065;
 }
