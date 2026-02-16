@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { FileText, Rss, Globe, LogOut, ChevronDown } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
+import { ThemePopover } from '../toolbar/ThemePopover'
 
 const TABS = [
   { label: 'Meus Documentos', path: '/', icon: FileText },
@@ -44,8 +45,8 @@ export function Navbar() {
                 onClick={() => navigate(path)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                   isActive
-                    ? 'bg-accent-500/15 text-accent-300 border border-accent-500/30'
-                    : 'text-text-muted hover:text-text-primary hover:bg-white/[0.04] border border-transparent'
+                    ? 'bg-accent-500/15 text-accent-500 border border-accent-500/30'
+                    : 'text-text-muted hover:text-text-primary hover:bg-surface-hover border border-transparent'
                 }`}
               >
                 <Icon size={15} />
@@ -55,12 +56,14 @@ export function Navbar() {
           })}
         </nav>
 
+        <div className="flex items-center gap-2">
+        <ThemePopover />
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm text-text-secondary hover:text-text-primary hover:bg-white/[0.04] transition-colors"
+            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
           >
-            <div className="w-7 h-7 rounded-full bg-accent-500/20 flex items-center justify-center text-xs font-bold text-accent-300">
+            <div className="w-7 h-7 rounded-full bg-accent-500/20 flex items-center justify-center text-xs font-bold text-accent-500">
               {initial}
             </div>
             <ChevronDown size={14} className={`transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
@@ -80,6 +83,7 @@ export function Navbar() {
               </button>
             </div>
           )}
+        </div>
         </div>
       </div>
     </header>

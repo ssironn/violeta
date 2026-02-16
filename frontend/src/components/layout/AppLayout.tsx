@@ -13,9 +13,17 @@ export function AppLayout({
   rightPanel,
   showRightPanel = true,
 }: AppLayoutProps) {
-  const [splitPercent, setSplitPercent] = useState(50)
+  const [splitPercent, setSplitPercent] = useState(() => {
+    const saved = localStorage.getItem('violeta-split')
+    if (saved) {
+      const n = parseFloat(saved)
+      if (!isNaN(n) && n >= 20 && n <= 80) return n
+    }
+    return 50
+  })
   const containerRef = useRef<HTMLDivElement>(null)
   const dragging = useRef(false)
+  const splitRef = useRef(splitPercent)
 
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -23,6 +31,10 @@ export function AppLayout({
     document.body.style.cursor = 'col-resize'
     document.body.style.userSelect = 'none'
   }, [])
+
+  useEffect(() => {
+    splitRef.current = splitPercent
+  }, [splitPercent])
 
   useEffect(() => {
     function onMouseMove(e: MouseEvent) {
@@ -38,6 +50,7 @@ export function AppLayout({
         dragging.current = false
         document.body.style.cursor = ''
         document.body.style.userSelect = ''
+        localStorage.setItem('violeta-split', String(splitRef.current))
       }
     }
 

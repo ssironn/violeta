@@ -78,11 +78,20 @@ function EditableCodeArea({
   textareaRef: React.RefObject<HTMLTextAreaElement | null>
 }) {
   const gutterRef = useRef<HTMLDivElement>(null)
+  const highlightRef = useRef<HTMLPreElement>(null)
   const lines = value.split('\n')
 
+  const highlighted = useMemo(() => syntaxHighlight(value) + '\n', [value])
+
   const handleScroll = useCallback(() => {
-    if (textareaRef.current && gutterRef.current) {
-      gutterRef.current.scrollTop = textareaRef.current.scrollTop
+    if (textareaRef.current) {
+      if (gutterRef.current) {
+        gutterRef.current.scrollTop = textareaRef.current.scrollTop
+      }
+      if (highlightRef.current) {
+        highlightRef.current.scrollTop = textareaRef.current.scrollTop
+        highlightRef.current.scrollLeft = textareaRef.current.scrollLeft
+      }
     }
   }, [textareaRef])
 
@@ -107,17 +116,25 @@ function EditableCodeArea({
           <div key={i} className="latex-editor-gutter-line">{i + 1}</div>
         ))}
       </div>
-      <textarea
-        ref={textareaRef}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onScroll={handleScroll}
-        onKeyDown={handleKeyDown}
-        className="latex-editor-textarea"
-        spellCheck={false}
-        autoCapitalize="off"
-        autoCorrect="off"
-      />
+      <div className="latex-editor-highlight-wrap">
+        <pre
+          ref={highlightRef}
+          className="latex-editor-highlight"
+          aria-hidden="true"
+          dangerouslySetInnerHTML={{ __html: highlighted }}
+        />
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onScroll={handleScroll}
+          onKeyDown={handleKeyDown}
+          className="latex-editor-textarea"
+          spellCheck={false}
+          autoCapitalize="off"
+          autoCorrect="off"
+        />
+      </div>
     </div>
   )
 }
