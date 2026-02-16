@@ -21,7 +21,7 @@ function buildAxisOptions(axis: AxisConfig): string[] {
   if (axis.ymin) opts.push(`ymin=${axis.ymin}`)
   if (axis.ymax) opts.push(`ymax=${axis.ymax}`)
   if (axis.grid !== 'none') opts.push(`grid=${axis.grid}`)
-  if (axis.showAxis === false) opts.push('axis lines=none')
+  if (axis.showAxis === false) opts.push('hide axis')
   if (axis.backgroundColor) opts.push(`axis background/.style={fill=${colorToTikz(axis.backgroundColor)}}`)
   if (axis.width) opts.push(`width=${axis.width}`)
   if (axis.height) opts.push(`height=${axis.height}`)

@@ -185,6 +185,19 @@ export function renderPlotSvg(container: HTMLElement, config: PgfplotConfig, wid
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
   svg.style.display = 'block'
 
+  const showAxis = config.axis.showAxis !== false
+
+  // Background
+  if (config.axis.backgroundColor) {
+    const bg = document.createElementNS(SVG_NS, 'rect')
+    bg.setAttribute('x', String(padding))
+    bg.setAttribute('y', String(padding))
+    bg.setAttribute('width', String(plotW))
+    bg.setAttribute('height', String(plotH))
+    bg.setAttribute('fill', config.axis.backgroundColor)
+    svg.appendChild(bg)
+  }
+
   // Grid
   const xRange = bounds.xmax - bounds.xmin
   const yRange = bounds.ymax - bounds.ymin
@@ -201,19 +214,21 @@ export function renderPlotSvg(container: HTMLElement, config: PgfplotConfig, wid
     line.setAttribute('x2', String(sx))
     line.setAttribute('y2', String(height - padding))
     line.setAttribute('stroke', COLORS.grid)
-    line.setAttribute('stroke-width', isAxis ? '1.5' : '0.5')
-    line.setAttribute('opacity', isAxis ? '0.5' : '0.15')
+    line.setAttribute('stroke-width', isAxis && showAxis ? '1.5' : '0.5')
+    line.setAttribute('opacity', isAxis && showAxis ? '0.5' : '0.15')
     svg.appendChild(line)
 
-    const label = document.createElementNS(SVG_NS, 'text')
-    label.setAttribute('x', String(sx))
-    label.setAttribute('y', String(height - padding + 14))
-    label.setAttribute('text-anchor', 'middle')
-    label.setAttribute('fill', COLORS.text)
-    label.setAttribute('font-size', '10')
-    label.setAttribute('opacity', '0.7')
-    label.textContent = String(Number(x.toFixed(6)))
-    svg.appendChild(label)
+    if (showAxis) {
+      const label = document.createElementNS(SVG_NS, 'text')
+      label.setAttribute('x', String(sx))
+      label.setAttribute('y', String(height - padding + 14))
+      label.setAttribute('text-anchor', 'middle')
+      label.setAttribute('fill', COLORS.text)
+      label.setAttribute('font-size', '10')
+      label.setAttribute('opacity', '0.7')
+      label.textContent = String(Number(x.toFixed(6)))
+      svg.appendChild(label)
+    }
   }
 
   const yStart = Math.ceil(bounds.ymin / yStep) * yStep
@@ -226,19 +241,21 @@ export function renderPlotSvg(container: HTMLElement, config: PgfplotConfig, wid
     line.setAttribute('x2', String(width - padding))
     line.setAttribute('y2', String(sy))
     line.setAttribute('stroke', COLORS.grid)
-    line.setAttribute('stroke-width', isAxis ? '1.5' : '0.5')
-    line.setAttribute('opacity', isAxis ? '0.5' : '0.15')
+    line.setAttribute('stroke-width', isAxis && showAxis ? '1.5' : '0.5')
+    line.setAttribute('opacity', isAxis && showAxis ? '0.5' : '0.15')
     svg.appendChild(line)
 
-    const label = document.createElementNS(SVG_NS, 'text')
-    label.setAttribute('x', String(padding - 6))
-    label.setAttribute('y', String(sy + 3))
-    label.setAttribute('text-anchor', 'end')
-    label.setAttribute('fill', COLORS.text)
-    label.setAttribute('font-size', '10')
-    label.setAttribute('opacity', '0.7')
-    label.textContent = String(Number(y.toFixed(6)))
-    svg.appendChild(label)
+    if (showAxis) {
+      const label = document.createElementNS(SVG_NS, 'text')
+      label.setAttribute('x', String(padding - 6))
+      label.setAttribute('y', String(sy + 3))
+      label.setAttribute('text-anchor', 'end')
+      label.setAttribute('fill', COLORS.text)
+      label.setAttribute('font-size', '10')
+      label.setAttribute('opacity', '0.7')
+      label.textContent = String(Number(y.toFixed(6)))
+      svg.appendChild(label)
+    }
   }
 
   // Render plots

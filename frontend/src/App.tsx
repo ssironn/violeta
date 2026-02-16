@@ -203,8 +203,8 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
         setTikzEdit({ shapes: detail.shapes || [], pos: detail.pos, mode: 'edit' })
       }
     }
-    document.addEventListener('tikz-figure-click', handleTikzClick)
-    return () => document.removeEventListener('tikz-figure-click', handleTikzClick)
+    window.addEventListener('tikz-figure-click', handleTikzClick)
+    return () => window.removeEventListener('tikz-figure-click', handleTikzClick)
   }, [])
 
   useEffect(() => {
@@ -214,8 +214,8 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
         setPlotEdit({ config: detail.plotConfig || createDefaultPgfplotConfig(), pos: detail.pos, mode: 'edit' })
       }
     }
-    document.addEventListener('pgfplot-block-click', handlePlotClick)
-    return () => document.removeEventListener('pgfplot-block-click', handlePlotClick)
+    window.addEventListener('pgfplot-block-click', handlePlotClick)
+    return () => window.removeEventListener('pgfplot-block-click', handlePlotClick)
   }, [])
 
   // Load initial document
