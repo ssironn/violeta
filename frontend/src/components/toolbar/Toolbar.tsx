@@ -288,6 +288,7 @@ export function Toolbar({
                 <MenuItem icon={<GraduationCap size={14} />} label="Exercício" onClick={() => (editor.commands as any).insertCallout({ calloutType: 'exercise' })} />
                 <MenuItem icon={<Lightbulb size={14} />} label="Observação" onClick={() => (editor.commands as any).insertCallout({ calloutType: 'remark' })} />
                 <MenuItem icon={<BookOpen size={14} />} label="Proposição" onClick={() => (editor.commands as any).insertCallout({ calloutType: 'proposition' })} />
+                <MenuItem icon={<GraduationCap size={14} />} label="Questão" onClick={() => (editor.commands as any).insertCallout({ calloutType: 'questao' })} />
               </MenuDropdown>
 
               <MenuDropdown label="Formatar">
@@ -400,12 +401,27 @@ export function Toolbar({
             { align: 'center', icon: <AlignCenter size={13} />, label: 'Centralizar' },
             { align: 'right', icon: <AlignRight size={13} />, label: 'Alinhar à direita' },
           ] as const).map(({ align, icon, label }) => {
-            const active = editor.isActive({ textAlign: align })
+            // Detect if an image node is selected
+            const { selection } = editor.state
+            const selectedNode = 'node' in selection ? (selection as any).node : null
+            const isImageSelected = selectedNode?.type.name === 'image'
+            const active = isImageSelected
+              ? (selectedNode.attrs.alignment || 'center') === align
+              : editor.isActive({ textAlign: align })
             return (
               <button
                 key={align}
                 title={label}
-                onClick={() => editor.chain().focus().setTextAlign(align).run()}
+                onClick={() => {
+                  if (isImageSelected) {
+                    ;(editor.commands as any).updateImageBlock({
+                      pos: (selection as any).from,
+                      attrs: { alignment: align },
+                    })
+                  } else {
+                    editor.chain().focus().setTextAlign(align).run()
+                  }
+                }}
                 className={`toolbar-align-btn ${active ? 'toolbar-align-btn--active' : ''}`}
               >
                 {icon}
@@ -453,8 +469,8 @@ export function Toolbar({
           </button>
         )}
 
-        {/* Spacer to push right-side controls */}
-        <div className="flex-1" />
+        {/* Spacer to push right-side controls (hidden on mobile to allow wrap) */}
+        {!isMobile && <div className="flex-1" />}
 
         {/* View mode segmented control — desktop only (mobile switch is in menubar) */}
         {onViewModeChange && !isMobile && (

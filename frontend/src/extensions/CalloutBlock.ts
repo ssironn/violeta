@@ -13,6 +13,7 @@ export const CALLOUT_TYPES = [
   { value: 'proposition', label: 'Proposição', color: '#14b8a6' },
   { value: 'conjecture', label: 'Conjectura', color: '#f97316' },
   { value: 'note', label: 'Nota', color: '#64748b' },
+  { value: 'questao', label: 'Questão', color: '#6b7280' },
 ] as const
 
 export type CalloutType = (typeof CALLOUT_TYPES)[number]['value']

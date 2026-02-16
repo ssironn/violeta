@@ -3,8 +3,15 @@ import { X, Link, Upload } from 'lucide-react'
 
 type Mode = 'url' | 'upload'
 
+const WIDTH_PRESETS = [
+  { label: '25%', value: 0.25 },
+  { label: '50%', value: 0.5 },
+  { label: '75%', value: 0.75 },
+  { label: '100%', value: 1.0 },
+]
+
 interface ImageInsertModalProps {
-  onInsert: (src: string, alt: string, assetFilename?: string) => void
+  onInsert: (src: string, alt: string, assetFilename?: string, options?: string) => void
   onRegisterAsset?: (file: File, dataUrl: string) => string
   onClose: () => void
 }
@@ -16,6 +23,7 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
   const [fileName, setFileName] = useState<string | null>(null)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [alt, setAlt] = useState('')
+  const [widthValue, setWidthValue] = useState(0.8)
   const [dragging, setDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -28,7 +36,8 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
     if (mode === 'upload' && uploadedFile && fileData && onRegisterAsset) {
       assetFilename = onRegisterAsset(uploadedFile, fileData)
     }
-    onInsert(src, alt.trim(), assetFilename)
+    const options = `width=${widthValue}\\textwidth`
+    onInsert(src, alt.trim(), assetFilename, options)
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -89,7 +98,7 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
 
       {/* Modal */}
       <div
-        className="relative border border-surface-border rounded-2xl shadow-[0_24px_80px_rgba(88,28,135,0.3)] overflow-hidden w-full max-w-lg mx-4 v-modal-bg"
+        className="relative border border-surface-border rounded-2xl shadow-[0_24px_80px_rgba(88,28,135,0.3)] overflow-hidden w-full max-w-lg mx-4 max-h-[90vh] flex flex-col v-modal-bg"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b v-modal-divider">
@@ -121,7 +130,7 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
         </div>
 
         {/* Body */}
-        <div className="px-5 py-4 space-y-3">
+        <div className="px-5 py-4 space-y-3 overflow-y-auto flex-1 min-h-0">
           {/* URL input */}
           {mode === 'url' && (
             <div>
@@ -187,6 +196,38 @@ export function ImageInsertModal({ onInsert, onRegisterAsset, onClose }: ImageIn
               onChange={(e) => setAlt(e.target.value)}
               placeholder="Descrição da imagem"
               className="w-full v-modal-input rounded-lg px-3 py-2 text-sm text-accent-100 placeholder:text-accent-100/20 focus:outline-none focus:border-accent-500/50 focus:ring-1 focus:ring-accent-500/20 transition-all"
+            />
+          </div>
+
+          {/* Width control */}
+          <div>
+            <label className="block text-[11px] font-semibold uppercase tracking-widest text-accent-300/70 mb-1.5">
+              Largura — {Math.round(widthValue * 100)}%
+            </label>
+            <div className="flex items-center gap-2 mb-2">
+              {WIDTH_PRESETS.map((preset) => (
+                <button
+                  key={preset.value}
+                  type="button"
+                  onClick={() => setWidthValue(preset.value)}
+                  className={`px-3 py-1 text-[12px] font-medium rounded-lg transition-all ${
+                    widthValue === preset.value
+                      ? 'bg-accent-500/20 text-accent-200 border border-accent-500/30'
+                      : 'text-accent-300/40 hover:text-accent-300/70 hover:bg-white/[0.03] border border-transparent'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+            <input
+              type="range"
+              min={10}
+              max={100}
+              step={5}
+              value={Math.round(widthValue * 100)}
+              onChange={(e) => setWidthValue(parseInt(e.target.value) / 100)}
+              className="w-full accent-purple-500"
             />
           </div>
 

@@ -158,6 +158,7 @@ function renderGrid(
   svgH: number,
   padding: number,
   showAxis: boolean = true,
+  showGrid: boolean = true,
 ): React.ReactNode[] {
   const elements: React.ReactNode[] = []
 
@@ -172,17 +173,32 @@ function renderGrid(
   for (let x = xStart; x <= bounds.xmax; x += xStep) {
     const sx = toX(x)
     const isAxis = Math.abs(x) < xStep * 0.01
-    // When showAxis is false, render axis lines as normal grid lines
-    elements.push(
-      <line
-        key={`gv${x}`}
-        x1={sx} y1={padding} x2={sx} y2={svgH - padding}
-        stroke={COLORS.grid}
-        strokeWidth={isAxis && showAxis ? 1.5 : 0.5}
-        opacity={isAxis && showAxis ? 0.5 : 0.15}
-      />
-    )
-    // Labels only when showAxis is true
+
+    // Axis line (x=0): thin, light — controlled by showAxis
+    // Grid lines: controlled by showGrid
+    if (isAxis && showAxis) {
+      elements.push(
+        <line
+          key={`gv${x}`}
+          x1={sx} y1={padding} x2={sx} y2={svgH - padding}
+          stroke={COLORS.grid}
+          strokeWidth={0.8}
+          opacity={0.3}
+        />
+      )
+    } else if (!isAxis && showGrid) {
+      elements.push(
+        <line
+          key={`gv${x}`}
+          x1={sx} y1={padding} x2={sx} y2={svgH - padding}
+          stroke={COLORS.grid}
+          strokeWidth={0.5}
+          opacity={0.15}
+        />
+      )
+    }
+
+    // Labels when showAxis is true
     {showAxis && elements.push(
       <text
         key={`lv${x}`}
@@ -202,16 +218,30 @@ function renderGrid(
   for (let y = yStart; y <= bounds.ymax; y += yStep) {
     const sy = toY(y)
     const isAxis = Math.abs(y) < yStep * 0.01
-    elements.push(
-      <line
-        key={`gh${y}`}
-        x1={padding} y1={sy} x2={svgW - padding} y2={sy}
-        stroke={COLORS.grid}
-        strokeWidth={isAxis && showAxis ? 1.5 : 0.5}
-        opacity={isAxis && showAxis ? 0.5 : 0.15}
-      />
-    )
-    // Labels only when showAxis is true
+
+    if (isAxis && showAxis) {
+      elements.push(
+        <line
+          key={`gh${y}`}
+          x1={padding} y1={sy} x2={svgW - padding} y2={sy}
+          stroke={COLORS.grid}
+          strokeWidth={0.8}
+          opacity={0.3}
+        />
+      )
+    } else if (!isAxis && showGrid) {
+      elements.push(
+        <line
+          key={`gh${y}`}
+          x1={padding} y1={sy} x2={svgW - padding} y2={sy}
+          stroke={COLORS.grid}
+          strokeWidth={0.5}
+          opacity={0.15}
+        />
+      )
+    }
+
+    // Labels when showAxis is true
     {showAxis && elements.push(
       <text
         key={`lh${y}`}
@@ -436,7 +466,10 @@ export function PlotPreview({
     const toY = (y: number) => padding + ((bounds.ymax - y) / (bounds.ymax - bounds.ymin)) * plotH
 
     const showAxisLines = config.axis.showAxis !== false
-    const gridElements = showGrid ? renderGrid(bounds, toX, toY, width, height, padding, showAxisLines) : []
+    const showGridLines = config.axis.showGrid !== false
+    const gridElements = (showGrid && (showAxisLines || showGridLines))
+      ? renderGrid(bounds, toX, toY, width, height, padding, showAxisLines, showGridLines)
+      : []
 
     const plotElements = config.plots.map(plot => {
       const dimmed = selectedId != null && plot.id !== selectedId

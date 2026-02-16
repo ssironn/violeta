@@ -69,7 +69,7 @@ function getBlockLabel(node: ProseMirrorNode): string {
         theorem: 'Teorema', definition: 'Definição', lemma: 'Lema',
         proof: 'Demonstração', corollary: 'Corolário', remark: 'Observação',
         example: 'Exemplo', exercise: 'Exercício', proposition: 'Proposição',
-        conjecture: 'Conjectura', note: 'Nota',
+        conjecture: 'Conjectura', note: 'Nota', questao: 'Questão',
       }
       return labels[node.attrs.calloutType as string] ?? 'Ambiente'
     }

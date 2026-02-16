@@ -9,6 +9,7 @@ export interface AxisConfig {
   ymin: string
   ymax: string
   grid: 'none' | 'major' | 'minor' | 'both'
+  showGrid: boolean
   legendPos: 'north east' | 'north west' | 'south east' | 'south west' | 'outer north east'
   width: string
   height: string
@@ -69,6 +70,7 @@ export function createDefaultAxisConfig(): AxisConfig {
     ymin: '',
     ymax: '',
     grid: 'major',
+    showGrid: true,
     legendPos: 'north east',
     width: '10cm',
     height: '7cm',

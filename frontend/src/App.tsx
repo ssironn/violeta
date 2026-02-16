@@ -26,6 +26,7 @@ import { EditorArea } from './components/editor/EditorArea'
 import { Toolbar, type ViewMode } from './components/toolbar/Toolbar'
 import { MathEditRouter } from './components/math-editors/MathEditRouter'
 import { ImageInsertModal } from './components/editor/ImageInsertModal'
+import { ImageEditModal } from './components/editor/ImageEditModal'
 import { GoogleDriveModal } from './components/google/GoogleDriveModal'
 import { getDocument, updateDocument, listDocuments } from './api/documents'
 import { FeedPage } from './components/publications/FeedPage'
@@ -94,6 +95,7 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
   const [publishModalOpen, setPublishModalOpen] = useState(false)
   const [tikzEdit, setTikzEdit] = useState<{ shapes: TikzShape[]; pos: number; mode: 'insert' | 'edit' } | null>(null)
   const [plotEdit, setPlotEdit] = useState<{ config: PgfplotConfig; pos: number; mode: 'insert' | 'edit' } | null>(null)
+  const [imageEdit, setImageEdit] = useState<{ src: string; alt: string; assetFilename: string; options: string; position: string; pos: number } | null>(null)
 
   const isMobile = useIsMobile()
   const [currentDocId] = useState<string | null>(initialDocId)
@@ -129,7 +131,30 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
 
   const effectiveLatex = viewMode === 'code' && manualLatex !== null ? manualLatex : generatedLatex
 
-  const { pdfUrl, pdfBlob, compiling: pdfCompiling, error: pdfError, autoCompile, setAutoCompile, compile } = usePdfCompiler(effectiveLatex, getCompileAssets)
+  // Collect compile assets from both the registry and the editor content.
+  // The registry alone misses images loaded from saved documents.
+  const getAllCompileAssets = useCallback(() => {
+    const registered = getCompileAssets()
+    const registeredNames = new Set(registered.map((a) => a.filename))
+
+    // Scan editor content for image nodes with base64 src + assetFilename
+    if (editor) {
+      editor.state.doc.descendants((node) => {
+        if (node.type.name === 'image') {
+          const src = node.attrs.src as string | undefined
+          const assetFilename = node.attrs.assetFilename as string | undefined
+          if (src?.startsWith('data:') && assetFilename && !registeredNames.has(assetFilename)) {
+            registered.push({ filename: assetFilename, dataUrl: src })
+            registeredNames.add(assetFilename)
+          }
+        }
+      })
+    }
+
+    return registered
+  }, [editor, getCompileAssets])
+
+  const { pdfUrl, pdfBlob, compiling: pdfCompiling, error: pdfError, autoCompile, setAutoCompile, compile } = usePdfCompiler(effectiveLatex, getAllCompileAssets)
 
   function handleViewModeChange(mode: ViewMode) {
     if (mode === viewMode) return
@@ -227,6 +252,24 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
     }
     window.addEventListener('tikz-figure-click', handleTikzClick)
     return () => window.removeEventListener('tikz-figure-click', handleTikzClick)
+  }, [])
+
+  useEffect(() => {
+    function handleImageClick(e: Event) {
+      const detail = (e as CustomEvent).detail
+      if (detail) {
+        setImageEdit({
+          src: detail.src || '',
+          alt: detail.alt || '',
+          assetFilename: detail.assetFilename || '',
+          options: detail.options || 'width=0.8\\textwidth',
+          position: detail.position || 'h',
+          pos: detail.pos,
+        })
+      }
+    }
+    window.addEventListener('image-block-click', handleImageClick)
+    return () => window.removeEventListener('image-block-click', handleImageClick)
   }, [])
 
   useEffect(() => {
@@ -400,6 +443,23 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
     editor.commands.focus()
   }
 
+  function handleImageEditSave(attrs: { alt: string; options: string }) {
+    if (!imageEdit || !editor) return
+    ;(editor.commands as any).updateImageBlock({
+      pos: imageEdit.pos,
+      attrs: { alt: attrs.alt, options: attrs.options },
+    })
+    setImageEdit(null)
+    editor.commands.focus()
+  }
+
+  function handleImageEditDelete() {
+    if (!imageEdit || !editor) return
+    ;(editor.commands as any).deleteImageBlock({ pos: imageEdit.pos })
+    setImageEdit(null)
+    editor.commands.focus()
+  }
+
   return (
     <>
       <AppLayout
@@ -479,12 +539,22 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
       )}
       {imageModalOpen && (
         <ImageInsertModal
-          onInsert={(src, alt, assetFilename) => {
-            editor!.chain().focus().setImage({ src, alt, assetFilename } as any).run()
+          onInsert={(src, alt, assetFilename, options) => {
+            editor!.chain().focus().setImage({ src, alt, assetFilename, options: options || 'width=0.8\\textwidth' } as any).run()
             setImageModalOpen(false)
           }}
           onRegisterAsset={registerUploadedFile}
           onClose={() => setImageModalOpen(false)}
+        />
+      )}
+      {imageEdit && (
+        <ImageEditModal
+          src={imageEdit.src}
+          alt={imageEdit.alt}
+          options={imageEdit.options}
+          onSave={handleImageEditSave}
+          onDelete={handleImageEditDelete}
+          onClose={() => setImageEdit(null)}
         />
       )}
       {googleDriveModalOpen && (

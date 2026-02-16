@@ -5,7 +5,7 @@ import Underline from '@tiptap/extension-underline'
 import TextAlign from '@tiptap/extension-text-align'
 import { TextStyle } from '@tiptap/extension-text-style'
 import { Color } from '@tiptap/extension-color'
-import Image from '@tiptap/extension-image'
+import { ImageBlock } from '../extensions/ImageBlock'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import { Mathematics } from '@tiptap/extension-mathematics'
@@ -20,6 +20,7 @@ import { BlockInsertButton } from '../extensions/BlockInsertButton'
 import { SearchHighlight } from '../extensions/SearchHighlight'
 import { TikzFigureBlock } from '../extensions/TikzFigureBlock'
 import { PgfplotBlock } from '../extensions/PgfplotBlock'
+import { HardBreakSpacing } from '../extensions/HardBreakSpacing'
 
 export interface MathEditState {
   latex: string
@@ -49,24 +50,16 @@ export function useVioletaEditor({ onMathClick }: UseVioletaEditorOptions) {
         heading: {
           levels: [1, 2, 3, 4],
         },
+        hardBreak: false,
       }),
+      HardBreakSpacing,
       Underline,
       TextAlign.configure({
         types: ['heading', 'paragraph', 'tikzFigure', 'pgfplotBlock', 'rawLatex', 'latexTable', 'mathEnvironment', 'calloutBlock'],
       }),
       TextStyle,
       Color,
-      Image.extend({
-        addAttributes() {
-          return {
-            ...this.parent?.(),
-            assetFilename: { default: null },
-          }
-        },
-      }).configure({
-        inline: false,
-        allowBase64: true,
-      }),
+      ImageBlock,
       Link.configure({
         openOnClick: false,
         autolink: true,

@@ -384,6 +384,18 @@ export function PlotConfigForm({ plot, axis, onPlotChange, onAxisChange }: PlotC
         </FieldGroup>
 
         <FieldGroup>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={axis.showGrid !== false}
+              onChange={(e) => updateAxis({ showGrid: e.target.checked })}
+              className="accent-accent-500"
+            />
+            <FieldLabel>Mostrar grade</FieldLabel>
+          </div>
+        </FieldGroup>
+
+        <FieldGroup>
           <FieldLabel>Cor de fundo</FieldLabel>
           <div className="flex items-center gap-2">
             <div className="relative">
@@ -440,25 +452,27 @@ export function PlotConfigForm({ plot, axis, onPlotChange, onAxisChange }: PlotC
           </FieldGroup>
         </FieldRow>
 
-        <FieldGroup>
-          <FieldLabel>Grade</FieldLabel>
-          <div className="flex gap-1.5">
-            {(['none', 'major', 'minor', 'both'] as const).map((g) => (
-              <button
-                key={g}
-                type="button"
-                onClick={() => updateAxis({ grid: g })}
-                className={`px-3 py-1.5 rounded-lg border text-[12px] transition-colors ${
-                  axis.grid === g
-                    ? 'bg-accent-500/20 border-accent-500/40 text-accent-200'
-                    : 'v-modal-input text-accent-400/60 hover:text-accent-300'
-                }`}
-              >
-                {g === 'none' ? 'Nenhuma' : g}
-              </button>
-            ))}
-          </div>
-        </FieldGroup>
+        {axis.showGrid !== false && (
+          <FieldGroup>
+            <FieldLabel>Tipo de grade</FieldLabel>
+            <div className="flex gap-1.5">
+              {(['major', 'minor', 'both'] as const).map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => updateAxis({ grid: g })}
+                  className={`px-3 py-1.5 rounded-lg border text-[12px] transition-colors ${
+                    axis.grid === g
+                      ? 'bg-accent-500/20 border-accent-500/40 text-accent-200'
+                      : 'v-modal-input text-accent-400/60 hover:text-accent-300'
+                  }`}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+          </FieldGroup>
+        )}
 
         <FieldRow>
           <FieldGroup>

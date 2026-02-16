@@ -50,7 +50,14 @@ function parseAxisOptions(raw: string): AxisConfig {
       case 'height': axis.height = val; break
       case 'grid': {
         const g = val as AxisConfig['grid']
-        if (['none', 'major', 'minor', 'both'].includes(g)) axis.grid = g
+        if (['none', 'major', 'minor', 'both'].includes(g)) {
+          if (g === 'none') {
+            axis.showGrid = false
+          } else {
+            axis.grid = g
+            axis.showGrid = true
+          }
+        }
         break
       }
       case 'legend pos': {

@@ -20,11 +20,21 @@ function buildAxisOptions(axis: AxisConfig): string[] {
   if (axis.xmax) opts.push(`xmax=${axis.xmax}`)
   if (axis.ymin) opts.push(`ymin=${axis.ymin}`)
   if (axis.ymax) opts.push(`ymax=${axis.ymax}`)
-  if (axis.grid !== 'none') opts.push(`grid=${axis.grid}`)
+  if (axis.showGrid !== false && axis.grid !== 'none') opts.push(`grid=${axis.grid}`)
   if (axis.showAxis === false) opts.push('hide axis')
   if (axis.backgroundColor) opts.push(`axis background/.style={fill=${colorToTikz(axis.backgroundColor)}}`)
   if (axis.width) opts.push(`width=${axis.width}`)
   if (axis.height) opts.push(`height=${axis.height}`)
+
+  // Draw x=0 and y=0 axis lines (thin, light gray)
+  if (axis.showAxis !== false) {
+    opts.push('extra x ticks={0}')
+    opts.push('extra x tick labels={}')
+    opts.push('extra x tick style={grid=major, grid style={black!40, line width=0.2mm}}')
+    opts.push('extra y ticks={0}')
+    opts.push('extra y tick labels={}')
+    opts.push('extra y tick style={grid=major, grid style={black!40, line width=0.2mm}}')
+  }
 
   return opts
 }
@@ -50,13 +60,21 @@ function buildPlotOptions(plot: PlotSeries): string[] {
   return opts
 }
 
+/** Normalize math expression to PGF-compatible syntax */
+function normalizeToPgf(expr: string): string {
+  // log() → ln() (PGF uses ln for natural logarithm; log is not defined)
+  // Preserve log2() and log10() which are valid in PGF
+  return expr.replace(/\blog(?!2|10)(\s*\()/g, 'ln$1')
+}
+
 function generateFunction2D(plot: FunctionPlot2D): string {
   const opts = buildPlotOptions(plot)
   opts.push(`domain=${plot.domain[0]}:${plot.domain[1]}`)
   opts.push(`samples=${plot.samples}`)
 
+  const expr = normalizeToPgf(plot.expression)
   const lines: string[] = []
-  lines.push(`  \\addplot[${opts.join(', ')}] {${plot.expression}};`)
+  lines.push(`  \\addplot[${opts.join(', ')}] {${expr}};`)
   if (plot.legendEntry) {
     lines.push(`  \\addlegendentry{${plot.legendEntry}}`)
   }
@@ -73,8 +91,9 @@ function generateFunction3D(plot: FunctionPlot3D): string {
     opts.push(`colormap name=${plot.colormap}`)
   }
 
+  const expr = normalizeToPgf(plot.expression)
   const lines: string[] = []
-  lines.push(`  \\addplot3[${opts.join(', ')}] {${plot.expression}};`)
+  lines.push(`  \\addplot3[${opts.join(', ')}] {${expr}};`)
   if (plot.legendEntry) {
     lines.push(`  \\addlegendentry{${plot.legendEntry}}`)
   }

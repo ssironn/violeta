@@ -732,13 +732,19 @@ body {
 .block-card-wrapper > .tikz-figure-block,
 .block-card-wrapper > .latex-table-block,
 .block-card-wrapper > .math-env-block,
-.block-card-wrapper > .callout-block,
 .block-card-wrapper > .raw-latex-block {
   display: inline-block;
   max-width: 85%;
   min-width: 280px;
   margin: 0;
   vertical-align: top;
+  text-align: left;
+}
+
+.block-card-wrapper > .callout-block {
+  display: block;
+  width: 100%;
+  margin: 0;
   text-align: left;
 }
 
@@ -2953,10 +2959,10 @@ body {
     display: none;
   }
 
-  /* Formatting toolbar: scroll horizontally */
+  /* Formatting toolbar: wrap instead of scroll */
   .gdocs-toolbar {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    flex-wrap: wrap;
+    overflow-x: visible;
     gap: 2px;
     padding: 4px 8px;
   }

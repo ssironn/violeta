@@ -111,7 +111,8 @@ function processInlineContent(node: JSONContent, escapeText = false): string {
         return child.attrs?.command ?? '\\quad'
       }
       if (child.type === 'hardBreak') {
-        return ' \\\\\n'
+        const spacing = child.attrs?.spacing
+        return spacing ? ` \\\\[${spacing}]\n` : ' \\\\\n'
       }
       if (child.type === 'rawLatex') {
         return child.attrs?.content ?? ''
@@ -199,10 +200,12 @@ function processNode(node: JSONContent): string {
       const assetFilename = node.attrs?.assetFilename ?? ''
       const position = node.attrs?.position ?? 'h'
       const options = node.attrs?.options ?? 'width=0.8\\textwidth'
+      const alignment = node.attrs?.alignment ?? 'center'
+      const alignCmd = alignment === 'left' ? '\\raggedright' : alignment === 'right' ? '\\raggedleft' : '\\centering'
       const isBase64 = src.startsWith('data:')
       const lines = [
         `\\begin{figure}[${position}]`,
-        '  \\centering',
+        `  ${alignCmd}`,
       ]
       if (isBase64 && assetFilename) {
         // Asset registered — use the filename (file sent alongside .tex)
@@ -381,6 +384,7 @@ const CALLOUT_THEOREM_DEFS: Record<string, string> = {
   proposition: '\\newtheorem{proposition}{Proposição}',
   conjecture: '\\newtheorem{conjecture}{Conjectura}',
   note: '\\newtheorem{note}{Nota}',
+  questao: '\\newtheorem{questao}{Questão}',
 }
 
 function collectCalloutTypes(nodes: JSONContent[]): Set<string> {

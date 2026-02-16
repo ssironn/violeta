@@ -55,7 +55,7 @@ export function PdfPanel({
         {compiling && !pdfUrl && (
           <div className="flex-1 flex flex-col items-center justify-center gap-3 text-text-muted">
             <Loader2 size={24} className="animate-spin text-accent-400" />
-            <span className="text-xs">Compilando via texlive.net...</span>
+            <span className="text-xs">Compilando...</span>
           </div>
         )}
 
@@ -88,7 +88,7 @@ export function PdfPanel({
             <div className="flex flex-col gap-2">
               <span className="text-xs">Clique em <strong className="text-accent-500">Compilar</strong> para gerar o PDF.</span>
               <span className="text-[11px] text-text-muted/70 leading-relaxed">
-                O preview mostrado aqui é o resultado final compilado pelo servidor texlive.net.
+                O preview mostrado aqui é o resultado final compilado pelo servidor.
               </span>
             </div>
           </div>

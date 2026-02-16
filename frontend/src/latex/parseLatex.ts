@@ -162,10 +162,17 @@ function parseInline(text: string): JSONContent[] {
   while (i < text.length) {
     if (i === 0 && !text.trim()) break
 
-    // Check for \\ (hard break)
+    // Check for \\ (hard break), optionally followed by [<spacing>]
     if (text[i] === '\\' && text[i + 1] === '\\') {
-      nodes.push({ type: 'hardBreak' })
       i += 2
+      // Consume optional spacing argument \\[0.3cm], \\[1ex], etc.
+      const spacingMatch = text.slice(i).match(/^\[([^\]]*)\]/)
+      const attrs: Record<string, any> = {}
+      if (spacingMatch) {
+        attrs.spacing = spacingMatch[1]
+        i += spacingMatch[0].length
+      }
+      nodes.push({ type: 'hardBreak', ...(Object.keys(attrs).length > 0 ? { attrs } : {}) })
       if (i < text.length && text[i] === '\n') i++
       continue
     }
@@ -290,29 +297,24 @@ function parseInline(text: string): JSONContent[] {
             continue
           }
 
-          // Unknown command with brace group — preserve as rawLatex inline
-          if (text[afterCmd] === '{') {
-            const group = extractBraceGroup(text, afterCmd)
-            const rawContent = text.slice(i, group.end)
-            nodes.push({ type: 'rawLatex', attrs: { content: rawContent, inline: true } })
-            i = group.end
-            continue
-          }
-
-          // Unknown command with [] then {} args — preserve as rawLatex inline
-          if (text[afterCmd] === '[') {
-            const closeBracket = text.indexOf(']', afterCmd)
-            if (closeBracket !== -1) {
-              let end = closeBracket + 1
-              if (end < text.length && text[end] === '{') {
+          // Unknown command with [] and/or {} args — preserve as rawLatex inline
+          // Consume all consecutive [...] and {...} argument groups
+          if (text[afterCmd] === '{' || text[afterCmd] === '[') {
+            let end = afterCmd
+            while (end < text.length && (text[end] === '[' || text[end] === '{')) {
+              if (text[end] === '[') {
+                const closeBracket = text.indexOf(']', end)
+                if (closeBracket === -1) break
+                end = closeBracket + 1
+              } else if (text[end] === '{') {
                 const group = extractBraceGroup(text, end)
                 end = group.end
               }
-              const rawContent = text.slice(i, end)
-              nodes.push({ type: 'rawLatex', attrs: { content: rawContent, inline: true } })
-              i = end
-              continue
             }
+            const rawContent = text.slice(i, end)
+            nodes.push({ type: 'rawLatex', attrs: { content: rawContent, inline: true } })
+            i = end
+            continue
           }
 
           // Standalone command — skip
@@ -509,7 +511,7 @@ const CALLOUT_ENVIRONMENTS = new Set([
   'theorem', 'definition', 'lemma', 'proof',
   'corollary', 'remark', 'example', 'exercise',
   'proposition', 'conjecture', 'note',
-  'ques',
+  'ques', 'questao',
 ])
 
 // ─── Table Parsing ──────────────────────────────────────────────
@@ -729,7 +731,11 @@ function parseBlock(block: string): JSONContent[] {
         src = imgMatch[2]
       }
       alt = extractCaptionFromInner(inner)
-      return [{ type: 'image', attrs: { src, alt, position, options: imgOptions } }]
+      // Detect alignment command
+      let alignment = 'center'
+      if (/\\raggedright\b/.test(inner)) alignment = 'left'
+      else if (/\\raggedleft\b/.test(inner)) alignment = 'right'
+      return [{ type: 'image', attrs: { src, alt, position, options: imgOptions, alignment } }]
     }
 
     // Table environment

@@ -14,6 +14,7 @@ from app.routers.google_drive import router as google_drive_router
 from app.routers.publications import router as publications_router, public_router as publications_public_router
 from app.routers.comments import router as comments_router
 from app.routers.follows import router as follows_router
+from app.routers.compile import router as compile_router
 
 
 @asynccontextmanager
@@ -41,6 +42,7 @@ app.include_router(publications_router)
 app.include_router(publications_public_router)
 app.include_router(comments_router)
 app.include_router(follows_router)
+app.include_router(compile_router)
 
 
 @app.get("/api/health")
