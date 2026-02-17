@@ -664,14 +664,10 @@ function parseBlock(block: string): JSONContent[] {
     return [{ type: 'blockMath', attrs: { latex: blockMathMatch[1].trim(), format: 'brackets' } }]
   }
 
-  // Standalone spacing commands → preserve as rawLatex block
+  // Standalone spacing / layout commands → layoutBlock (visual representation)
   const spacingMatch = trimmed.match(/^\\(vspace|hspace|vfill|hfill|smallskip|medskip|bigskip|newpage|clearpage)\b/)
   if (spacingMatch) {
-    if (STANDALONE_SPACING_COMMANDS.has(spacingMatch[1])) {
-      return [{ type: 'rawLatex', attrs: { content: trimmed } }]
-    }
-    // vspace/hspace with args — also preserve
-    return [{ type: 'rawLatex', attrs: { content: trimmed } }]
+    return [{ type: 'layoutBlock', attrs: { command: trimmed } }]
   }
 
   // Environments

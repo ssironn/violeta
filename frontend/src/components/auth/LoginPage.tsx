@@ -193,7 +193,7 @@ export function LoginPage() {
 
           {/* Footer */}
           <p className="text-text-muted/50 text-[11px] mt-6 tracking-wide">
-            A beautiful way to write LaTeX
+            Uma forma elegante e agradável de gerar LaTeX
           </p>
         </div>
       </div>

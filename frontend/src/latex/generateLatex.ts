@@ -248,6 +248,10 @@ function processNode(node: JSONContent): string {
       return wrapAlignment(rawContent, getAlignment(node))
     }
 
+    case 'layoutBlock': {
+      return (node.attrs?.command ?? '') as string
+    }
+
     case 'latexSpacing': {
       return node.attrs?.command ?? '\\quad'
     }

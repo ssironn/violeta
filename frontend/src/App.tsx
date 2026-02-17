@@ -5,11 +5,13 @@ import { LoginPage } from './components/auth/LoginPage'
 import { SharedDocumentView } from './components/documents/SharedDocumentView'
 import { ShareModal } from './components/documents/ShareModal'
 import { HomeScreen } from './components/home/HomeScreen'
+import { DocumentsPage } from './components/documents/DocumentsPage'
 import { useVioletaEditor, type MathEditState } from './hooks/useVioletaEditor'
 import { useLatexGenerator } from './hooks/useLatexGenerator'
 import { usePdfCompiler } from './hooks/usePdfCompiler'
 import { useLatexSync } from './hooks/useLatexSync'
 import { parseLatex, extractCustomPreamble, mergeWithSnapshot, type TheoremDef } from './latex/parseLatex'
+import { isLayoutCommand } from './extensions/LayoutBlock'
 import { setDynamicCalloutTypes } from './extensions/CalloutBlock'
 import { generateLatex } from './latex/generateLatex'
 import { updateKatexMacros } from './latex/katexMacros'
@@ -87,6 +89,24 @@ function EditorPage() {
   if (!id) return <Navigate to="/" replace />
 
   return <EditorApp initialDocId={id} onGoHome={() => navigate('/')} />
+}
+
+/** Migrate old rawLatex nodes to layoutBlock where applicable */
+function migrateEditorJSON(json: Record<string, any>): Record<string, any> {
+  if (!json?.content) return json
+  return {
+    ...json,
+    content: json.content.map((node: any) => {
+      if (node.type === 'rawLatex' && node.attrs?.content && isLayoutCommand(node.attrs.content)) {
+        return { type: 'layoutBlock', attrs: { command: node.attrs.content } }
+      }
+      // Recurse into nodes with nested content
+      if (node.content) {
+        return migrateEditorJSON(node)
+      }
+      return node
+    }),
+  }
 }
 
 function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome: () => void }) {
@@ -313,7 +333,9 @@ function EditorApp({ initialDocId, onGoHome }: { initialDocId: string; onGoHome:
           updateKatexMacros(preamble)
           if (content.editorJSON) {
             // Prefer saved editor state for perfect round-trip (preserves shapes, plotConfig, etc.)
-            editor.commands.setContent(content.editorJSON)
+            // Migrate old rawLatex nodes that are now layoutBlock
+            const migrated = migrateEditorJSON(content.editorJSON)
+            editor.commands.setContent(migrated)
           } else {
             // Fallback: parse LaTeX source (e.g. imported .tex files)
             const parsed = parseLatex(content.source)
@@ -614,6 +636,7 @@ export default function App() {
         <Route element={<RequireAuth><AppShell /></RequireAuth>}>
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/documents" element={<DocumentsPage />} />
           <Route path="/publication/:id" element={<PublicationPage />} />
           <Route path="/profile/:id" element={<ProfilePage />} />
           <Route path="/" element={<HomeScreen />} />

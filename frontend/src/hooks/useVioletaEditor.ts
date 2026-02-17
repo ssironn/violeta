@@ -21,6 +21,7 @@ import { SearchHighlight } from '../extensions/SearchHighlight'
 import { TikzFigureBlock } from '../extensions/TikzFigureBlock'
 import { PgfplotBlock } from '../extensions/PgfplotBlock'
 import { HardBreakSpacing } from '../extensions/HardBreakSpacing'
+import { LayoutBlock } from '../extensions/LayoutBlock'
 
 export interface MathEditState {
   latex: string
@@ -90,6 +91,7 @@ export function useVioletaEditor({ onMathClick }: UseVioletaEditorOptions) {
       SearchHighlight,
       TikzFigureBlock,
       PgfplotBlock,
+      LayoutBlock,
     ],
     content: '',
     immediatelyRender: true,

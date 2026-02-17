@@ -1,13 +1,16 @@
-import { useState, useEffect, useRef } from 'react'
-import { Plus, FileText, Clock, Trash2, Loader2 } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Plus, FileText, Clock, ArrowRight, Loader2, Sparkles } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import katex from 'katex'
-import { listDocuments, getDocument, createDocument, deleteDocument } from '../../api/documents'
+import { listDocuments, getDocument, createDocument } from '../../api/documents'
 import type { DocumentListItem } from '../../api/documents'
 import { katexMacros } from '../../latex/katexMacros'
 import { parseLatex } from '../../latex/parseLatex'
 import { documentTemplates, templateCategories } from '../../data/documentTemplates'
 import type { DocumentTemplate } from '../../data/documentTemplates'
+import { useAuth } from '../../contexts/AuthContext'
+
+// ── Preview helpers (compact version for recent docs) ──
 
 interface PreviewSegment {
   type: 'text' | 'math'
@@ -19,7 +22,7 @@ interface PreviewLine {
   segments: PreviewSegment[]
 }
 
-function extractPreviewLines(content: Record<string, any>): PreviewLine[] {
+function extractPreviewLines(content: Record<string, any>, maxLines = 3): PreviewLine[] {
   const lines: PreviewLine[] = []
 
   function walkInline(node: any, segments: PreviewSegment[]) {
@@ -38,9 +41,8 @@ function extractPreviewLines(content: Record<string, any>): PreviewLine[] {
   }
 
   function walk(node: any) {
-    if (lines.length >= 4) return
+    if (lines.length >= maxLines) return
     if (!node) return
-
     if (node.type === 'paragraph' || node.type === 'heading') {
       const segments: PreviewSegment[] = []
       if (node.content) {
@@ -50,7 +52,6 @@ function extractPreviewLines(content: Record<string, any>): PreviewLine[] {
       return
     }
     if (node.type === 'rawLatex' && node.attrs?.content) {
-      // Strip $ delimiters for rendering
       let latex = node.attrs.content.trim()
       if (latex.startsWith('$$') && latex.endsWith('$$')) {
         latex = latex.slice(2, -2)
@@ -86,25 +87,22 @@ function extractPreviewLines(content: Record<string, any>): PreviewLine[] {
 
   if (content?.content) {
     for (const node of content.content) {
-      if (lines.length >= 4) break
+      if (lines.length >= maxLines) break
       walk(node)
     }
   }
-
   return lines
 }
 
-function PreviewRenderer({ lines }: { lines: PreviewLine[] }) {
+function MiniPreviewRenderer({ lines }: { lines: PreviewLine[] }) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!ref.current) return
     ref.current.innerHTML = ''
-
     for (const line of lines) {
       const p = document.createElement('div')
       p.className = 'doc-card-preview-line'
-
       for (const seg of line.segments) {
         if (seg.type === 'text') {
           const span = document.createElement('span')
@@ -126,7 +124,6 @@ function PreviewRenderer({ lines }: { lines: PreviewLine[] }) {
           p.appendChild(span)
         }
       }
-
       ref.current.appendChild(p)
     }
   }, [lines])
@@ -142,7 +139,6 @@ function formatDate(iso: string): string {
     const diffMin = Math.floor(diffMs / 60000)
     const diffHr = Math.floor(diffMs / 3600000)
     const diffDay = Math.floor(diffMs / 86400000)
-
     if (diffMin < 1) return 'Agora mesmo'
     if (diffMin < 60) return `${diffMin}min atrás`
     if (diffHr < 24) return `${diffHr}h atrás`
@@ -153,149 +149,79 @@ function formatDate(iso: string): string {
   }
 }
 
-function DocumentCard({
+function getGreeting(): string {
+  const h = new Date().getHours()
+  if (h < 12) return 'Bom dia'
+  if (h < 18) return 'Boa tarde'
+  return 'Boa noite'
+}
+
+// ── Recent Document Card (compact, horizontal) ──
+
+function RecentDocCard({
   doc,
   index,
   onOpen,
-  onDelete,
 }: {
   doc: DocumentListItem
   index: number
   onOpen: () => void
-  onDelete: () => void
 }) {
   const [previewLines, setPreviewLines] = useState<PreviewLine[] | null>(null)
   const [loadingPreview, setLoadingPreview] = useState(true)
-  const [_hovered, setHovered] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState(false)
 
-  // Eagerly load preview on mount
   useEffect(() => {
     getDocument(doc.id)
       .then(full => {
         const content = full.content as Record<string, any>
         if (content?.type === 'latex' && typeof content.source === 'string') {
-          // New format: parse LaTeX to get TipTap JSON, then extract preview
           const parsed = parseLatex(content.source)
-          setPreviewLines(extractPreviewLines(parsed))
+          setPreviewLines(extractPreviewLines(parsed, 3))
         } else {
-          setPreviewLines(extractPreviewLines(content))
+          setPreviewLines(extractPreviewLines(content, 3))
         }
       })
       .catch(() => setPreviewLines([]))
       .finally(() => setLoadingPreview(false))
   }, [doc.id])
 
-  function handleMouseEnter() {
-    setHovered(true)
-  }
-
-  function handleDelete(e: React.MouseEvent) {
-    e.stopPropagation()
-    if (confirmDelete) {
-      onDelete()
-    } else {
-      setConfirmDelete(true)
-      setTimeout(() => setConfirmDelete(false), 3000)
-    }
-  }
-
   return (
-    <div
+    <button
       onClick={onOpen}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={() => { setHovered(false); setConfirmDelete(false) }}
-      className="doc-card group"
-      style={{ animationDelay: `${index * 60}ms` }}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && onOpen()}
+      className="home-recent-card group"
+      style={{ animationDelay: `${index * 70}ms` }}
     >
-      {/* Top accent line */}
-      <div className="doc-card-accent" />
-
-      {/* Content */}
-      <div className="doc-card-body">
-        <div className="doc-card-header">
-          <div className="doc-card-icon">
-            <FileText size={16} />
+      <div className="home-recent-card-accent" />
+      <div className="home-recent-card-body">
+        <div className="home-recent-card-top">
+          <div className="home-recent-card-icon">
+            <FileText size={14} />
           </div>
-          <span className="doc-card-date">
-            <Clock size={10} />
+          <span className="home-recent-card-time">
+            <Clock size={9} />
             {formatDate(doc.updated_at)}
           </span>
         </div>
-
-        <h3 className="doc-card-title">
-          {doc.title || 'Sem título'}
-        </h3>
-
-        {/* Preview area — always visible */}
-        <div className="doc-card-preview doc-card-preview--visible">
+        <h3 className="home-recent-card-title">{doc.title || 'Sem título'}</h3>
+        <div className="home-recent-card-preview">
           {loadingPreview ? (
             <div className="doc-card-preview-loading">
-              <Loader2 size={14} className="animate-spin" />
+              <Loader2 size={12} className="animate-spin" />
             </div>
           ) : previewLines && previewLines.length > 0 ? (
-            <PreviewRenderer lines={previewLines} />
+            <MiniPreviewRenderer lines={previewLines} />
           ) : (
             <p className="doc-card-preview-empty">Documento vazio</p>
           )}
         </div>
       </div>
-
-      {/* Footer */}
-      <div className="doc-card-footer">
-        <span className="doc-card-footer-label">
-          {doc.is_public ? 'Público' : 'Privado'}
-        </span>
-        <button
-          onClick={handleDelete}
-          className={`doc-card-delete ${confirmDelete ? 'doc-card-delete--confirm' : ''}`}
-          title={confirmDelete ? 'Clique para confirmar' : 'Excluir documento'}
-        >
-          <Trash2 size={13} />
-          {confirmDelete && <span>Confirmar</span>}
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function NewDocumentCard({ onCreate, index }: { onCreate: () => void; index: number }) {
-  const [creating, setCreating] = useState(false)
-
-  async function handleCreate() {
-    if (creating) return
-    setCreating(true)
-    await onCreate()
-    setCreating(false)
-  }
-
-  return (
-    <button
-      onClick={handleCreate}
-      disabled={creating}
-      className="new-doc-card"
-      style={{ animationDelay: `${index * 60}ms` }}
-    >
-      <div className="new-doc-card-inner">
-        {creating ? (
-          <Loader2 size={28} className="animate-spin text-accent-400" />
-        ) : (
-          <>
-            <div className="new-doc-card-icon">
-              <Plus size={24} strokeWidth={1.5} />
-            </div>
-            <span className="new-doc-card-label">Novo documento</span>
-          </>
-        )}
-      </div>
     </button>
   )
 }
 
-function TemplateCard({
+// ── Template Card (redesigned for home) ──
+
+function HomeTemplateCard({
   template,
   onClick,
   creating,
@@ -305,28 +231,31 @@ function TemplateCard({
   creating: boolean
 }) {
   const Icon = template.icon
-
   return (
     <button
       onClick={onClick}
       disabled={creating}
-      className="template-card"
+      className="home-template-card"
     >
-      <div className="template-card-icon">
+      <div className="home-template-card-icon">
         {creating ? <Loader2 size={18} className="animate-spin" /> : <Icon size={18} />}
       </div>
-      <div className="template-card-info">
-        <span className="template-card-title">{template.title}</span>
-        <span className="template-card-desc">{template.description}</span>
+      <div className="home-template-card-info">
+        <span className="home-template-card-title">{template.title}</span>
+        <span className="home-template-card-desc">{template.description}</span>
       </div>
     </button>
   )
 }
 
+// ── Main HomeScreen ──
+
 export function HomeScreen() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [documents, setDocuments] = useState<DocumentListItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [creating, setCreating] = useState(false)
   const [creatingTemplateId, setCreatingTemplateId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -336,14 +265,21 @@ export function HomeScreen() {
       .finally(() => setLoading(false))
   }, [])
 
-  async function handleCreate() {
+  const recentDocs = documents
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .slice(0, 6)
+
+  const handleCreate = useCallback(async () => {
+    if (creating) return
+    setCreating(true)
     try {
       const doc = await createDocument()
       navigate(`/document/${doc.id}`)
     } catch (err) {
       console.error(err)
+      setCreating(false)
     }
-  }
+  }, [creating, navigate])
 
   async function handleCreateFromTemplate(template: DocumentTemplate) {
     if (creatingTemplateId) return
@@ -358,70 +294,116 @@ export function HomeScreen() {
     }
   }
 
-  async function handleDelete(id: string) {
-    try {
-      await deleteDocument(id)
-      setDocuments(prev => prev.filter(d => d.id !== id))
-    } catch (err) {
-      console.error(err)
-    }
-  }
+  const firstName = user?.name?.split(' ')[0] || ''
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8">
-      {/* Templates section */}
-      <div className="home-section-header">
-        <h2 className="home-section-title">Começar com um template</h2>
-      </div>
+    <main className="home-page">
+      {/* ── Ambient background ── */}
+      <div className="home-page-bg" />
 
-      <div className="templates-section">
-        {templateCategories.map(cat => {
-          const templates = documentTemplates.filter(t => t.category === cat.id)
-          if (templates.length === 0) return null
-          return (
-            <div key={cat.id} className="template-category">
-              <h3 className="template-category-label">{cat.label}</h3>
-              <div className="template-category-grid">
-                {templates.map(t => (
-                  <TemplateCard
-                    key={t.id}
-                    template={t}
-                    onClick={() => handleCreateFromTemplate(t)}
-                    creating={creatingTemplateId === t.id}
-                  />
-                ))}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Documents section */}
-      <div className="home-section-header" style={{ marginTop: '2rem' }}>
-        <h2 className="home-section-title">Seus documentos</h2>
-        <span className="home-section-count">
-          {documents.length} {documents.length === 1 ? 'documento' : 'documentos'}
-        </span>
-      </div>
-
-      {loading ? (
-        <div className="home-loading">
-          <Loader2 size={28} className="animate-spin text-accent-400" />
+      {/* ── Hero greeting ── */}
+      <section className="home-hero">
+        <div className="home-hero-content">
+          <h1 className="home-hero-greeting">
+            {getGreeting()}{firstName ? `, ${firstName}` : ''}
+          </h1>
+          <p className="home-hero-subtitle">O que vamos escrever hoje?</p>
         </div>
-      ) : (
-        <div className="home-grid">
-          <NewDocumentCard onCreate={handleCreate} index={0} />
-          {documents.map((doc, i) => (
-            <DocumentCard
-              key={doc.id}
-              doc={doc}
-              index={i + 1}
-              onOpen={() => navigate(`/document/${doc.id}`)}
-              onDelete={() => handleDelete(doc.id)}
-            />
-          ))}
+
+        {/* Quick actions */}
+        <div className="home-quick-actions">
+          <button onClick={handleCreate} disabled={creating} className="home-quick-action home-quick-action--primary">
+            {creating ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <Plus size={20} strokeWidth={2} />
+            )}
+            <div className="home-quick-action-text">
+              <span className="home-quick-action-label">Documento em branco</span>
+              <span className="home-quick-action-hint">Comece do zero</span>
+            </div>
+          </button>
+          <button onClick={() => document.getElementById('templates-section')?.scrollIntoView({ behavior: 'smooth' })} className="home-quick-action">
+            <Sparkles size={20} strokeWidth={1.5} />
+            <div className="home-quick-action-text">
+              <span className="home-quick-action-label">Usar template</span>
+              <span className="home-quick-action-hint">Artigos, provas, trabalhos</span>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      {/* ── Recent documents ── */}
+      {!loading && recentDocs.length > 0 && (
+        <section className="home-section">
+          <div className="home-section-head">
+            <h2 className="home-section-label">Documentos recentes</h2>
+            <button
+              onClick={() => navigate('/documents')}
+              className="home-section-link"
+            >
+              Ver todos
+              <ArrowRight size={13} />
+            </button>
+          </div>
+          <div className="home-recent-grid">
+            {recentDocs.map((doc, i) => (
+              <RecentDocCard
+                key={doc.id}
+                doc={doc}
+                index={i}
+                onOpen={() => navigate(`/document/${doc.id}`)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {loading && (
+        <div className="home-loading">
+          <Loader2 size={24} className="animate-spin text-accent-400" />
         </div>
       )}
+
+      {!loading && recentDocs.length === 0 && (
+        <section className="home-empty-state">
+          <div className="home-empty-state-inner">
+            <FileText size={36} strokeWidth={1} className="text-text-muted" />
+            <p className="home-empty-state-text">
+              Nenhum documento ainda. Crie seu primeiro documento ou escolha um template abaixo.
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* ── Templates ── */}
+      <section className="home-section" id="templates-section">
+        <div className="home-section-head">
+          <h2 className="home-section-label">Templates</h2>
+        </div>
+
+        <div className="home-templates-grid">
+          {templateCategories.map(cat => {
+            const templates = documentTemplates.filter(t => t.category === cat.id)
+            if (templates.length === 0) return null
+            return (
+              <div key={cat.id} className="home-template-category">
+                <h3 className="home-template-category-label">{cat.label}</h3>
+                <div className="home-template-category-items">
+                  {templates.map(t => (
+                    <HomeTemplateCard
+                      key={t.id}
+                      template={t}
+                      onClick={() => handleCreateFromTemplate(t)}
+                      creating={creatingTemplateId === t.id}
+                    />
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </section>
     </main>
   )
 }

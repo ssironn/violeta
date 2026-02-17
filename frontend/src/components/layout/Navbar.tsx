@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { FileText, Rss, Globe, LogOut, ChevronDown } from 'lucide-react'
+import { Home, FileText, Rss, Globe, LogOut, ChevronDown } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { ThemePopover } from '../toolbar/ThemePopover'
 
 const TABS = [
-  { label: 'Meus Documentos', path: '/', icon: FileText },
+  { label: 'Início', path: '/', icon: Home },
+  { label: 'Documentos', path: '/documents', icon: FileText },
   { label: 'Feed', path: '/feed', icon: Rss },
   { label: 'Explorar', path: '/explore', icon: Globe },
 ]
