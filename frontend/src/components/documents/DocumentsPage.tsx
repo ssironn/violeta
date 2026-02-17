@@ -17,7 +17,7 @@ interface PreviewLine {
   segments: PreviewSegment[]
 }
 
-function extractPreviewLines(content: Record<string, any>): PreviewLine[] {
+function extractPreviewLines(content: Record<string, any>, maxLines = 6): PreviewLine[] {
   const lines: PreviewLine[] = []
 
   function walkInline(node: any, segments: PreviewSegment[]) {
@@ -36,7 +36,7 @@ function extractPreviewLines(content: Record<string, any>): PreviewLine[] {
   }
 
   function walk(node: any) {
-    if (lines.length >= 4) return
+    if (lines.length >= maxLines) return
     if (!node) return
 
     if (node.type === 'paragraph' || node.type === 'heading') {
@@ -83,7 +83,7 @@ function extractPreviewLines(content: Record<string, any>): PreviewLine[] {
 
   if (content?.content) {
     for (const node of content.content) {
-      if (lines.length >= 4) break
+      if (lines.length >= maxLines) break
       walk(node)
     }
   }
@@ -252,15 +252,17 @@ function DocumentCard({
         </div>
         <h3 className="doc-card-title">{doc.title || 'Sem título'}</h3>
         <div className="doc-card-preview doc-card-preview--visible">
-          {loadingPreview ? (
-            <div className="doc-card-preview-loading">
-              <Loader2 size={14} className="animate-spin" />
-            </div>
-          ) : previewLines && previewLines.length > 0 ? (
-            <PreviewRenderer lines={previewLines} />
-          ) : (
-            <p className="doc-card-preview-empty">Documento vazio</p>
-          )}
+          <div className="doc-card-preview-paper">
+            {loadingPreview ? (
+              <div className="doc-card-preview-loading">
+                <Loader2 size={14} className="animate-spin" />
+              </div>
+            ) : previewLines && previewLines.length > 0 ? (
+              <PreviewRenderer lines={previewLines} />
+            ) : (
+              <p className="doc-card-preview-empty">Documento vazio</p>
+            )}
+          </div>
         </div>
       </div>
       <div className="doc-card-footer">

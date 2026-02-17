@@ -22,7 +22,7 @@ interface PreviewLine {
   segments: PreviewSegment[]
 }
 
-function extractPreviewLines(content: Record<string, any>, maxLines = 3): PreviewLine[] {
+function extractPreviewLines(content: Record<string, any>, maxLines = 5): PreviewLine[] {
   const lines: PreviewLine[] = []
 
   function walkInline(node: any, segments: PreviewSegment[]) {
@@ -176,9 +176,9 @@ function RecentDocCard({
         const content = full.content as Record<string, any>
         if (content?.type === 'latex' && typeof content.source === 'string') {
           const parsed = parseLatex(content.source)
-          setPreviewLines(extractPreviewLines(parsed, 3))
+          setPreviewLines(extractPreviewLines(parsed, 5))
         } else {
-          setPreviewLines(extractPreviewLines(content, 3))
+          setPreviewLines(extractPreviewLines(content, 5))
         }
       })
       .catch(() => setPreviewLines([]))
@@ -204,15 +204,17 @@ function RecentDocCard({
         </div>
         <h3 className="home-recent-card-title">{doc.title || 'Sem título'}</h3>
         <div className="home-recent-card-preview">
-          {loadingPreview ? (
-            <div className="doc-card-preview-loading">
-              <Loader2 size={12} className="animate-spin" />
-            </div>
-          ) : previewLines && previewLines.length > 0 ? (
-            <MiniPreviewRenderer lines={previewLines} />
-          ) : (
-            <p className="doc-card-preview-empty">Documento vazio</p>
-          )}
+          <div className="doc-card-preview-paper">
+            {loadingPreview ? (
+              <div className="doc-card-preview-loading">
+                <Loader2 size={12} className="animate-spin" />
+              </div>
+            ) : previewLines && previewLines.length > 0 ? (
+              <MiniPreviewRenderer lines={previewLines} />
+            ) : (
+              <p className="doc-card-preview-empty">Documento vazio</p>
+            )}
+          </div>
         </div>
       </div>
     </button>
