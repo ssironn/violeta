@@ -55,6 +55,7 @@ export const symbolGroups: SymbolGroup[] = [
       { latex: '\\Rightarrow', display: '\\Rightarrow' },
       { latex: '\\Leftarrow', display: '\\Leftarrow' },
       { latex: '\\leftrightarrow', display: '\\leftrightarrow' },
+      { latex: '\\Leftrightarrow', display: '\\Leftrightarrow' },
       { latex: '\\mapsto', display: '\\mapsto' },
     ],
   },
