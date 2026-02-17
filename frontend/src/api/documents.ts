@@ -28,10 +28,12 @@ export async function getDocument(id: string): Promise<DocumentFull> {
   return res.json()
 }
 
-export async function createDocument(title?: string): Promise<DocumentFull> {
+export async function createDocument(title?: string, content?: Record<string, any>): Promise<DocumentFull> {
+  const body: Record<string, any> = { title: title || 'Untitled' }
+  if (content) body.content = content
   const res = await apiFetch('/documents/', {
     method: 'POST',
-    body: JSON.stringify({ title: title || 'Untitled' }),
+    body: JSON.stringify(body),
   })
   if (!res.ok) throw new Error('Failed to create document')
   return res.json()

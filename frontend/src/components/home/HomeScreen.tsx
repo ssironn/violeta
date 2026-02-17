@@ -6,6 +6,8 @@ import { listDocuments, getDocument, createDocument, deleteDocument } from '../.
 import type { DocumentListItem } from '../../api/documents'
 import { katexMacros } from '../../latex/katexMacros'
 import { parseLatex } from '../../latex/parseLatex'
+import { documentTemplates, templateCategories } from '../../data/documentTemplates'
+import type { DocumentTemplate } from '../../data/documentTemplates'
 
 interface PreviewSegment {
   type: 'text' | 'math'
@@ -293,10 +295,39 @@ function NewDocumentCard({ onCreate, index }: { onCreate: () => void; index: num
   )
 }
 
+function TemplateCard({
+  template,
+  onClick,
+  creating,
+}: {
+  template: DocumentTemplate
+  onClick: () => void
+  creating: boolean
+}) {
+  const Icon = template.icon
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={creating}
+      className="template-card"
+    >
+      <div className="template-card-icon">
+        {creating ? <Loader2 size={18} className="animate-spin" /> : <Icon size={18} />}
+      </div>
+      <div className="template-card-info">
+        <span className="template-card-title">{template.title}</span>
+        <span className="template-card-desc">{template.description}</span>
+      </div>
+    </button>
+  )
+}
+
 export function HomeScreen() {
   const navigate = useNavigate()
   const [documents, setDocuments] = useState<DocumentListItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [creatingTemplateId, setCreatingTemplateId] = useState<string | null>(null)
 
   useEffect(() => {
     listDocuments()
@@ -314,6 +345,19 @@ export function HomeScreen() {
     }
   }
 
+  async function handleCreateFromTemplate(template: DocumentTemplate) {
+    if (creatingTemplateId) return
+    setCreatingTemplateId(template.id)
+    try {
+      const content = { type: 'latex', source: template.latexSource }
+      const doc = await createDocument(template.title, content)
+      navigate(`/document/${doc.id}`)
+    } catch (err) {
+      console.error(err)
+      setCreatingTemplateId(null)
+    }
+  }
+
   async function handleDelete(id: string) {
     try {
       await deleteDocument(id)
@@ -325,7 +369,35 @@ export function HomeScreen() {
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-8">
+      {/* Templates section */}
       <div className="home-section-header">
+        <h2 className="home-section-title">Começar com um template</h2>
+      </div>
+
+      <div className="templates-section">
+        {templateCategories.map(cat => {
+          const templates = documentTemplates.filter(t => t.category === cat.id)
+          if (templates.length === 0) return null
+          return (
+            <div key={cat.id} className="template-category">
+              <h3 className="template-category-label">{cat.label}</h3>
+              <div className="template-category-grid">
+                {templates.map(t => (
+                  <TemplateCard
+                    key={t.id}
+                    template={t}
+                    onClick={() => handleCreateFromTemplate(t)}
+                    creating={creatingTemplateId === t.id}
+                  />
+                ))}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Documents section */}
+      <div className="home-section-header" style={{ marginTop: '2rem' }}>
         <h2 className="home-section-title">Seus documentos</h2>
         <span className="home-section-count">
           {documents.length} {documents.length === 1 ? 'documento' : 'documentos'}
