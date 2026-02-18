@@ -1022,11 +1022,28 @@ function splitIntoBlocks(body: string): string[] {
       continue
     }
 
-    // Heading commands
+    // Heading commands — may span multiple lines if brace group isn't closed
     if (/^\\(part|chapter|section|subsection|subsubsection|paragraph)\*?\{/.test(trimmedLine)) {
       flushCurrent()
-      blocks.push(trimmedLine)
-      i++
+      let headingText = line
+      // Check if the brace group is complete
+      let depth = 0
+      for (const ch of trimmedLine) {
+        if (ch === '{') depth++
+        if (ch === '}') depth--
+      }
+      // Accumulate lines until braces balance
+      let j = i + 1
+      while (depth > 0 && j < lines.length) {
+        headingText += '\n' + lines[j]
+        for (const ch of lines[j]) {
+          if (ch === '{') depth++
+          if (ch === '}') depth--
+        }
+        j++
+      }
+      blocks.push(headingText.trim())
+      i = j
       continue
     }
 

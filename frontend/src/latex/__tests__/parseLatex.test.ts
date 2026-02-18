@@ -77,6 +77,25 @@ describe('parseLatex — CONTENT_DISPLAY_COMMANDS', () => {
   })
 })
 
+describe('parseLatex — multiline headings', () => {
+  it('parses a section title spanning two lines', () => {
+    const doc = parseLatex('\\section{A Very Long\n  Section Title}')
+    const heading = doc.content![0]
+    expect(heading.type).toBe('heading')
+    expect(heading.attrs?.level).toBe(1)
+    const text = heading.content!.map((n: any) => n.text).join('')
+    expect(text).toContain('A Very Long')
+    expect(text).toContain('Section Title')
+  })
+
+  it('parses chapter title spanning multiple lines', () => {
+    const doc = parseLatex('\\chapter{Line One\nLine Two\nLine Three}')
+    const heading = doc.content![0]
+    expect(heading.type).toBe('heading')
+    expect(heading.attrs?.level).toBe(0)
+  })
+})
+
 describe('parseLatex — inline math edge cases', () => {
   it('does not close inline math on escaped \\$', () => {
     const doc = parseLatex('$x = \\$5$ rest')
