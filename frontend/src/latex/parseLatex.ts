@@ -279,6 +279,22 @@ function parseInline(text: string): JSONContent[] {
             continue
           }
 
+          // \textcolor{color}{text}
+          if (cmd === 'textcolor') {
+            if (text[afterCmd] === '{') {
+              const colorGroup = extractBraceGroup(text, afterCmd)
+              const textGroup = extractBraceGroup(text, colorGroup.end)
+              const inner = parseInline(textGroup.content)
+              const marked = addMarkToNodes(inner, {
+                type: 'textStyle',
+                attrs: { color: colorGroup.content },
+              })
+              nodes.push(...marked)
+              i = textGroup.end
+              continue
+            }
+          }
+
           // Preserve commands → rawLatex inline (round-trip safe)
           if (PRESERVE_COMMANDS.has(cmd)) {
             let end = afterCmd

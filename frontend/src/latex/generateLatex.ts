@@ -87,7 +87,7 @@ function processMarks(text: string, marks?: JSONContent['marks']): string {
         break
       case 'textStyle':
         if (mark.attrs?.color) {
-          // Skip color in basic LaTeX for simplicity
+          result = `\\textcolor{${mark.attrs.color}}{${result}}`
         }
         break
     }
@@ -434,6 +434,14 @@ function hasPgfplot(nodes: JSONContent[]): boolean {
   return false
 }
 
+function hasTextColor(nodes: JSONContent[]): boolean {
+  for (const node of nodes) {
+    if (node.type === 'text' && node.marks?.some(m => m.type === 'textStyle' && m.attrs?.color)) return true
+    if (node.content && hasTextColor(node.content)) return true
+  }
+  return false
+}
+
 export function generateLatex(doc: JSONContent, configOrPreamble?: DocumentConfig | string, dynamicTheorems?: TheoremDef[]): string {
   const body = processNodes(doc.content ?? [])
 
@@ -526,6 +534,13 @@ export function generateLatex(doc: JSONContent, configOrPreamble?: DocumentConfi
     pgfplotsDefs = '\n' + defs.join('\n') + '\n'
   }
 
+  // Auto-detect \textcolor usage and add xcolor package
+  const needsXcolor = hasTextColor(doc.content ?? []) || body.includes('\\textcolor{')
+  let xcolorDefs = ''
+  if (needsXcolor && !extraBlock.includes('\\usepackage{xcolor}') && !extraBlock.includes('xcolor')) {
+    xcolorDefs = '\n\\usepackage{xcolor}\n'
+  }
+
   // Extra packages from config
   const extraPkgLines = config.extraPackages
     .filter((pkg) => !extraBlock.includes(`{${pkg}}`))
@@ -549,7 +564,7 @@ export function generateLatex(doc: JSONContent, configOrPreamble?: DocumentConfi
 \\usepackage{geometry}
 \\usepackage{xspace}
 \\geometry{margin=${config.margin}}
-${extraBlock}${extraPkgBlock}${tikzDefs}${pgfplotsDefs}${theoremDefs}${shorthandBlock}
+${extraBlock}${extraPkgBlock}${xcolorDefs}${tikzDefs}${pgfplotsDefs}${theoremDefs}${shorthandBlock}
 \\begin{document}
 
 ${body}

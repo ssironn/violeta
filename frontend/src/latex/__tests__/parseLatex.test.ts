@@ -221,6 +221,29 @@ describe('parseLatex — table parsing', () => {
   })
 })
 
+describe('parseLatex — textcolor', () => {
+  it('parses \\textcolor{red}{text} into textStyle mark with color', () => {
+    const doc = parseLatex('Hello \\textcolor{red}{world}')
+    const para = doc.content![0]
+    const colorNode = para.content!.find(
+      (n: any) => n.marks?.some((m: any) => m.type === 'textStyle')
+    )
+    expect(colorNode).toBeDefined()
+    expect(colorNode!.text).toBe('world')
+    const mark = colorNode!.marks!.find((m: any) => m.type === 'textStyle')
+    expect(mark!.attrs!.color).toBe('red')
+  })
+
+  it('parses \\textcolor with nested bold', () => {
+    const doc = parseLatex('\\textcolor{blue}{\\textbf{bold}}')
+    const para = doc.content![0]
+    const node = para.content![0]
+    expect(node.marks).toHaveLength(2)
+    expect(node.marks!.some((m: any) => m.type === 'textStyle' && m.attrs?.color === 'blue')).toBe(true)
+    expect(node.marks!.some((m: any) => m.type === 'bold')).toBe(true)
+  })
+})
+
 describe('parseLatex — comment stripping edge cases', () => {
   it('preserves % inside verbatim environment', () => {
     const latex = `\\begin{verbatim}
