@@ -168,15 +168,15 @@ Sintetize as conclusões e sugira trabalhos futuros.
 \\tableofcontents
 \\newpage
 
-\\chapter{Introdução}
+\\section{Introdução}
 
 Descreva o contexto e os objetivos deste relatório técnico.
 
-\\chapter{Descrição do Problema}
+\\section{Descrição do Problema}
 
 Detalhe o problema ou situação analisada.
 
-\\chapter{Desenvolvimento}
+\\section{Desenvolvimento}
 
 \\section{Análise}
 Apresente a análise técnica realizada.
@@ -197,7 +197,7 @@ Parâmetro 2 & 25,3 & kg \\\\
 \\end{tabular}
 \\end{table}
 
-\\chapter{Conclusões e Recomendações}
+\\section{Conclusões e Recomendações}
 
 Apresente as conclusões e recomendações técnicas.
 

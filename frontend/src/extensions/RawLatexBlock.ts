@@ -68,6 +68,13 @@ export const RawLatexBlock = Node.create({
       card.classList.add('raw-latex-block')
       dom.appendChild(card)
 
+      const MATH_ENVIRONMENTS = new Set([
+        'equation', 'equation*', 'align', 'align*',
+        'gather', 'gather*', 'multline', 'multline*',
+        'cases', 'eqnarray', 'eqnarray*', 'displaymath',
+        'math', 'array',
+      ])
+
       // Label
       const label = document.createElement('div')
       label.classList.add('raw-latex-label')
@@ -99,8 +106,15 @@ export const RawLatexBlock = Node.create({
         const trimmed = latex.trim()
         // Math delimiters
         if (trimmed.startsWith('$$') || trimmed.startsWith('\\[') || trimmed.startsWith('$') ||
-            trimmed.startsWith('\\(') || trimmed.startsWith('\\begin{')) {
+            trimmed.startsWith('\\(')) {
           return { type: 'math' }
+        }
+        // \begin{env} — only treat known math environments as math
+        if (trimmed.startsWith('\\begin{')) {
+          const envMatch = trimmed.match(/^\\begin\{([^}]+)\}/)
+          if (envMatch && MATH_ENVIRONMENTS.has(envMatch[1])) {
+            return { type: 'math' }
+          }
         }
         // Command with args: \commandname{...} or \commandname[...]{...}
         const cmdMatch = trimmed.match(/^\\([a-zA-Z]+)(?:\[[^\]]*\])?\{/)

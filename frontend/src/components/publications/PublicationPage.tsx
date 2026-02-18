@@ -1,11 +1,23 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Heart, Share2, Trash2, ArrowLeft } from 'lucide-react'
+import { Heart, Share2, Trash2, ArrowLeft, Calendar } from 'lucide-react'
 import { type PublicationItem, getPublication, getPdfUrl, toggleLike, deletePublication } from '../../api/publications'
 import { CommentSection } from './CommentSection'
 import { useAuth } from '../../contexts/AuthContext'
 
-const TYPE_LABELS: Record<string, string> = { article: 'Artigo', exercise_list: 'Lista de Exercicios', study_material: 'Material de Estudo', proof: 'Demonstracao' }
+const TYPE_LABELS: Record<string, string> = {
+  article: 'Artigo',
+  exercise_list: 'Lista de Exercícios',
+  study_material: 'Material de Estudo',
+  proof: 'Demonstração',
+}
+
+const TYPE_ICONS: Record<string, string> = {
+  article: '§',
+  exercise_list: '∑',
+  study_material: '∫',
+  proof: '∴',
+}
 
 export function PublicationPage() {
   const { id } = useParams<{ id: string }>()
@@ -17,7 +29,10 @@ export function PublicationPage() {
 
   useEffect(() => {
     if (!id) return
-    getPublication(id).then(setPub).catch(() => navigate('/explore')).finally(() => setLoading(false))
+    getPublication(id)
+      .then(setPub)
+      .catch(() => navigate('/explore'))
+      .finally(() => setLoading(false))
   }, [id, navigate])
 
   async function handleLike() {
@@ -27,7 +42,7 @@ export function PublicationPage() {
   }
 
   async function handleDelete() {
-    if (!pub || !confirm('Tem certeza que deseja excluir esta publicacao?')) return
+    if (!pub || !confirm('Tem certeza que deseja excluir esta publicação?')) return
     await deletePublication(pub.id)
     navigate('/explore')
   }
@@ -40,40 +55,80 @@ export function PublicationPage() {
   }
 
   if (loading || !pub) {
-    return <div className="flex items-center justify-center h-screen bg-surface-bg"><div className="w-5 h-5 border-2 border-accent-500 border-t-transparent rounded-full animate-spin" /></div>
+    return (
+      <div className="flex items-center justify-center h-screen bg-surface-bg">
+        <div className="w-5 h-5 border-2 border-accent-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
 
   const isAuthor = user?.id === pub.author_id
+  const initial = pub.author_name.charAt(0).toUpperCase()
+  const formattedDate = new Date(pub.created_at).toLocaleDateString('pt-BR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-4">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors"><ArrowLeft size={16} /> Voltar</button>
-        <div className="flex items-center gap-2">
-          <button onClick={handleLike} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all border ${pub.liked_by_me ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'text-text-secondary hover:text-red-400 border-surface-border hover:border-red-500/20'}`}>
-            <Heart size={14} className={pub.liked_by_me ? 'fill-current' : ''} />{pub.like_count}
+    <div className="pub-page">
+      {/* Top bar */}
+      <div className="pub-topbar">
+        <button onClick={() => navigate(-1)} className="pub-back-btn">
+          <ArrowLeft size={16} />
+          Voltar
+        </button>
+        <div className="pub-actions">
+          <button
+            onClick={handleLike}
+            className={`pub-action-btn ${pub.liked_by_me ? 'liked' : ''}`}
+          >
+            <Heart size={14} className={pub.liked_by_me ? 'fill-current' : ''} />
+            {pub.like_count}
           </button>
-          <button onClick={handleShare} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-text-secondary hover:text-text-primary border border-surface-border transition-colors">
-            <Share2 size={14} />{copied ? 'Copiado!' : 'Compartilhar'}
+          <button onClick={handleShare} className="pub-action-btn">
+            <Share2 size={14} />
+            {copied ? 'Copiado!' : 'Compartilhar'}
           </button>
           {isAuthor && (
-            <button onClick={handleDelete} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-red-400/70 hover:text-red-400 border border-surface-border hover:border-red-500/20 transition-colors"><Trash2 size={14} /></button>
+            <button onClick={handleDelete} className="pub-action-btn danger">
+              <Trash2 size={14} />
+            </button>
           )}
         </div>
       </div>
-      <div className="mb-4">
-        <h1 className="text-2xl font-semibold text-text-primary">{pub.title}</h1>
-        <div className="flex items-center gap-3 mt-2 text-sm text-text-secondary">
-          <button onClick={() => navigate(`/profile/${pub.author_id}`)} className="hover:text-accent-500 transition-colors">{pub.author_name}</button>
-          <span className="text-text-muted">{TYPE_LABELS[pub.type]}</span>
-          <span className="text-text-muted">{new Date(pub.created_at).toLocaleDateString('pt-BR')}</span>
+
+      {/* Header */}
+      <div className="pub-header">
+        <div className="pub-type-line">
+          <span className="font-serif text-sm">{TYPE_ICONS[pub.type]}</span>
+          <span>{TYPE_LABELS[pub.type]}</span>
         </div>
-        {pub.abstract && <p className="mt-2 text-sm text-text-secondary">{pub.abstract}</p>}
+        <h1 className="pub-title">{pub.title}</h1>
+        <div className="pub-meta">
+          <button
+            onClick={() => navigate(`/profile/${pub.author_id}`)}
+            className="pub-author-link"
+          >
+            <div className="pub-author-avatar">{initial}</div>
+            {pub.author_name}
+          </button>
+          <span className="text-text-muted">·</span>
+          <span className="flex items-center gap-1 text-text-muted">
+            <Calendar size={13} />
+            {formattedDate}
+          </span>
+        </div>
+        {pub.abstract && <p className="pub-abstract">{pub.abstract}</p>}
       </div>
-      <div className="bg-white rounded-xl overflow-hidden border border-surface-border mb-6" style={{ height: '70vh' }}>
-        <iframe src={getPdfUrl(pub.id)} className="w-full h-full" title={pub.title} />
+
+      {/* PDF Viewer */}
+      <div className="pub-pdf-container">
+        <iframe src={getPdfUrl(pub.id)} title={pub.title} />
       </div>
-      <div className="bg-surface-card border border-surface-border rounded-xl p-4">
+
+      {/* Comments */}
+      <div className="pub-comments-section">
         <CommentSection publicationId={pub.id} />
       </div>
     </div>
