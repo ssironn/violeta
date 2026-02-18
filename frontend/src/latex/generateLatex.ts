@@ -147,6 +147,10 @@ function processNode(node: JSONContent): string {
       const level = node.attrs?.level ?? 1
       const starred = node.attrs?.starred ? '*' : ''
       const text = processInlineContent(node, true)
+      if (level === 0) {
+        const src = (node.attrs?.sourceCommand as string) || 'chapter'
+        return `\\${src}${starred}{${text}}`
+      }
       const commands = ['\\section', '\\subsection', '\\subsubsection', '\\paragraph']
       const cmd = commands[Math.min(level - 1, commands.length - 1)]
       return `${cmd}${starred}{${text}}`
@@ -161,23 +165,25 @@ function processNode(node: JSONContent): string {
 
     case 'bulletList': {
       const env = node.attrs?.environment === 'description' ? 'description' : 'itemize'
+      const opts = node.attrs?.options ?? ''
       const items = (node.content ?? [])
         .map((item) => {
           const inner = processListItemContent(item.content ?? [])
           return `  \\item ${inner}`
         })
         .join('\n')
-      return `\\begin{${env}}\n${items}\n\\end{${env}}`
+      return `\\begin{${env}}${opts}\n${items}\n\\end{${env}}`
     }
 
     case 'orderedList': {
+      const opts = node.attrs?.options ?? ''
       const items = (node.content ?? [])
         .map((item) => {
           const inner = processListItemContent(item.content ?? [])
           return `  \\item ${inner}`
         })
         .join('\n')
-      return `\\begin{enumerate}\n${items}\n\\end{enumerate}`
+      return `\\begin{enumerate}${opts}\n${items}\n\\end{enumerate}`
     }
 
     case 'blockquote': {
