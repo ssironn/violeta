@@ -1060,10 +1060,10 @@ function parseBlock(block: string): JSONContent[] {
     return [{ type: 'rawLatex', attrs: { content: fullEnv } }]
   }
 
-  // Preserved full-line comment → rawLatex block
+  // Preserved full-line comment → hidden latexComment block
   if (trimmed.startsWith(COMMENT_SENTINEL)) {
     const commentText = trimmed.slice(COMMENT_SENTINEL.length)
-    return [{ type: 'rawLatex', attrs: { content: commentText } }]
+    return [{ type: 'latexComment', attrs: { content: commentText } }]
   }
 
   // Plain text paragraph

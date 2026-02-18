@@ -23,6 +23,7 @@ import { PgfplotBlock } from '../extensions/PgfplotBlock'
 import { HardBreakSpacing } from '../extensions/HardBreakSpacing'
 import { LayoutBlock } from '../extensions/LayoutBlock'
 import { FootnoteNode } from '../extensions/FootnoteNode'
+import { LatexComment } from '../extensions/LatexComment'
 
 export interface MathEditState {
   latex: string
@@ -94,6 +95,7 @@ export function useVioletaEditor({ onMathClick }: UseVioletaEditorOptions) {
       PgfplotBlock,
       LayoutBlock,
       FootnoteNode,
+      LatexComment,
     ],
     content: '',
     immediatelyRender: true,

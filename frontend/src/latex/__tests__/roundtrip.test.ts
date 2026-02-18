@@ -316,7 +316,7 @@ describe('round-trip: figure labels (Gap 4)', () => {
 
 // ─── Gap 5: Comments preserved ──────────────────────────────────
 describe('round-trip: comments (Gap 5)', () => {
-  it('preserves full-line comments as rawLatex blocks', () => {
+  it('preserves full-line comments as latexComment blocks', () => {
     const input = `\\section{Title}
 
 % This is an important comment

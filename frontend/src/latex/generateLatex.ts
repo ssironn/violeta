@@ -265,6 +265,10 @@ function processNode(node: JSONContent): string {
       return wrapAlignment(rawContent, getAlignment(node))
     }
 
+    case 'latexComment': {
+      return (node.attrs?.content ?? '') as string
+    }
+
     case 'layoutBlock': {
       return (node.attrs?.command ?? '') as string
     }
