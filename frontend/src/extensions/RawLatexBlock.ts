@@ -71,7 +71,17 @@ export const RawLatexBlock = Node.create({
       // Label
       const label = document.createElement('div')
       label.classList.add('raw-latex-label')
-      label.textContent = 'LaTeX'
+      function updateLabel(latex: string) {
+        const info = detectContentType(latex)
+        if (info.type === 'command' && info.commandName) {
+          label.textContent = info.commandName
+        } else if (info.type === 'math') {
+          label.textContent = 'Math'
+        } else {
+          label.textContent = 'LaTeX'
+        }
+      }
+      updateLabel(node.attrs.content as string)
       card.appendChild(label)
 
       // KaTeX preview
@@ -84,6 +94,35 @@ export const RawLatexBlock = Node.create({
       textarea.classList.add('raw-latex-textarea')
       textarea.value = node.attrs.content as string
       card.appendChild(textarea)
+
+      function detectContentType(latex: string): { type: 'math' | 'command' | 'other'; commandName?: string; args?: string } {
+        const trimmed = latex.trim()
+        // Math delimiters
+        if (trimmed.startsWith('$$') || trimmed.startsWith('\\[') || trimmed.startsWith('$') ||
+            trimmed.startsWith('\\(') || trimmed.startsWith('\\begin{')) {
+          return { type: 'math' }
+        }
+        // Command with args: \commandname{...} or \commandname[...]{...}
+        const cmdMatch = trimmed.match(/^\\([a-zA-Z]+)(?:\[[^\]]*\])?\{/)
+        if (cmdMatch) {
+          const commandName = cmdMatch[1]
+          // Extract first brace group content for preview
+          const openBrace = trimmed.indexOf('{')
+          if (openBrace !== -1) {
+            let depth = 0
+            let end = openBrace
+            for (let i = openBrace; i < trimmed.length; i++) {
+              if (trimmed[i] === '{') depth++
+              if (trimmed[i] === '}') depth--
+              if (depth === 0) { end = i; break }
+            }
+            const args = trimmed.slice(openBrace + 1, end)
+            return { type: 'command', commandName, args }
+          }
+          return { type: 'command', commandName }
+        }
+        return { type: 'other' }
+      }
 
       function stripMathDelimiters(latex: string): { math: string; displayMode: boolean } {
         const trimmed = latex.trim()
@@ -114,17 +153,41 @@ export const RawLatexBlock = Node.create({
           preview.innerHTML = '<span class="raw-latex-placeholder">Digite LaTeX aqui...</span>'
           return
         }
-        try {
-          const { math, displayMode } = stripMathDelimiters(latex)
-          preview.innerHTML = katex.renderToString(math, {
-            displayMode,
-            throwOnError: false,
-            macros: { ...katexMacros },
-            errorColor: '#7a6299',
-          })
-        } catch {
-          preview.textContent = latex
+
+        const info = detectContentType(latex)
+
+        if (info.type === 'math') {
+          try {
+            const { math, displayMode } = stripMathDelimiters(latex)
+            preview.innerHTML = katex.renderToString(math, {
+              displayMode,
+              throwOnError: false,
+              macros: { ...katexMacros },
+              errorColor: '#7a6299',
+            })
+          } catch {
+            preview.textContent = latex
+          }
+          return
         }
+
+        if (info.type === 'command' && info.commandName) {
+          const cmdSpan = document.createElement('span')
+          cmdSpan.className = 'raw-latex-cmd-name'
+          cmdSpan.textContent = '\\' + info.commandName
+          const contentSpan = document.createElement('span')
+          contentSpan.className = 'raw-latex-cmd-content'
+          contentSpan.textContent = info.args ?? ''
+          preview.innerHTML = ''
+          preview.appendChild(cmdSpan)
+          if (info.args) {
+            preview.appendChild(contentSpan)
+          }
+          return
+        }
+
+        // Fallback: monospace
+        preview.textContent = latex
       }
 
       function autoResize() {
@@ -165,6 +228,7 @@ export const RawLatexBlock = Node.create({
       textarea.addEventListener('input', () => {
         const value = textarea.value
         renderPreview(value)
+        updateLabel(value)
         autoResize()
 
         const pos = getPos()
@@ -188,6 +252,7 @@ export const RawLatexBlock = Node.create({
           if (textarea.value !== newContent) {
             textarea.value = newContent
             renderPreview(newContent)
+            updateLabel(newContent)
             autoResize()
           }
           applyAlignment(updatedNode)
