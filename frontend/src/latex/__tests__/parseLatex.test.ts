@@ -144,6 +144,39 @@ describe('parseLatex — brace matching edge cases', () => {
   })
 })
 
+describe('parseLatex — callout isolation', () => {
+  it('does not leak extraCalloutNames between calls', () => {
+    // First call with extra callout name passed explicitly
+    const doc1 = parseLatex('\\begin{axiom}\nContent\n\\end{axiom}', new Set(['axiom']))
+    expect(doc1.content![0].type).toBe('calloutBlock')
+
+    // Second call without extra — should NOT recognize axiom
+    const doc2 = parseLatex('\\begin{axiom}\nContent\n\\end{axiom}')
+    expect(doc2.content![0].type).toBe('rawLatex')
+  })
+
+  it('does not leak preamble-defined theorems between calls', () => {
+    // First call with \newtheorem in preamble
+    const latex1 = `\\newtheorem{axiom}{Axioma}
+\\begin{document}
+\\begin{axiom}
+Content
+\\end{axiom}
+\\end{document}`
+    const doc1 = parseLatex(latex1)
+    expect(doc1.content![0].type).toBe('calloutBlock')
+
+    // Second call WITHOUT the preamble definition
+    const latex2 = `\\begin{document}
+\\begin{axiom}
+Content
+\\end{axiom}
+\\end{document}`
+    const doc2 = parseLatex(latex2)
+    expect(doc2.content![0].type).toBe('rawLatex')
+  })
+})
+
 describe('parseLatex — table parsing', () => {
   it('does not split & inside inline math in table cells', () => {
     const latex = `\\begin{table}[h]
