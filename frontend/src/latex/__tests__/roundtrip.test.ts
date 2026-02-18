@@ -183,6 +183,14 @@ Obvious.
   })
 })
 
+describe('round-trip: footnotes', () => {
+  it('round-trips \\footnote{text}', () => {
+    const doc = parseLatex('Hello\\footnote{A note} world')
+    const output = generateLatex(doc)
+    expect(output).toContain('\\footnote{A note}')
+  })
+})
+
 describe('round-trip: inline formatting', () => {
   it('round-trips bold text', () => {
     const doc = parseLatex('Hello \\textbf{bold} world')

@@ -258,6 +258,16 @@ describe('parseLatex — url command', () => {
   })
 })
 
+describe('parseLatex — footnotes', () => {
+  it('parses \\footnote{text} as footnote inline node', () => {
+    const doc = parseLatex('Hello\\footnote{A note} world')
+    const para = doc.content![0]
+    const fn = para.content!.find((n: any) => n.type === 'footnote')
+    expect(fn).toBeDefined()
+    expect(fn!.attrs!.content).toBe('A note')
+  })
+})
+
 describe('parseLatex — comment stripping edge cases', () => {
   it('preserves % inside verbatim environment', () => {
     const latex = `\\begin{verbatim}

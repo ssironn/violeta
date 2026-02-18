@@ -121,6 +121,9 @@ function processInlineContent(node: JSONContent, escapeText = false): string {
       if (child.type === 'rawLatex') {
         return child.attrs?.content ?? ''
       }
+      if (child.type === 'footnote') {
+        return `\\footnote{${child.attrs?.content ?? ''}}`
+      }
       return ''
     })
     .join('')

@@ -77,7 +77,7 @@ const PRESERVE_COMMANDS = new Set([
   'label', 'ref', 'pageref', 'cite', 'eqref', 'autoref', 'nameref',
   'vspace', 'hspace',
   'phantom', 'hphantom', 'vphantom',
-  'footnote', 'footnotemark', 'footnotetext',
+  'footnotemark', 'footnotetext',
   'bibliographystyle', 'bibliography',
 ])
 
@@ -290,6 +290,16 @@ function parseInline(text: string): JSONContent[] {
                 marks: [{ type: 'link', attrs: { href: url } }],
               })
               i = urlGroup.end
+              continue
+            }
+          }
+
+          // \footnote{text} → footnote inline node
+          if (cmd === 'footnote') {
+            if (text[afterCmd] === '{') {
+              const group = extractBraceGroup(text, afterCmd)
+              nodes.push({ type: 'footnote', attrs: { content: group.content } })
+              i = group.end
               continue
             }
           }

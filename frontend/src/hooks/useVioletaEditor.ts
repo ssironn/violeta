@@ -22,6 +22,7 @@ import { TikzFigureBlock } from '../extensions/TikzFigureBlock'
 import { PgfplotBlock } from '../extensions/PgfplotBlock'
 import { HardBreakSpacing } from '../extensions/HardBreakSpacing'
 import { LayoutBlock } from '../extensions/LayoutBlock'
+import { FootnoteNode } from '../extensions/FootnoteNode'
 
 export interface MathEditState {
   latex: string
@@ -92,6 +93,7 @@ export function useVioletaEditor({ onMathClick }: UseVioletaEditorOptions) {
       TikzFigureBlock,
       PgfplotBlock,
       LayoutBlock,
+      FootnoteNode,
     ],
     content: '',
     immediatelyRender: true,
