@@ -279,6 +279,21 @@ function parseInline(text: string): JSONContent[] {
             continue
           }
 
+          // \url{url} — same as \href{url}{url}
+          if (cmd === 'url') {
+            if (text[afterCmd] === '{') {
+              const urlGroup = extractBraceGroup(text, afterCmd)
+              const url = urlGroup.content
+              nodes.push({
+                type: 'text',
+                text: url,
+                marks: [{ type: 'link', attrs: { href: url } }],
+              })
+              i = urlGroup.end
+              continue
+            }
+          }
+
           // \textcolor{color}{text}
           if (cmd === 'textcolor') {
             if (text[afterCmd] === '{') {

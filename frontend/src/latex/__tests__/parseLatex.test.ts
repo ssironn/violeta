@@ -244,6 +244,20 @@ describe('parseLatex — textcolor', () => {
   })
 })
 
+describe('parseLatex — url command', () => {
+  it('parses \\url{https://example.com} as a link', () => {
+    const doc = parseLatex('Visit \\url{https://example.com}')
+    const para = doc.content![0]
+    const linkNode = para.content!.find(
+      (n: any) => n.marks?.some((m: any) => m.type === 'link')
+    )
+    expect(linkNode).toBeDefined()
+    expect(linkNode!.text).toBe('https://example.com')
+    const linkMark = linkNode!.marks!.find((m: any) => m.type === 'link')
+    expect(linkMark!.attrs!.href).toBe('https://example.com')
+  })
+})
+
 describe('parseLatex — comment stripping edge cases', () => {
   it('preserves % inside verbatim environment', () => {
     const latex = `\\begin{verbatim}
