@@ -42,17 +42,33 @@ function unescapeLatex(text: string): string {
     .replace(/\\([#$%&_{}])/g, '$1')
 }
 
-/** Normalize line endings and strip comments */
+/** Normalize line endings and strip comments (preserving % inside verbatim-like environments) */
 function normalize(latex: string): string {
-  return latex
+  const lines = latex
     .replace(/\r\n/g, '\n')
     .replace(/\r/g, '\n')
     .split('\n')
-    .map((line) => {
-      const idx = line.search(/(?<!\\)%/)
-      return idx !== -1 ? line.slice(0, idx) : line
-    })
-    .join('\n')
+
+  const result: string[] = []
+  let inVerbatim = false
+
+  for (const line of lines) {
+    if (!inVerbatim && /^\s*\\begin\{(verbatim|lstlisting|minted)\}/.test(line)) {
+      inVerbatim = true
+    }
+    if (inVerbatim) {
+      result.push(line)
+      if (/^\s*\\end\{(verbatim|lstlisting|minted)\}/.test(line)) {
+        inVerbatim = false
+      }
+      continue
+    }
+    // Strip comments outside verbatim-like environments
+    const idx = line.search(/(?<!\\)%/)
+    result.push(idx !== -1 ? line.slice(0, idx) : line)
+  }
+
+  return result.join('\n')
 }
 
 // ─── Commands to preserve as rawLatex inline (not editable but round-trip safe) ───

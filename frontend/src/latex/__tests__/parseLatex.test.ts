@@ -220,3 +220,27 @@ describe('parseLatex — table parsing', () => {
     expect(rows[0][0]).toBe('$a & b$')
   })
 })
+
+describe('parseLatex — comment stripping edge cases', () => {
+  it('preserves % inside verbatim environment', () => {
+    const latex = `\\begin{verbatim}
+code with 50% complete
+\\end{verbatim}`
+    const doc = parseLatex(latex)
+    const code = doc.content![0]
+    expect(code.type).toBe('codeBlock')
+    const text = code.content![0].text
+    expect(text).toContain('50% complete')
+  })
+
+  it('preserves % inside lstlisting environment', () => {
+    const latex = `\\begin{lstlisting}
+printf("%d\\n", x);
+\\end{lstlisting}`
+    const doc = parseLatex(latex)
+    const code = doc.content![0]
+    expect(code.type).toBe('codeBlock')
+    const text = code.content![0].text
+    expect(text).toContain('%d')
+  })
+})
