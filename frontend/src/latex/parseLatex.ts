@@ -952,14 +952,13 @@ function parseBlock(block: string): JSONContent[] {
 
     // Callout / theorem-like environments → calloutBlock
     if (dynamicCalloutEnvs.has(envName)) {
-      // Extract optional title: \begin{theorem}[Title] or strip \label{}
+      // The optional title [Title] was already captured by envOptions above
       let title = ''
-      let cleanInner = inner
-      const titleMatch = cleanInner.match(/^\s*\[([^\]]*)\]/)
-      if (titleMatch) {
-        title = titleMatch[1]
-        cleanInner = cleanInner.slice(titleMatch[0].length)
+      if (envOptions) {
+        // envOptions is "[Title]" — extract inner text
+        title = envOptions.slice(1, -1)
       }
+      let cleanInner = inner
       // \label is now preserved by parseInline as rawLatex inline
       const innerBlocks = flatParseBlocks(cleanInner)
       // Map 'ques' to 'exercise' for the callout type

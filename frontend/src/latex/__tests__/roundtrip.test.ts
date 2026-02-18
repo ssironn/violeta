@@ -168,8 +168,7 @@ For right triangles, $a^2 + b^2 = c^2$.
 \\end{theorem}`
     const doc = parseLatex(input)
     const output = generateLatex(doc)
-    // The generator emits \begin{theorem} (title may not be preserved in attrs)
-    expect(output).toContain('\\begin{theorem}')
+    expect(output).toContain('\\begin{theorem}[Pythagorean]')
     expect(output).toContain('\\end{theorem}')
   })
 
