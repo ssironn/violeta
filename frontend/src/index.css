@@ -1007,6 +1007,44 @@ body {
   font-size: 1rem;
   line-height: 1.75;
   color: #1e1e2e;
+  counter-reset: section subsection subsubsection theorem-counter;
+}
+
+/* ── Section numbering via CSS counters ── */
+
+.tiptap h1::before {
+  counter-increment: section;
+  counter-reset: subsection subsubsection;
+  content: counter(section) ". ";
+  color: var(--text-secondary, #a6adc8);
+}
+
+.tiptap h2::before {
+  counter-increment: subsection;
+  counter-reset: subsubsection;
+  content: counter(section) "." counter(subsection) " ";
+  color: var(--text-secondary, #a6adc8);
+}
+
+.tiptap h3::before {
+  counter-increment: subsubsection;
+  content: counter(section) "." counter(subsection) "." counter(subsubsection) " ";
+  color: var(--text-secondary, #a6adc8);
+}
+
+/* ── Theorem-like numbering via CSS counters ── */
+
+.tiptap .block-card-wrapper .callout-block {
+  counter-increment: theorem-counter;
+}
+
+/* Note: <select> does not support ::after, so we inject the counter via the header */
+.tiptap .block-card-wrapper .callout-header::after {
+  content: counter(theorem-counter);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary, #a6adc8);
+  margin-left: -0.25rem;
 }
 
 /* ── Block Insert Button (between blocks) ── */

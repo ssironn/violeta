@@ -185,6 +185,7 @@ export const CalloutBlock = Node.create({
       // Initial state
       select.value = node.attrs.calloutType as string
       titleInput.value = node.attrs.title as string
+      dom.setAttribute('data-callout-type', node.attrs.calloutType as string)
       applyStyle(node.attrs.calloutType as string)
       applyAlignment(node)
 
@@ -211,6 +212,7 @@ export const CalloutBlock = Node.create({
           applyAlignment(updatedNode)
           const newType = updatedNode.attrs.calloutType as string
           const newTitle = updatedNode.attrs.title as string
+          dom.setAttribute('data-callout-type', newType)
           if (select.value !== newType) {
             select.value = newType
             applyStyle(newType)
