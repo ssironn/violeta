@@ -42,7 +42,12 @@ function unescapeLatex(text: string): string {
     .replace(/\\([#$%&_{}])/g, '$1')
 }
 
-/** Normalize line endings and strip comments (preserving % inside verbatim-like environments) */
+/** Sentinel prefix for preserved full-line comments */
+const COMMENT_SENTINEL = '\x00COMMENT:'
+
+/** Normalize line endings and handle comments (preserving % inside verbatim-like environments).
+ *  Full-line comments are preserved as sentinel-prefixed lines for later conversion to rawLatex blocks.
+ *  Inline (end-of-line) comments are still stripped. */
 function normalize(latex: string): string {
   const lines = latex
     .replace(/\r\n/g, '\n')
@@ -63,9 +68,19 @@ function normalize(latex: string): string {
       }
       continue
     }
-    // Strip comments outside verbatim-like environments
     const idx = line.search(/(?<!\\)%/)
-    result.push(idx !== -1 ? line.slice(0, idx) : line)
+    if (idx !== -1) {
+      const before = line.slice(0, idx).trim()
+      if (!before) {
+        // Full-line comment — preserve with sentinel
+        result.push(COMMENT_SENTINEL + line.slice(idx))
+      } else {
+        // Inline comment — keep the code part, strip the comment
+        result.push(line.slice(0, idx))
+      }
+    } else {
+      result.push(line)
+    }
   }
 
   return result.join('\n')
@@ -79,18 +94,19 @@ const PRESERVE_COMMANDS = new Set([
   'phantom', 'hphantom', 'vphantom',
   'footnotemark', 'footnotetext',
   'bibliographystyle', 'bibliography',
-])
-
-// ─── Commands to skip (truly no-op in visual editor) ───
-
-const SKIP_COMMANDS = new Set([
-  'maketitle', 'tableofcontents',
+  // Formatting/layout commands that affect LaTeX output (moved from SKIP_COMMANDS)
   'centering', 'raggedleft', 'raggedright',
   'indent', 'noindent',
-  'pagestyle', 'thispagestyle',
   'setlength', 'addtolength',
   'setcounter', 'addtocounter',
   'newline', 'linebreak', 'pagebreak',
+])
+
+// ─── Commands to skip (truly no-op in visual editor — cannot be represented) ───
+
+const SKIP_COMMANDS = new Set([
+  'maketitle', 'tableofcontents',
+  'pagestyle', 'thispagestyle',
 ])
 
 // ─── Standalone spacing commands → rawLatex block (no args, just the command) ───
@@ -100,19 +116,24 @@ const STANDALONE_SPACING_COMMANDS = new Set([
   'newpage', 'clearpage',
 ])
 
-// Commands that just change font style — pass through inner content
+// Commands that just change font style — pass through inner content (no round-trip preservation)
+// Only commands where preserving the wrapper truly doesn't matter
 const FONT_COMMANDS = new Set([
-  'large', 'Large', 'LARGE', 'huge', 'Huge',
-  'small', 'footnotesize', 'scriptsize', 'tiny', 'normalsize',
-  'sc', 'sf', 'rm', 'tt', 'sl',
-  'textrm', 'textsf', 'textsl', 'textnormal',
-  'mbox', 'text', 'mathrm',
+  'text', 'mathrm',
 ])
 
 // Commands whose {content} should be displayed with a sourceCommand mark for round-trip
 const CONTENT_DISPLAY_COMMANDS = new Set([
   'title', 'author', 'date', 'thanks',
   'textsc',
+  // Font size commands with {content} form
+  'large', 'Large', 'LARGE', 'huge', 'Huge',
+  'small', 'footnotesize', 'scriptsize', 'tiny', 'normalsize',
+  // Font family/shape commands
+  'textrm', 'textsf', 'textsl', 'textnormal',
+  'mbox',
+  // Old-style font switches (\sc, \sf, etc.) — when used as \sc{content}
+  'sc', 'sf', 'rm', 'tt', 'sl',
 ])
 
 // ─── Accent handling ──────────────────────────────────────────────
@@ -408,7 +429,9 @@ function parseInline(text: string): JSONContent[] {
             continue
           }
 
-          // Standalone command — skip
+          // Standalone command — preserve as rawLatex inline
+          const rawContent = text.slice(i, afterCmd)
+          nodes.push({ type: 'rawLatex', attrs: { content: rawContent, inline: true } })
           i = afterCmd
           continue
         }
@@ -416,8 +439,20 @@ function parseInline(text: string): JSONContent[] {
     }
 
     // Bare brace groups {text} — parse inner content
+    // Detect {\large text} form: brace group starting with a font/size command
     if (text[i] === '{') {
       const group = extractBraceGroup(text, i)
+      const braceContent = group.content.trim()
+      const fontCmdMatch = braceContent.match(/^\\([a-zA-Z]+)\s+/)
+      if (fontCmdMatch && CONTENT_DISPLAY_COMMANDS.has(fontCmdMatch[1])) {
+        const fontCmd = fontCmdMatch[1]
+        const restContent = braceContent.slice(fontCmdMatch[0].length)
+        const inner = parseInline(restContent)
+        const marked = addMarkToNodes(inner, { type: 'sourceCommand', attrs: { command: fontCmd } })
+        nodes.push(...marked)
+        i = group.end
+        continue
+      }
       const inner = parseInline(group.content)
       nodes.push(...inner)
       i = group.end
@@ -722,7 +757,12 @@ function splitTableCells(row: string): string[] {
   return cells
 }
 
-function parseTabular(inner: string, _beginTag: string): JSONContent[] {
+function parseTabular(inner: string, _beginTag: string, columnSpec?: string): JSONContent[] {
+  // Detect rule style from content
+  const hasBooktabs = /\\(toprule|midrule|bottomrule)\b/.test(inner)
+  const hasHline = /\\hline\b/.test(inner)
+  const ruleStyle = hasBooktabs ? 'booktabs' : hasHline ? 'hline' : 'none'
+
   // Split rows by \\ and parse cells by &
   const rowStrs = inner.split(/\\\\/).map((r) => r.trim()).filter(Boolean)
   const allRows: string[][] = []
@@ -737,7 +777,7 @@ function parseTabular(inner: string, _beginTag: string): JSONContent[] {
   }
 
   if (allRows.length === 0) {
-    return [{ type: 'latexTable', attrs: { headers: ['', '', ''], rows: [['', '', '']], caption: '' } }]
+    return [{ type: 'latexTable', attrs: { headers: ['', '', ''], rows: [['', '', '']], caption: '', columnSpec: columnSpec ?? '', ruleStyle } }]
   }
 
   // First row is headers, rest are body
@@ -751,7 +791,7 @@ function parseTabular(inner: string, _beginTag: string): JSONContent[] {
     while (row.length < cols) row.push('')
   }
 
-  return [{ type: 'latexTable', attrs: { headers, rows, caption: '' } }]
+  return [{ type: 'latexTable', attrs: { headers, rows, caption: '', columnSpec: columnSpec ?? '', ruleStyle } }]
 }
 
 function parseTableEnv(inner: string): JSONContent[] {
@@ -763,14 +803,26 @@ function parseTableEnv(inner: string): JSONContent[] {
     caption = unescapeLatex(group.content)
   }
 
-  // Extract tabular content
-  const tabularMatch = inner.match(/\\begin\{tabular\}(?:\{[^}]*\})?([\s\S]*?)\\end\{tabular\}/)
-  if (tabularMatch) {
-    const result = parseTabular(tabularMatch[1], '')
-    if (result.length > 0 && result[0].attrs) {
-      result[0].attrs.caption = caption
+  // Extract tabular content (with column spec using brace-aware parsing)
+  const tabularBegin = inner.indexOf('\\begin{tabular}')
+  if (tabularBegin !== -1) {
+    const afterBeginTag = tabularBegin + '\\begin{tabular}'.length
+    let colSpec = ''
+    let contentStart = afterBeginTag
+    if (inner[afterBeginTag] === '{') {
+      const specGroup = extractBraceGroup(inner, afterBeginTag)
+      colSpec = inner.slice(afterBeginTag, specGroup.end)  // includes outer braces
+      contentStart = specGroup.end
     }
-    return result
+    const tabularEnd = inner.indexOf('\\end{tabular}', contentStart)
+    if (tabularEnd !== -1) {
+      const tabularContent = inner.slice(contentStart, tabularEnd)
+      const result = parseTabular(tabularContent, '', colSpec)
+      if (result.length > 0 && result[0].attrs) {
+        result[0].attrs.caption = caption
+      }
+      return result
+    }
   }
 
   // No tabular found — return empty table
@@ -910,6 +962,11 @@ function parseBlock(block: string): JSONContent[] {
         return text.slice(0, idx) + text.slice(group.end)
       }
 
+      // Extract \label{...} from figure inner
+      const labelMatch = inner.match(/\\label\{([^}]*)\}/)
+      const figureLabel = labelMatch ? labelMatch[1] : ''
+      const isStarred = envName === 'figure*'
+
       // Check if figure wraps a tikzpicture (with or without pgfplots axis)
       if (inner.includes('\\begin{tikzpicture}')) {
         // Strip figure-level commands, keep only the tikzpicture environment
@@ -919,6 +976,14 @@ function parseBlock(block: string): JSONContent[] {
           .replace(/\\label\{[^}]*\}/g, '')
           .trim()
         const results: JSONContent[] = flatParseBlocks(cleaned)
+        // Propagate label and starred to tikzFigure/pgfplotBlock nodes
+        for (const r of results) {
+          if (r.type === 'tikzFigure' || r.type === 'pgfplotBlock') {
+            if (!r.attrs) r.attrs = {}
+            if (figureLabel) r.attrs.label = figureLabel
+            if (isStarred) r.attrs.starred = true
+          }
+        }
         // Add caption as a styled paragraph if present
         const captionText = extractCaptionFromInner(inner)
         if (captionText) {
@@ -947,7 +1012,10 @@ function parseBlock(block: string): JSONContent[] {
       let alignment = 'center'
       if (/\\raggedright\b/.test(inner)) alignment = 'left'
       else if (/\\raggedleft\b/.test(inner)) alignment = 'right'
-      return [{ type: 'image', attrs: { src, alt, position, options: imgOptions, alignment } }]
+      const imgAttrs: Record<string, any> = { src, alt, position, options: imgOptions, alignment }
+      if (figureLabel) imgAttrs.label = figureLabel
+      if (isStarred) imgAttrs.starred = true
+      return [{ type: 'image', attrs: imgAttrs }]
     }
 
     // Table environment
@@ -955,9 +1023,15 @@ function parseBlock(block: string): JSONContent[] {
       return parseTableEnv(inner)
     }
 
-    // Bare tabular (without table wrapper)
+    // Bare tabular (without table wrapper) — extract column spec (brace-aware)
     if (envName === 'tabular') {
-      return parseTabular(inner, envMatch[0])
+      let colSpec = ''
+      const afterTag = trimmed.indexOf('\\begin{tabular}') + '\\begin{tabular}'.length
+      if (trimmed[afterTag] === '{') {
+        const specGroup = extractBraceGroup(trimmed, afterTag)
+        colSpec = trimmed.slice(afterTag, specGroup.end)
+      }
+      return parseTabular(inner, envMatch[0], colSpec)
     }
 
     // Callout / theorem-like environments → calloutBlock
@@ -984,6 +1058,12 @@ function parseBlock(block: string): JSONContent[] {
     const endTag = `\\end{${envName}}`
     const fullEnv = trimmed.slice(0, endPos + endTag.length)
     return [{ type: 'rawLatex', attrs: { content: fullEnv } }]
+  }
+
+  // Preserved full-line comment → rawLatex block
+  if (trimmed.startsWith(COMMENT_SENTINEL)) {
+    const commentText = trimmed.slice(COMMENT_SENTINEL.length)
+    return [{ type: 'rawLatex', attrs: { content: commentText } }]
   }
 
   // Plain text paragraph
@@ -1027,6 +1107,14 @@ function splitIntoBlocks(body: string): string[] {
     // Skip empty lines
     if (!trimmedLine) {
       flushCurrent()
+      i++
+      continue
+    }
+
+    // Preserved full-line comments → emit as separate block
+    if (trimmedLine.startsWith(COMMENT_SENTINEL)) {
+      flushCurrent()
+      blocks.push(trimmedLine)
       i++
       continue
     }
@@ -1202,28 +1290,51 @@ const CUSTOM_LINE_RE = /^\\(newcommand|renewcommand|providecommand|def|DeclareMa
 /** Lines that are theorem/style declarations — managed by the generator, not custom preamble */
 const THEOREM_LINE_RE = /^\\(newtheorem|theoremstyle)\b/
 
+/** Preamble lines managed by the generator (skip during custom preamble extraction) */
+const MANAGED_PREAMBLE_RE = /^\\(geometry|renewcommand\{\\qedsymbol\}|pgfplotsset|usetikzlibrary)\b/
+
+/** Metadata commands in the preamble that should be preserved */
+const METADATA_COMMANDS = new Set(['title', 'author', 'date'])
+
 /**
- * Extract custom preamble definitions (\newcommand, \def, extra \usepackage)
+ * Extract custom preamble definitions (\newcommand, \def, extra \usepackage, \title, \author, \date)
  * from a LaTeX source so they can be preserved across the import round-trip.
  *
  * Also parses `\newtheorem` / `\theoremstyle` declarations and returns them as
  * structured `TheoremDef[]` — these lines are NOT included in `customPreamble`
  * because the generator manages them.
+ *
+ * Extra \documentclass options beyond fontSize/paperSize are returned separately.
  */
-export function extractCustomPreamble(latex: string): { customPreamble: string; theoremDefs: TheoremDef[] } {
+export function extractCustomPreamble(latex: string): {
+  customPreamble: string
+  theoremDefs: TheoremDef[]
+  extraDocClassOptions: string[]
+} {
   const beginDoc = latex.indexOf('\\begin{document}')
-  if (beginDoc === -1) return { customPreamble: '', theoremDefs: [] }
+  if (beginDoc === -1) return { customPreamble: '', theoremDefs: [], extraDocClassOptions: [] }
 
   const preamble = latex.slice(0, beginDoc)
   const theoremDefs = parseTheoremDefs(preamble)
 
   const lines = preamble.split('\n')
   const customLines: string[] = []
+  let extraDocClassOptions: string[] = []
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim()
     if (!line || line.startsWith('%')) continue
-    if (line.startsWith('\\documentclass')) continue
+
+    // Parse \documentclass options to find extras beyond fontSize/paperSize
+    if (line.startsWith('\\documentclass')) {
+      const optMatch = line.match(/\\documentclass\[([^\]]*)\]/)
+      if (optMatch) {
+        const opts = optMatch[1].split(',').map(o => o.trim())
+        const knownOpts = /^(\d+pt|\w+paper)$/
+        extraDocClassOptions = opts.filter(o => !knownOpts.test(o))
+      }
+      continue
+    }
 
     // Extra \usepackage lines — filter out packages already in the base preamble
     if (line.startsWith('\\usepackage')) {
@@ -1241,7 +1352,6 @@ export function extractCustomPreamble(latex: string): { customPreamble: string; 
 
     // Skip theorem/style declarations (managed by generator)
     if (THEOREM_LINE_RE.test(line)) {
-      // Still need to consume multi-line definitions
       let depth = 0
       for (const ch of lines[i]) {
         if (ch === '{') depth++
@@ -1254,6 +1364,30 @@ export function extractCustomPreamble(latex: string): { customPreamble: string; 
           if (ch === '}') depth--
         }
       }
+      continue
+    }
+
+    // Skip lines managed by the generator
+    if (MANAGED_PREAMBLE_RE.test(line)) continue
+
+    // Metadata commands (\title, \author, \date) — preserve in custom preamble
+    const metaCmdMatch = line.match(/^\\(title|author|date)\{/)
+    if (metaCmdMatch) {
+      let fullLine = lines[i]
+      let depth = 0
+      for (const ch of fullLine) {
+        if (ch === '{') depth++
+        if (ch === '}') depth--
+      }
+      while (depth > 0 && i + 1 < lines.length) {
+        i++
+        fullLine += '\n' + lines[i]
+        for (const ch of lines[i]) {
+          if (ch === '{') depth++
+          if (ch === '}') depth--
+        }
+      }
+      customLines.push(fullLine)
       continue
     }
 
@@ -1274,10 +1408,17 @@ export function extractCustomPreamble(latex: string): { customPreamble: string; 
         }
       }
       customLines.push(fullLine)
+      continue
+    }
+
+    // Any other unrecognized preamble line — preserve as-is
+    // (catches things like \makeatletter, \setcitestyle, etc.)
+    if (line.startsWith('\\')) {
+      customLines.push(lines[i])
     }
   }
 
-  return { customPreamble: customLines.join('\n'), theoremDefs }
+  return { customPreamble: customLines.join('\n'), theoremDefs, extraDocClassOptions }
 }
 
 // ─── Snapshot Merge ──────────────────────────────────────────────

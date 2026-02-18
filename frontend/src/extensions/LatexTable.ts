@@ -25,6 +25,8 @@ export const LatexTable = Node.create({
       headers: { default: ['', '', ''] },
       rows: { default: [['', '', '']] },
       caption: { default: '' },
+      columnSpec: { default: '' },
+      ruleStyle: { default: 'hline' },
       textAlign: {
         default: 'left',
         renderHTML: (attributes: Record<string, unknown>) => {
@@ -122,6 +124,8 @@ export const LatexTable = Node.create({
               rows: currentAttrs.rows.map((r) => r.map((c) => c)),
               caption: currentAttrs.caption,
               textAlign: currentNode?.attrs.textAlign ?? 'left',
+              columnSpec: currentNode?.attrs.columnSpec ?? '',
+              ruleStyle: currentNode?.attrs.ruleStyle ?? 'hline',
             }),
           )
         }

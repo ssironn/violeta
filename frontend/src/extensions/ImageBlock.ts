@@ -26,6 +26,8 @@ export const ImageBlock = Image.extend({
       options: { default: 'width=0.8\\textwidth' },
       position: { default: 'h' },
       alignment: { default: 'center' },
+      label: { default: '' },
+      starred: { default: false },
     }
   },
 

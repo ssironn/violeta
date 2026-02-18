@@ -41,6 +41,8 @@ export const TikzFigureBlock = Node.create({
           return { style: `text-align: ${attributes.textAlign}` }
         },
       },
+      label: { default: '' },
+      starred: { default: false },
     }
   },
 

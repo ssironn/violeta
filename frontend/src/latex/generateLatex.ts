@@ -215,14 +215,15 @@ function processNode(node: JSONContent): string {
       const position = node.attrs?.position ?? 'h'
       const options = node.attrs?.options ?? 'width=0.8\\textwidth'
       const alignment = node.attrs?.alignment ?? 'center'
+      const figLabel = (node.attrs?.label ?? '') as string
+      const starred = node.attrs?.starred ? '*' : ''
       const alignCmd = alignment === 'left' ? '\\raggedright' : alignment === 'right' ? '\\raggedleft' : '\\centering'
       const isBase64 = src.startsWith('data:')
       const lines = [
-        `\\begin{figure}[${position}]`,
+        `\\begin{figure${starred}}[${position}]`,
         `  ${alignCmd}`,
       ]
       if (isBase64 && assetFilename) {
-        // Asset registered — use the filename (file sent alongside .tex)
         lines.push(`  \\includegraphics[${options}]{${assetFilename}}`)
       } else if (isBase64) {
         lines.push('  % Imagem embutida (base64) — substitua pelo caminho do arquivo')
@@ -233,7 +234,10 @@ function processNode(node: JSONContent): string {
       if (alt) {
         lines.push(`  \\caption{${escapeLatex(alt)}}`)
       }
-      lines.push('\\end{figure}')
+      if (figLabel) {
+        lines.push(`  \\label{${figLabel}}`)
+      }
+      lines.push(`\\end{figure${starred}}`)
       return lines.join('\n')
     }
 
@@ -279,23 +283,32 @@ function processNode(node: JSONContent): string {
       const headers = (node.attrs?.headers ?? []) as string[]
       const rows = (node.attrs?.rows ?? []) as string[][]
       const caption = (node.attrs?.caption ?? '') as string
+      const savedColSpec = (node.attrs?.columnSpec ?? '') as string
+      const ruleStyle = (node.attrs?.ruleStyle ?? 'hline') as string
       const cols = headers.length
-      const colSpec = '|' + Array(cols).fill('c').join('|') + '|'
+      // Use saved column spec if available, otherwise generate default
+      const colSpec = savedColSpec || ('{|' + Array(cols).fill('c').join('|') + '|}')
       const hdr = headers.map((h) => escapeLatex(h)).join(' & ')
+
+      // Generate rules based on detected style
+      const topRule = ruleStyle === 'booktabs' ? '\\toprule' : '\\hline'
+      const midRule = ruleStyle === 'booktabs' ? '\\midrule' : '\\hline'
+      const bottomRule = ruleStyle === 'booktabs' ? '\\bottomrule' : '\\hline'
+
       const bodyRows = rows
         .map((r) => r.map((c) => escapeLatex(c)).join(' & '))
-        .join(' \\\\\n    \\hline\n    ')
+        .join(` \\\\\n    ${ruleStyle === 'none' ? '' : midRule + '\n    '}`)
       const lines = [
         '\\begin{table}[h]',
         '  \\centering',
-        `  \\begin{tabular}{${colSpec}}`,
-        '    \\hline',
-        `    ${hdr} \\\\`,
-        '    \\hline',
-        `    ${bodyRows} \\\\`,
-        '    \\hline',
-        '  \\end{tabular}',
+        `  \\begin{tabular}${colSpec}`,
       ]
+      if (ruleStyle !== 'none') lines.push(`    ${topRule}`)
+      lines.push(`    ${hdr} \\\\`)
+      if (ruleStyle !== 'none') lines.push(`    ${midRule}`)
+      lines.push(`    ${bodyRows} \\\\`)
+      if (ruleStyle !== 'none') lines.push(`    ${bottomRule}`)
+      lines.push('  \\end{tabular}')
       if (caption.trim()) {
         lines.push(`  \\caption{${escapeLatex(caption)}}`)
       }

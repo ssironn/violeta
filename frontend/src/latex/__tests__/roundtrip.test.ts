@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseLatex } from '../parseLatex'
+import { parseLatex, extractCustomPreamble } from '../parseLatex'
 import { generateLatex } from '../generateLatex'
 
 describe('round-trip: parse → generate', () => {
@@ -214,5 +214,230 @@ describe('round-trip: inline formatting', () => {
     const doc = parseLatex('The formula $E=mc^2$ is famous')
     const output = generateLatex(doc)
     expect(output).toContain('$E=mc^2$')
+  })
+})
+
+// ─── Gap 1: Standalone commands without args ────────────────────
+describe('round-trip: standalone commands (Gap 1)', () => {
+  it('preserves \\hfill as rawLatex inline', () => {
+    const doc = parseLatex('Left\\hfill Right')
+    const output = generateLatex(doc)
+    expect(output).toContain('\\hfill')
+  })
+
+  it('preserves \\dots as rawLatex inline', () => {
+    const doc = parseLatex('one, two, \\dots')
+    const output = generateLatex(doc)
+    expect(output).toContain('\\dots')
+  })
+
+  it('preserves \\ldots as rawLatex inline', () => {
+    const doc = parseLatex('a, b, \\ldots, z')
+    const output = generateLatex(doc)
+    expect(output).toContain('\\ldots')
+  })
+
+  it('preserves \\relax as rawLatex inline', () => {
+    const doc = parseLatex('Some text \\relax more text')
+    const output = generateLatex(doc)
+    expect(output).toContain('\\relax')
+  })
+})
+
+// ─── Gap 2: SKIP_COMMANDS preserved ─────────────────────────────
+describe('round-trip: formatting commands (Gap 2)', () => {
+  it('preserves \\noindent', () => {
+    const doc = parseLatex('\\noindent This paragraph has no indent')
+    const output = generateLatex(doc)
+    expect(output).toContain('\\noindent')
+  })
+
+  it('preserves \\centering', () => {
+    const doc = parseLatex('\\centering Some centered text')
+    const output = generateLatex(doc)
+    expect(output).toContain('\\centering')
+  })
+
+  it('preserves \\setlength with args', () => {
+    const doc = parseLatex('\\setlength{\\parindent}{0pt} Text')
+    const output = generateLatex(doc)
+    expect(output).toContain('\\setlength{\\parindent}{0pt}')
+  })
+
+  it('preserves \\linebreak', () => {
+    const doc = parseLatex('Text before \\linebreak text after')
+    const output = generateLatex(doc)
+    expect(output).toContain('\\linebreak')
+  })
+})
+
+// ─── Gap 3: FONT_COMMANDS preserved ─────────────────────────────
+describe('round-trip: font commands (Gap 3)', () => {
+  it('preserves \\Large{Title} via sourceCommand mark', () => {
+    const doc = parseLatex('\\Large{Big Title}')
+    const output = generateLatex(doc)
+    expect(output).toContain('\\Large{Big Title}')
+  })
+
+  it('preserves \\textrm{text}', () => {
+    const doc = parseLatex('Math: $x$ then \\textrm{roman text}')
+    const output = generateLatex(doc)
+    expect(output).toContain('\\textrm{roman text}')
+  })
+
+  it('preserves \\mbox{text}', () => {
+    const doc = parseLatex('Use \\mbox{no break here}')
+    const output = generateLatex(doc)
+    expect(output).toContain('\\mbox{no break here}')
+  })
+
+  it('preserves {\\large text} brace-group form', () => {
+    const doc = parseLatex('{\\large some large text}')
+    const output = generateLatex(doc)
+    expect(output).toContain('\\large{some large text}')
+  })
+})
+
+// ─── Gap 4: \\label in figures ──────────────────────────────────
+describe('round-trip: figure labels (Gap 4)', () => {
+  it('preserves \\label inside figure', () => {
+    const input = `\\begin{figure}[ht]
+  \\centering
+  \\includegraphics[width=0.5\\textwidth]{img.png}
+  \\caption{A figure}
+  \\label{fig:test}
+\\end{figure}`
+    const doc = parseLatex(input)
+    const output = generateLatex(doc)
+    expect(output).toContain('\\label{fig:test}')
+    expect(output).toContain('\\caption{A figure}')
+  })
+})
+
+// ─── Gap 5: Comments preserved ──────────────────────────────────
+describe('round-trip: comments (Gap 5)', () => {
+  it('preserves full-line comments as rawLatex blocks', () => {
+    const input = `\\section{Title}
+
+% This is an important comment
+
+Some text below.`
+    const doc = parseLatex(input)
+    const output = generateLatex(doc)
+    expect(output).toContain('% This is an important comment')
+  })
+
+  it('strips inline (end-of-line) comments', () => {
+    const input = 'Hello world % this is inline'
+    const doc = parseLatex(input)
+    const output = generateLatex(doc)
+    expect(output).toContain('Hello world')
+    expect(output).not.toContain('% this is inline')
+  })
+})
+
+// ─── Gap 6: figure* preservation ────────────────────────────────
+describe('round-trip: figure* (Gap 6)', () => {
+  it('preserves figure* (double-column)', () => {
+    const input = `\\begin{figure*}[ht]
+  \\centering
+  \\includegraphics[width=\\textwidth]{wide.png}
+  \\caption{Wide figure}
+\\end{figure*}`
+    const doc = parseLatex(input)
+    const output = generateLatex(doc)
+    expect(output).toContain('\\begin{figure*}')
+    expect(output).toContain('\\end{figure*}')
+  })
+})
+
+// ─── Gap 7: Table column spec and rules ─────────────────────────
+describe('round-trip: table column spec & rules (Gap 7)', () => {
+  it('preserves custom column spec', () => {
+    const input = `\\begin{table}[h]
+\\begin{tabular}{|l|r|p{3cm}|}
+  Name & Age & Bio \\\\
+  Alice & 30 & Programmer \\\\
+\\end{tabular}
+\\end{table}`
+    const doc = parseLatex(input)
+    const output = generateLatex(doc)
+    expect(output).toContain('{|l|r|p{3cm}|}')
+  })
+
+  it('preserves booktabs rules', () => {
+    const input = `\\begin{table}[h]
+\\begin{tabular}{lrc}
+  \\toprule
+  Name & Age & City \\\\
+  \\midrule
+  Alice & 30 & NY \\\\
+  \\bottomrule
+\\end{tabular}
+\\end{table}`
+    const doc = parseLatex(input)
+    const output = generateLatex(doc)
+    expect(output).toContain('\\toprule')
+    expect(output).toContain('\\midrule')
+    expect(output).toContain('\\bottomrule')
+  })
+
+  it('preserves hline rules', () => {
+    const input = `\\begin{table}[h]
+\\begin{tabular}{|c|c|}
+  \\hline
+  A & B \\\\
+  \\hline
+  1 & 2 \\\\
+  \\hline
+\\end{tabular}
+\\end{table}`
+    const doc = parseLatex(input)
+    const output = generateLatex(doc)
+    expect(output).toContain('\\hline')
+    expect(output).not.toContain('\\toprule')
+  })
+})
+
+// ─── Gap 10/11: Preamble extras ─────────────────────────────────
+describe('round-trip: preamble extraction (Gaps 10, 11)', () => {
+  it('extracts \\title, \\author, \\date from preamble', () => {
+    const input = `\\documentclass[12pt,a4paper]{article}
+\\usepackage{amsmath}
+\\title{My Paper}
+\\author{John Doe}
+\\date{2024}
+\\begin{document}
+Hello
+\\end{document}`
+    const result = extractCustomPreamble(input)
+    expect(result.customPreamble).toContain('\\title{My Paper}')
+    expect(result.customPreamble).toContain('\\author{John Doe}')
+    expect(result.customPreamble).toContain('\\date{2024}')
+  })
+
+  it('extracts extra documentclass options', () => {
+    const input = `\\documentclass[12pt,a4paper,twocolumn,landscape]{article}
+\\begin{document}
+Hello
+\\end{document}`
+    const result = extractCustomPreamble(input)
+    expect(result.extraDocClassOptions).toContain('twocolumn')
+    expect(result.extraDocClassOptions).toContain('landscape')
+    expect(result.extraDocClassOptions).not.toContain('12pt')
+    expect(result.extraDocClassOptions).not.toContain('a4paper')
+  })
+
+  it('preserves unrecognized preamble commands', () => {
+    const input = `\\documentclass[12pt]{article}
+\\usepackage{amsmath}
+\\makeatletter
+\\setcitestyle{numbers}
+\\begin{document}
+Hello
+\\end{document}`
+    const result = extractCustomPreamble(input)
+    expect(result.customPreamble).toContain('\\makeatletter')
+    expect(result.customPreamble).toContain('\\setcitestyle{numbers}')
   })
 })
