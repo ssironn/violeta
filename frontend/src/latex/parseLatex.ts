@@ -25,6 +25,15 @@ function extractBraceGroup(s: string, pos: number): { content: string; end: numb
   return { content: s.slice(open + 1, close), end: close + 1 }
 }
 
+/** Find next unescaped occurrence of char in string, starting from pos */
+function findUnescaped(s: string, char: string, pos: number): number {
+  for (let i = pos; i < s.length; i++) {
+    if (s[i] === '\\') { i++; continue } // skip escaped char
+    if (s[i] === char) return i
+  }
+  return -1
+}
+
 function unescapeLatex(text: string): string {
   return text
     .replace(/\\textbackslash\{\}/g, '\\')
@@ -197,7 +206,7 @@ function parseInline(text: string): JSONContent[] {
 
     // Check for inline math $...$
     if (text[i] === '$') {
-      const end = text.indexOf('$', i + 1)
+      const end = findUnescaped(text, '$', i + 1)
       if (end !== -1) {
         const latex = text.slice(i + 1, end)
         nodes.push({ type: 'inlineMath', attrs: { latex } })

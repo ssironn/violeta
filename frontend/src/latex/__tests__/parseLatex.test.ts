@@ -77,6 +77,24 @@ describe('parseLatex — CONTENT_DISPLAY_COMMANDS', () => {
   })
 })
 
+describe('parseLatex — inline math edge cases', () => {
+  it('does not close inline math on escaped \\$', () => {
+    const doc = parseLatex('$x = \\$5$ rest')
+    const para = doc.content![0]
+    const mathNode = para.content!.find((n: any) => n.type === 'inlineMath')
+    expect(mathNode).toBeDefined()
+    expect(mathNode!.attrs!.latex).toBe('x = \\$5')
+  })
+
+  it('handles multiple escaped dollars in math', () => {
+    const doc = parseLatex('$\\$a + \\$b$')
+    const para = doc.content![0]
+    const mathNode = para.content!.find((n: any) => n.type === 'inlineMath')
+    expect(mathNode).toBeDefined()
+    expect(mathNode!.attrs!.latex).toBe('\\$a + \\$b')
+  })
+})
+
 describe('parseLatex — brace matching edge cases', () => {
   it('closes brace group after \\\\\\\\ (double backslash line break)', () => {
     // Raw LaTeX: \textbf{line one \\ line two}
