@@ -636,15 +636,17 @@ function parseBlock(block: string): JSONContent[] {
   if (!trimmed) return []
 
   // Heading commands
-  const headingMatch = trimmed.match(/^\\(section|subsection|subsubsection|paragraph)(\*?)\{/)
+  const headingMatch = trimmed.match(/^\\(part|chapter|section|subsection|subsubsection|paragraph)(\*?)\{/)
   if (headingMatch) {
     const cmd = headingMatch[1]
     const starred = headingMatch[2] === '*'
-    const levels: Record<string, number> = { section: 1, subsection: 2, subsubsection: 3, paragraph: 4 }
+    const levels: Record<string, number> = { part: 0, chapter: 0, section: 1, subsection: 2, subsubsection: 3, paragraph: 4 }
     const level = levels[cmd] ?? 1
     const group = extractBraceGroup(trimmed, headingMatch[0].length - 1)
     const content = parseInline(group.content)
-    return content.length > 0 ? [{ type: 'heading', attrs: { level, starred }, content }] : []
+    const attrs: Record<string, any> = { level, starred }
+    if (cmd === 'part' || cmd === 'chapter') attrs.sourceCommand = cmd
+    return content.length > 0 ? [{ type: 'heading', attrs, content }] : []
   }
 
   // Horizontal rule
@@ -675,8 +677,15 @@ function parseBlock(block: string): JSONContent[] {
   if (envMatch) {
     const envName = envMatch[1]
     const beginTag = `\\begin{${envName}}`
-    const afterBegin = trimmed.indexOf(beginTag) + beginTag.length
+    let afterBegin = trimmed.indexOf(beginTag) + beginTag.length
     const endPos = findEnvironmentEnd(trimmed, envName, afterBegin)
+    // Capture optional arguments like [nosep], [label=...], etc.
+    let envOptions: string | undefined
+    const optArgMatch = trimmed.slice(afterBegin).match(/^\s*(\[[^\]]*\])/)
+    if (optArgMatch) {
+      envOptions = optArgMatch[1]
+      afterBegin += optArgMatch[0].length
+    }
     const inner = trimmed.slice(afterBegin, endPos).trim()
 
     // Named math environments → mathEnvironment
@@ -708,6 +717,7 @@ function parseBlock(block: string): JSONContent[] {
       const listType = envName === 'enumerate' ? 'orderedList' : 'bulletList'
       const attrs: Record<string, any> = {}
       if (envName === 'description') attrs.environment = 'description'
+      if (envOptions) attrs.options = envOptions
       return [{ type: listType, ...(Object.keys(attrs).length > 0 ? { attrs } : {}), content: items }]
     }
 
@@ -948,7 +958,7 @@ function splitIntoBlocks(body: string): string[] {
     }
 
     // Heading commands
-    if (/^\\(section|subsection|subsubsection|paragraph)\*?\{/.test(trimmedLine)) {
+    if (/^\\(part|chapter|section|subsection|subsubsection|paragraph)\*?\{/.test(trimmedLine)) {
       flushCurrent()
       blocks.push(trimmedLine)
       i++
