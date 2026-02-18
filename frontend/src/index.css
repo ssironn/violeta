@@ -1145,6 +1145,37 @@ body {
   margin: 0.5rem 0;
 }
 
+/* LaTeX enumerate nesting: 1. → (a) → i. */
+.tiptap ol ol {
+  list-style: none;
+  counter-reset: nested-ol;
+}
+
+.tiptap ol ol > li {
+  counter-increment: nested-ol;
+  display: list-item;
+}
+
+.tiptap ol ol > li > p:first-child::before {
+  content: "(" counter(nested-ol, lower-alpha) ")\00a0";
+  font-weight: 500;
+}
+
+.tiptap ol ol ol {
+  list-style: none;
+  counter-reset: nested-ol2;
+}
+
+.tiptap ol ol ol > li {
+  counter-increment: nested-ol2;
+  display: list-item;
+}
+
+.tiptap ol ol ol > li > p:first-child::before {
+  content: counter(nested-ol2, lower-roman) ".\00a0";
+  font-weight: 500;
+}
+
 .tiptap li {
   margin: 0.25rem 0;
 }

@@ -34,14 +34,14 @@ import { insertLink } from '../utils/insertHelpers'
 // Types
 // ---------------------------------------------------------------------------
 
-interface SlashCommandCallbacks {
+export interface SlashCommandCallbacks {
   onOpenMathEditor?: (latex: string) => void
   onOpenImageModal?: () => void
   onOpenTikzEditor?: () => void
   onOpenPlotEditor?: () => void
 }
 
-interface SlashCommandItem {
+export interface SlashCommandItem {
   id: string
   label: string
   category: string
@@ -86,7 +86,7 @@ function getMathAliases(id: string): string[] {
 // Menu items
 // ---------------------------------------------------------------------------
 
-const slashCommandItems: SlashCommandItem[] = [
+export const slashCommandItems: SlashCommandItem[] = [
   // -- Texto --
   {
     id: 'paragraph',
