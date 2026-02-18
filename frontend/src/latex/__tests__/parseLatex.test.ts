@@ -76,3 +76,33 @@ describe('parseLatex — CONTENT_DISPLAY_COMMANDS', () => {
     expect(scNode!.text).toBe('Small Caps')
   })
 })
+
+describe('parseLatex — brace matching edge cases', () => {
+  it('closes brace group after \\\\\\\\ (double backslash line break)', () => {
+    // Raw LaTeX: \textbf{line one \\ line two}
+    // In JS: need 4 backslashes to represent \\
+    const doc = parseLatex('\\textbf{line one \\\\\\\\ line two}')
+    const para = doc.content![0]
+    expect(para.type).toBe('paragraph')
+    // The bold should contain both lines
+    const boldNodes = para.content!.filter(
+      (n: any) => n.type === 'text' && n.marks?.some((m: any) => m.type === 'bold')
+    )
+    expect(boldNodes.length).toBeGreaterThan(0)
+  })
+
+  it('handles \\textbf{x\\\\\\\\} without eating following content', () => {
+    // Raw LaTeX: \textbf{x\\} next
+    // The } after \\ should close the group, not be "escaped"
+    const doc = parseLatex('\\textbf{x\\\\\\\\} next')
+    const para = doc.content![0]
+    const textNodes = para.content!.filter((n: any) => n.type === 'text')
+    const allText = textNodes.map((n: any) => n.text).join('')
+    expect(allText).toContain('next')
+    // "next" must NOT be bold — it's outside the braces
+    const nextNode = textNodes.find((n: any) => n.text?.includes('next'))
+    expect(nextNode).toBeDefined()
+    const hasBold = nextNode!.marks?.some((m: any) => m.type === 'bold')
+    expect(hasBold).toBeFalsy()
+  })
+})

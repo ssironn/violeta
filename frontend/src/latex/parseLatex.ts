@@ -6,8 +6,13 @@ import { parsePgfplotsCode } from '../pgfplots/pgfplotsParser'
 function findClosingBrace(s: string, start: number): number {
   let depth = 0
   for (let i = start; i < s.length; i++) {
-    if (s[i] === '{' && (i === 0 || s[i - 1] !== '\\')) depth++
-    if (s[i] === '}' && (i === 0 || s[i - 1] !== '\\')) depth--
+    if (s[i] === '\\') {
+      // Skip escaped characters: \{ \} and also \\ (double backslash)
+      i++ // skip next char
+      continue
+    }
+    if (s[i] === '{') depth++
+    if (s[i] === '}') depth--
     if (depth === 0) return i
   }
   return s.length

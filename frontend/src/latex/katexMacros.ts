@@ -98,8 +98,12 @@ export function parsePreambleMacros(preamble: string): Record<string, string> {
 function findMatchingBrace(s: string, start: number): number {
   let depth = 0
   for (let i = start; i < s.length; i++) {
-    if (s[i] === '{' && (i === 0 || s[i - 1] !== '\\')) depth++
-    if (s[i] === '}' && (i === 0 || s[i - 1] !== '\\')) depth--
+    if (s[i] === '\\') {
+      i++ // skip next char (handles \\ and \{ \})
+      continue
+    }
+    if (s[i] === '{') depth++
+    if (s[i] === '}') depth--
     if (depth === 0) return i
   }
   return -1
