@@ -82,6 +82,9 @@ function processMarks(text: string, marks?: JSONContent['marks']): string {
       case 'link':
         result = `\\href{${mark.attrs?.href ?? ''}}{${result}}`
         break
+      case 'sourceCommand':
+        result = `\\${mark.attrs?.command ?? ''}{${result}}`
+        break
       case 'textStyle':
         if (mark.attrs?.color) {
           // Skip color in basic LaTeX for simplicity

@@ -67,3 +67,41 @@ describe('generateLatex — chapter/part round-trip', () => {
     expect(latex).toContain('\\section{Section}')
   })
 })
+
+describe('generateLatex — CONTENT_DISPLAY_COMMANDS round-trip', () => {
+  it('wraps text with sourceCommand mark back in \\title{}', () => {
+    const doc = {
+      type: 'doc',
+      content: [{
+        type: 'paragraph',
+        content: [{
+          type: 'text',
+          text: 'My Document',
+          marks: [{ type: 'sourceCommand', attrs: { command: 'title' } }],
+        }],
+      }],
+    }
+    const latex = generateLatex(doc)
+    expect(latex).toContain('\\title{My Document}')
+  })
+
+  it('wraps text with sourceCommand mark back in \\textsc{}', () => {
+    const doc = {
+      type: 'doc',
+      content: [{
+        type: 'paragraph',
+        content: [
+          { type: 'text', text: 'Hello ' },
+          {
+            type: 'text',
+            text: 'Small Caps',
+            marks: [{ type: 'sourceCommand', attrs: { command: 'textsc' } }],
+          },
+          { type: 'text', text: ' world' },
+        ],
+      }],
+    }
+    const latex = generateLatex(doc)
+    expect(latex).toContain('Hello \\textsc{Small Caps} world')
+  })
+})
