@@ -79,6 +79,12 @@ const FONT_COMMANDS = new Set([
   'mbox', 'text', 'mathrm',
 ])
 
+// Commands whose {content} should be displayed with a sourceCommand mark for round-trip
+const CONTENT_DISPLAY_COMMANDS = new Set([
+  'title', 'author', 'date', 'thanks',
+  'textsc',
+])
+
 // ─── Accent handling ──────────────────────────────────────────────
 
 const ACCENT_MAP: Record<string, Record<string, string>> = {
@@ -293,6 +299,20 @@ function parseInline(text: string): JSONContent[] {
               const inner = parseInline(rest)
               nodes.push(...inner)
               i = text.length
+            }
+            continue
+          }
+
+          // Content display commands — extract {content} with sourceCommand mark for round-trip
+          if (CONTENT_DISPLAY_COMMANDS.has(cmd)) {
+            if (text[afterCmd] === '{') {
+              const group = extractBraceGroup(text, afterCmd)
+              const inner = parseInline(group.content)
+              const marked = addMarkToNodes(inner, { type: 'sourceCommand', attrs: { command: cmd } })
+              nodes.push(...marked)
+              i = group.end
+            } else {
+              i = afterCmd
             }
             continue
           }

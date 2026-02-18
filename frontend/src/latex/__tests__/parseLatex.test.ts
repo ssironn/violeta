@@ -44,3 +44,35 @@ describe('parseLatex — chapter/part headings', () => {
     expect(heading.content!.length).toBeGreaterThan(0)
   })
 })
+
+describe('parseLatex — CONTENT_DISPLAY_COMMANDS', () => {
+  it('extracts \\title{X} content as paragraph with sourceCommand mark', () => {
+    const doc = parseLatex('\\title{My Document}')
+    const para = doc.content![0]
+    expect(para.type).toBe('paragraph')
+    const textNode = para.content![0]
+    expect(textNode.text).toBe('My Document')
+    const srcMark = textNode.marks?.find((m: any) => m.type === 'sourceCommand')
+    expect(srcMark).toBeDefined()
+    expect(srcMark!.attrs!.command).toBe('title')
+  })
+
+  it('extracts \\author{X} content with sourceCommand mark', () => {
+    const doc = parseLatex('\\author{John Doe}')
+    const para = doc.content![0]
+    const textNode = para.content![0]
+    expect(textNode.text).toBe('John Doe')
+    const srcMark = textNode.marks?.find((m: any) => m.type === 'sourceCommand')
+    expect(srcMark!.attrs!.command).toBe('author')
+  })
+
+  it('extracts \\textsc{X} content with sourceCommand mark', () => {
+    const doc = parseLatex('Hello \\textsc{Small Caps} world')
+    const para = doc.content![0]
+    const scNode = para.content!.find((n: any) =>
+      n.marks?.some((m: any) => m.type === 'sourceCommand')
+    )
+    expect(scNode).toBeDefined()
+    expect(scNode!.text).toBe('Small Caps')
+  })
+})
