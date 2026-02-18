@@ -124,3 +124,32 @@ describe('parseLatex — brace matching edge cases', () => {
     expect(hasBold).toBeFalsy()
   })
 })
+
+describe('parseLatex — table parsing', () => {
+  it('does not split & inside inline math in table cells', () => {
+    const latex = `\\begin{table}[h]
+\\begin{tabular}{|c|c|}
+  Header 1 & Header 2 \\\\
+  $a & b$ & normal \\\\
+\\end{tabular}
+\\end{table}`
+    const doc = parseLatex(latex)
+    const table = doc.content!.find((n: any) => n.type === 'latexTable')
+    expect(table).toBeDefined()
+    const rows = table!.attrs!.rows as string[][]
+    expect(rows[0][0]).toBe('$a & b$')
+    expect(rows[0][1]).toBe('normal')
+  })
+
+  it('handles multiple math cells in a row', () => {
+    const latex = `\\begin{tabular}{cc}
+  $x$ & $y$ \\\\
+  $a & b$ & $c$ \\\\
+\\end{tabular}`
+    const doc = parseLatex(latex)
+    const table = doc.content!.find((n: any) => n.type === 'latexTable')
+    expect(table).toBeDefined()
+    const rows = table!.attrs!.rows as string[][]
+    expect(rows[0][0]).toBe('$a & b$')
+  })
+})

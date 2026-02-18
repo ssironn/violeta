@@ -610,6 +610,37 @@ let dynamicCalloutEnvs: Set<string> = CALLOUT_ENVIRONMENTS
 
 // ─── Table Parsing ──────────────────────────────────────────────
 
+/** Split a table row string by & respecting $...$ math mode */
+function splitTableCells(row: string): string[] {
+  const cells: string[] = []
+  let current = ''
+  let inMath = false
+  let i = 0
+  while (i < row.length) {
+    if (row[i] === '\\') {
+      current += row[i] + (row[i + 1] ?? '')
+      i += 2
+      continue
+    }
+    if (row[i] === '$') {
+      inMath = !inMath
+      current += row[i]
+      i++
+      continue
+    }
+    if (row[i] === '&' && !inMath) {
+      cells.push(current.trim())
+      current = ''
+      i++
+      continue
+    }
+    current += row[i]
+    i++
+  }
+  cells.push(current.trim())
+  return cells
+}
+
 function parseTabular(inner: string, _beginTag: string): JSONContent[] {
   // Split rows by \\ and parse cells by &
   const rowStrs = inner.split(/\\\\/).map((r) => r.trim()).filter(Boolean)
@@ -620,7 +651,7 @@ function parseTabular(inner: string, _beginTag: string): JSONContent[] {
     const cleaned = rowStr.replace(/\\(hline|cline\{[^}]*\}|toprule|midrule|bottomrule)\s*/g, '').trim()
     if (!cleaned) continue
     // Unescape LaTeX special chars so cells don't accumulate escaping on round-trips
-    const cells = cleaned.split('&').map((c) => unescapeLatex(c.trim()))
+    const cells = splitTableCells(cleaned).map((c) => unescapeLatex(c))
     allRows.push(cells)
   }
 
