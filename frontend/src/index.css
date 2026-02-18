@@ -1004,12 +1004,65 @@ body {
   outline: none;
   min-height: 1123px; /* A4 height at 96 DPI */
   padding: 72px 72px; /* ~19mm margins, matching A4 standard margins */
+  font-family: "Latin Modern Roman", "Computer Modern", serif;
   font-size: 1rem;
   line-height: 1.75;
   color: #1e1e2e;
-  counter-reset: theorem-counter;
+  counter-reset: theorem-counter section-counter subsection-counter subsubsection-counter;
 }
 
+
+/* ── Section numbering via CSS counters ── */
+
+.tiptap h1 {
+  counter-increment: section-counter;
+  counter-reset: subsection-counter subsubsection-counter;
+}
+
+.tiptap h1::before {
+  content: counter(section-counter) ".\00a0\00a0";
+}
+
+.tiptap h1[data-starred="true"] {
+  counter-increment: none;
+}
+
+.tiptap h1[data-starred="true"]::before {
+  content: none;
+}
+
+.tiptap h2 {
+  counter-increment: subsection-counter;
+  counter-reset: subsubsection-counter;
+}
+
+.tiptap h2::before {
+  content: counter(section-counter) "." counter(subsection-counter) "\00a0\00a0";
+}
+
+.tiptap h2[data-starred="true"] {
+  counter-increment: none;
+}
+
+.tiptap h2[data-starred="true"]::before {
+  content: none;
+}
+
+.tiptap h3 {
+  counter-increment: subsubsection-counter;
+}
+
+.tiptap h3::before {
+  content: counter(section-counter) "." counter(subsection-counter) "." counter(subsubsection-counter) "\00a0\00a0";
+}
+
+.tiptap h3[data-starred="true"] {
+  counter-increment: none;
+}
+
+.tiptap h3[data-starred="true"]::before {
+  content: none;
+}
 
 /* ── Theorem-like numbering via CSS counters ── */
 
@@ -1087,28 +1140,28 @@ body {
 
 .tiptap h1 {
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 500;
   margin: 1.5rem 0 0.75rem;
   line-height: 1.2;
 }
 
 .tiptap h2 {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 500;
   margin: 1.25rem 0 0.625rem;
   line-height: 1.3;
 }
 
 .tiptap h3 {
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 500;
   margin: 1rem 0 0.5rem;
   line-height: 1.4;
 }
 
 .tiptap h4 {
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 500;
   margin: 0.75rem 0 0.375rem;
 }
 

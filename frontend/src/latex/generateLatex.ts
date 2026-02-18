@@ -153,13 +153,9 @@ function processNode(node: JSONContent): string {
       const level = node.attrs?.level ?? 1
       const starred = node.attrs?.starred ? '*' : ''
       const text = processInlineContent(node, true)
-      if (level === 0) {
-        const src = (node.attrs?.sourceCommand as string) || 'chapter'
-        return `\\${src}${starred}{${text}}`
-      }
-      const commands = ['\\section', '\\subsection', '\\subsubsection', '\\paragraph']
-      const cmd = commands[Math.min(level - 1, commands.length - 1)]
-      return `${cmd}${starred}{${text}}`
+      const commands: Record<number, string> = { 0: 'chapter', 1: 'section', 2: 'subsection', 3: 'subsubsection', 4: 'paragraph' }
+      const cmd = commands[level] ?? 'section'
+      return `\\${cmd}${starred}{${text}}`
     }
 
     case 'paragraph': {

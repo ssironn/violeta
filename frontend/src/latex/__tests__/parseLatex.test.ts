@@ -1,47 +1,52 @@
 import { describe, it, expect } from 'vitest'
 import { parseLatex } from '../parseLatex'
 
-describe('parseLatex — chapter/part headings', () => {
+describe('parseLatex — heading commands imported as headings', () => {
+  it('parses \\section{Title} as heading level 1', () => {
+    const doc = parseLatex('\\section{Hello}')
+    const heading = doc.content![0]
+    expect(heading.type).toBe('heading')
+    expect(heading.attrs?.level).toBe(1)
+    expect(heading.content![0].text).toBe('Hello')
+  })
+
+  it('parses \\subsection{Title} as heading level 2', () => {
+    const doc = parseLatex('\\subsection{Sub}')
+    const heading = doc.content![0]
+    expect(heading.type).toBe('heading')
+    expect(heading.attrs?.level).toBe(2)
+  })
+
   it('parses \\chapter{Title} as heading level 0', () => {
     const doc = parseLatex('\\chapter{Introduction}')
     const heading = doc.content![0]
     expect(heading.type).toBe('heading')
     expect(heading.attrs?.level).toBe(0)
-    expect(heading.attrs?.sourceCommand).toBe('chapter')
     expect(heading.content![0].text).toBe('Introduction')
   })
 
-  it('parses \\chapter*{Title} as starred heading level 0', () => {
-    const doc = parseLatex('\\chapter*{No Number}')
-    const heading = doc.content![0]
-    expect(heading.type).toBe('heading')
-    expect(heading.attrs?.level).toBe(0)
-    expect(heading.attrs?.starred).toBe(true)
-    expect(heading.attrs?.sourceCommand).toBe('chapter')
-  })
-
-  it('parses \\part{Title} as heading level 0 with sourceCommand=part', () => {
-    const doc = parseLatex('\\part{First Part}')
-    const heading = doc.content![0]
-    expect(heading.type).toBe('heading')
-    expect(heading.attrs?.level).toBe(0)
-    expect(heading.attrs?.sourceCommand).toBe('part')
-    expect(heading.content![0].text).toBe('First Part')
-  })
-
-  it('preserves existing \\section behavior unchanged', () => {
-    const doc = parseLatex('\\section{Hello}')
+  it('parses \\section*{Title} with starred attribute', () => {
+    const doc = parseLatex('\\section*{Unnumbered}')
     const heading = doc.content![0]
     expect(heading.type).toBe('heading')
     expect(heading.attrs?.level).toBe(1)
+    expect(heading.attrs?.starred).toBe(true)
+    expect(heading.content![0].text).toBe('Unnumbered')
   })
 
-  it('handles \\chapter with inline formatting', () => {
-    const doc = parseLatex('\\chapter{\\textbf{Bold} Title}')
+  it('parses font-size heading {\\LARGE \\textbf{...}} as level 1', () => {
+    const doc = parseLatex('{\\LARGE \\textbf{My Title}}')
     const heading = doc.content![0]
     expect(heading.type).toBe('heading')
-    expect(heading.attrs?.level).toBe(0)
-    expect(heading.content!.length).toBeGreaterThan(0)
+    expect(heading.attrs?.level).toBe(1)
+    expect(heading.content![0].text).toBe('My Title')
+  })
+
+  it('parses font-size heading {\\Large \\textbf{...}} as level 2', () => {
+    const doc = parseLatex('{\\Large \\textbf{Subtitle}}')
+    const heading = doc.content![0]
+    expect(heading.type).toBe('heading')
+    expect(heading.attrs?.level).toBe(2)
   })
 })
 
@@ -74,6 +79,23 @@ describe('parseLatex — CONTENT_DISPLAY_COMMANDS', () => {
     )
     expect(scNode).toBeDefined()
     expect(scNode!.text).toBe('Small Caps')
+  })
+})
+
+describe('parseLatex — section with optional argument', () => {
+  it('parses \\section[short]{Full Title} as heading', () => {
+    const doc = parseLatex('\\section[Short]{Full Title}')
+    const heading = doc.content![0]
+    expect(heading.type).toBe('heading')
+    expect(heading.attrs?.level).toBe(1)
+    expect(heading.content![0].text).toBe('Full Title')
+  })
+
+  it('parses \\subsection[short]{Full} as heading level 2', () => {
+    const doc = parseLatex('\\subsection[Short]{Full Subsection}')
+    const heading = doc.content![0]
+    expect(heading.type).toBe('heading')
+    expect(heading.attrs?.level).toBe(2)
   })
 })
 

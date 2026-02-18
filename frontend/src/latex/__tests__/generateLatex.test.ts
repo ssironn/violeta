@@ -1,70 +1,97 @@
 import { describe, it, expect } from 'vitest'
 import { generateLatex } from '../generateLatex'
 
-describe('generateLatex — chapter/part round-trip', () => {
-  it('generates \\chapter from heading level 0 with sourceCommand=chapter', () => {
+describe('generateLatex — heading levels as \\section commands', () => {
+  it('generates \\section{...} for level 1', () => {
     const doc = {
       type: 'doc',
       content: [{
         type: 'heading',
-        attrs: { level: 0, starred: false, sourceCommand: 'chapter' },
-        content: [{ type: 'text', text: 'Introduction' }],
-      }],
-    }
-    const latex = generateLatex(doc)
-    expect(latex).toContain('\\chapter{Introduction}')
-  })
-
-  it('generates \\chapter* for starred heading', () => {
-    const doc = {
-      type: 'doc',
-      content: [{
-        type: 'heading',
-        attrs: { level: 0, starred: true, sourceCommand: 'chapter' },
-        content: [{ type: 'text', text: 'No Number' }],
-      }],
-    }
-    const latex = generateLatex(doc)
-    expect(latex).toContain('\\chapter*{No Number}')
-  })
-
-  it('generates \\part from heading level 0 with sourceCommand=part', () => {
-    const doc = {
-      type: 'doc',
-      content: [{
-        type: 'heading',
-        attrs: { level: 0, starred: false, sourceCommand: 'part' },
-        content: [{ type: 'text', text: 'First Part' }],
-      }],
-    }
-    const latex = generateLatex(doc)
-    expect(latex).toContain('\\part{First Part}')
-  })
-
-  it('defaults level 0 without sourceCommand to \\chapter', () => {
-    const doc = {
-      type: 'doc',
-      content: [{
-        type: 'heading',
-        attrs: { level: 0, starred: false },
-        content: [{ type: 'text', text: 'Default' }],
-      }],
-    }
-    const latex = generateLatex(doc)
-    expect(latex).toContain('\\chapter{Default}')
-  })
-
-  it('preserves \\section for level 1 unchanged', () => {
-    const doc = {
-      type: 'doc',
-      content: [{
-        type: 'heading',
-        attrs: { level: 1, starred: false },
+        attrs: { level: 1 },
         content: [{ type: 'text', text: 'Section' }],
       }],
     }
     const latex = generateLatex(doc)
     expect(latex).toContain('\\section{Section}')
+  })
+
+  it('generates \\subsection{...} for level 2', () => {
+    const doc = {
+      type: 'doc',
+      content: [{
+        type: 'heading',
+        attrs: { level: 2 },
+        content: [{ type: 'text', text: 'Subsection' }],
+      }],
+    }
+    const latex = generateLatex(doc)
+    expect(latex).toContain('\\subsection{Subsection}')
+  })
+
+  it('generates \\subsubsection{...} for level 3', () => {
+    const doc = {
+      type: 'doc',
+      content: [{
+        type: 'heading',
+        attrs: { level: 3 },
+        content: [{ type: 'text', text: 'Subsubsection' }],
+      }],
+    }
+    const latex = generateLatex(doc)
+    expect(latex).toContain('\\subsubsection{Subsubsection}')
+  })
+
+  it('generates \\paragraph{...} for level 4', () => {
+    const doc = {
+      type: 'doc',
+      content: [{
+        type: 'heading',
+        attrs: { level: 4 },
+        content: [{ type: 'text', text: 'Paragraph' }],
+      }],
+    }
+    const latex = generateLatex(doc)
+    expect(latex).toContain('\\paragraph{Paragraph}')
+  })
+
+  it('generates \\chapter{...} for level 0', () => {
+    const doc = {
+      type: 'doc',
+      content: [{
+        type: 'heading',
+        attrs: { level: 0 },
+        content: [{ type: 'text', text: 'Chapter' }],
+      }],
+    }
+    const latex = generateLatex(doc)
+    expect(latex).toContain('\\chapter{Chapter}')
+  })
+
+  it('generates starred variant \\section*{...}', () => {
+    const doc = {
+      type: 'doc',
+      content: [{
+        type: 'heading',
+        attrs: { level: 1, starred: true },
+        content: [{ type: 'text', text: 'Unnumbered' }],
+      }],
+    }
+    const latex = generateLatex(doc)
+    expect(latex).toContain('\\section*{Unnumbered}')
+  })
+
+  it('does not wrap heading in center (sections are never centered)', () => {
+    const doc = {
+      type: 'doc',
+      content: [{
+        type: 'heading',
+        attrs: { level: 1, textAlign: 'center' },
+        content: [{ type: 'text', text: 'Title' }],
+      }],
+    }
+    const latex = generateLatex(doc)
+    expect(latex).toContain('\\section{Title}')
+    expect(latex).not.toContain('\\begin{center}')
   })
 })
 

@@ -3,18 +3,32 @@ import { parseLatex, extractCustomPreamble } from '../parseLatex'
 import { generateLatex } from '../generateLatex'
 
 describe('round-trip: parse → generate', () => {
-  it('round-trips \\chapter{Title}', () => {
-    const input = '\\chapter{Introduction}'
+  it('round-trips \\section{...}', () => {
+    const input = '\\section{Introduction}'
     const doc = parseLatex(input)
     const output = generateLatex(doc)
-    expect(output).toContain('\\chapter{Introduction}')
+    expect(output).toContain('\\section{Introduction}')
   })
 
-  it('round-trips \\part*{Title}', () => {
-    const input = '\\part*{Appendix}'
+  it('round-trips \\subsection{...}', () => {
+    const input = '\\subsection{Subtitle}'
     const doc = parseLatex(input)
     const output = generateLatex(doc)
-    expect(output).toContain('\\part*{Appendix}')
+    expect(output).toContain('\\subsection{Subtitle}')
+  })
+
+  it('round-trips \\section*{...} (starred)', () => {
+    const input = '\\section*{Unnumbered}'
+    const doc = parseLatex(input)
+    const output = generateLatex(doc)
+    expect(output).toContain('\\section*{Unnumbered}')
+  })
+
+  it('imports font-size heading and exports as \\section', () => {
+    const input = '{\\Large \\textbf{Subtitle}}'
+    const doc = parseLatex(input)
+    const output = generateLatex(doc)
+    expect(output).toContain('\\subsection{Subtitle}')
   })
 
   it('round-trips \\title{X}', () => {
@@ -42,11 +56,18 @@ describe('round-trip: parse → generate', () => {
     expect(output).toContain('\\textcolor{red}{world}')
   })
 
-  it('round-trips \\section unchanged', () => {
-    const input = '\\section{Hello}'
+  it('round-trips \\subsubsection{...}', () => {
+    const input = '\\subsubsection{Hello}'
     const doc = parseLatex(input)
     const output = generateLatex(doc)
-    expect(output).toContain('\\section{Hello}')
+    expect(output).toContain('\\subsubsection{Hello}')
+  })
+
+  it('imports \\section[short]{Full} and exports as \\section{Full}', () => {
+    const input = '\\section[Short Title]{Full Title}'
+    const doc = parseLatex(input)
+    const output = generateLatex(doc)
+    expect(output).toContain('\\section{Full Title}')
   })
 })
 

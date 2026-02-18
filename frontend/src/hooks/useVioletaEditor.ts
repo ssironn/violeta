@@ -24,6 +24,7 @@ import { HardBreakSpacing } from '../extensions/HardBreakSpacing'
 import { LayoutBlock } from '../extensions/LayoutBlock'
 import { FootnoteNode } from '../extensions/FootnoteNode'
 import { LatexComment } from '../extensions/LatexComment'
+import { CustomHeading } from '../extensions/CustomHeading'
 
 export interface MathEditState {
   latex: string
@@ -50,15 +51,16 @@ export function useVioletaEditor({ onMathClick }: UseVioletaEditorOptions) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3, 4],
-        },
+        heading: false,
         hardBreak: false,
+      }),
+      CustomHeading.configure({
+        levels: [1, 2, 3, 4],
       }),
       HardBreakSpacing,
       Underline,
       TextAlign.configure({
-        types: ['heading', 'paragraph', 'tikzFigure', 'pgfplotBlock', 'rawLatex', 'latexTable', 'mathEnvironment', 'calloutBlock'],
+        types: ['paragraph', 'tikzFigure', 'pgfplotBlock', 'rawLatex', 'latexTable', 'mathEnvironment', 'calloutBlock'],
       }),
       TextStyle,
       Color,
