@@ -24,6 +24,17 @@ describe('round-trip: parse → generate', () => {
     expect(output).toContain('\\title{My Doc}')
   })
 
+  it('round-trips description list with item labels', () => {
+    const input = `\\begin{description}
+\\item[Alpha] First item
+\\item[Beta] Second item
+\\end{description}`
+    const doc = parseLatex(input)
+    const output = generateLatex(doc)
+    expect(output).toContain('\\item[Alpha]')
+    expect(output).toContain('\\item[Beta]')
+  })
+
   it('round-trips \\section unchanged', () => {
     const input = '\\section{Hello}'
     const doc = parseLatex(input)

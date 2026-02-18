@@ -172,7 +172,8 @@ function processNode(node: JSONContent): string {
       const items = (node.content ?? [])
         .map((item) => {
           const inner = processListItemContent(item.content ?? [])
-          return `  \\item ${inner}`
+          const label = item.attrs?.label ? `[${item.attrs.label}]` : ''
+          return `  \\item${label} ${inner}`
         })
         .join('\n')
       return `\\begin{${env}}${opts}\n${items}\n\\end{${env}}`

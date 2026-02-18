@@ -177,6 +177,21 @@ Content
   })
 })
 
+describe('parseLatex — description lists', () => {
+  it('extracts \\item[label] in description environment', () => {
+    const latex = `\\begin{description}
+\\item[Alpha] First item
+\\item[Beta] Second item
+\\end{description}`
+    const doc = parseLatex(latex)
+    const list = doc.content![0]
+    expect(list.type).toBe('bulletList')
+    expect(list.attrs?.environment).toBe('description')
+    const firstItem = list.content![0]
+    expect(firstItem.attrs?.label).toBe('Alpha')
+  })
+})
+
 describe('parseLatex — table parsing', () => {
   it('does not split & inside inline math in table cells', () => {
     const latex = `\\begin{table}[h]

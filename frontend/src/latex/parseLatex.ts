@@ -485,7 +485,18 @@ function parseListItems(inner: string): JSONContent[] {
         }
         current = ''
         pos = afterItem
+        // Skip optional whitespace between \item and [label]
         while (pos < inner.length && /\s/.test(inner[pos])) pos++
+        // Extract optional [label] for description items
+        if (pos < inner.length && inner[pos] === '[') {
+          const closeBracket = inner.indexOf(']', pos)
+          if (closeBracket !== -1) {
+            const label = inner.slice(pos + 1, closeBracket)
+            current = `\x00LABEL:${label}\x00`
+            pos = closeBracket + 1
+            while (pos < inner.length && /\s/.test(inner[pos])) pos++
+          }
+        }
         continue
       }
     }
@@ -500,18 +511,31 @@ function parseListItems(inner: string): JSONContent[] {
     const trimmed = part.trim()
     if (!trimmed) continue
 
+    // Extract label sentinel if present
+    let itemLabel: string | undefined
+    let cleanPart = trimmed
+    const labelMatch = trimmed.match(/^\x00LABEL:(.+?)\x00(.*)$/s)
+    if (labelMatch) {
+      itemLabel = labelMatch[1]
+      cleanPart = labelMatch[2].trim()
+    }
+
+    const itemAttrs: Record<string, any> = {}
+    if (itemLabel) itemAttrs.label = itemLabel
+
     // If the item contains any \begin{...} environment, parse as blocks
     // (handles nested lists, equation*, align*, etc.)
-    if (/\\begin\{/.test(trimmed)) {
-      const blocks = flatParseBlocks(trimmed)
+    if (/\\begin\{/.test(cleanPart)) {
+      const blocks = flatParseBlocks(cleanPart)
       if (blocks.length > 0) {
-        items.push({ type: 'listItem', content: blocks })
+        items.push({ type: 'listItem', ...(Object.keys(itemAttrs).length > 0 ? { attrs: itemAttrs } : {}), content: blocks })
       }
     } else {
-      const inlineContent = parseInline(trimmed)
+      const inlineContent = parseInline(cleanPart)
       if (inlineContent.length > 0) {
         items.push({
           type: 'listItem',
+          ...(Object.keys(itemAttrs).length > 0 ? { attrs: itemAttrs } : {}),
           content: [{ type: 'paragraph', content: inlineContent }],
         })
       }
